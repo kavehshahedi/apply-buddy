@@ -51,6 +51,12 @@ def _load_prompt_model(key: str) -> Optional[str]:
     return None
 
 
+def _is_reasoning_model(model_name: str) -> bool:
+    return model_name.startswith("gpt-5") or (
+        len(model_name) > 1 and model_name[0] == "o" and model_name[1].isdigit()
+    )
+
+
 def _build_url(model: Optional[str] = None) -> str:
     base = settings.llm_base_url.rstrip("/")
     effective_model = model or settings.llm_model
@@ -69,13 +75,18 @@ def chat_completion(
         "Authorization": f"Bearer {settings.llm_api_key}",
         "Content-Type": "application/json",
     }
+    effective_model = model or settings.llm_model
+    is_reasoning = _is_reasoning_model(effective_model)
     body: Dict[str, Any] = {
         "messages": messages,
-        "temperature": settings.llm_temperature,
-        "max_tokens": 4096,
     }
+    if not is_reasoning:
+        body["temperature"] = settings.llm_temperature
+        body["max_tokens"] = 4096
+    else:
+        body["max_completion_tokens"] = 4096
     if settings.llm_provider != "databricks":
-        body["model"] = model or settings.llm_model
+        body["model"] = effective_model
     if response_format == "json":
         body["response_format"] = {"type": "json_object"}
 
