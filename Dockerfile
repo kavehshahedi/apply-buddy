@@ -2,11 +2,14 @@ FROM python:3.12.7-slim
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1 \
-    CHROME_BIN=/usr/bin/chromium
+    CHROME_BIN=/usr/bin/chromium \
+    CHROMEDRIVER_PATH=/usr/bin/chromedriver
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     chromium \
     chromium-driver \
+    chromium-common \
+    chromium-sandbox \
     pandoc \
     texlive-latex-base \
     texlive-latex-extra \

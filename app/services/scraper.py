@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 import re
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
@@ -11,6 +12,13 @@ from app.db import engine
 from app.models import Job, SearchQuery
 
 logger = logging.getLogger("apply-buddy.scraper")
+
+
+def _chrome_paths() -> dict:
+    return {
+        "executable_path": os.environ.get("CHROMEDRIVER_PATH"),
+        "binary_location": os.environ.get("CHROME_BIN"),
+    }
 
 
 _UNIT_MAP = {
@@ -186,8 +194,10 @@ def scrape_single_job(url: str, state: Dict[str, Any]) -> None:
     def on_not_found(data: EventNotFound):
         scraped_data["not_found"] = data.job_id  # type: ignore
 
+    chrome = _chrome_paths()
     scraper = LinkedinScraper(
-        chrome_executable_path=None,  # type: ignore
+        chrome_executable_path=chrome["executable_path"],
+        chrome_binary_location=chrome["binary_location"],
         headless=True,
         max_workers=1,
         slow_mo=1.0,
@@ -290,8 +300,10 @@ def scrape_jobs(queries: List[SearchQuery], state: Dict[str, Any]) -> None:
         OnSiteOrRemoteFilters,
     )
 
+    chrome = _chrome_paths()
     scraper = LinkedinScraper(
-        chrome_executable_path=None,  # type: ignore
+        chrome_executable_path=chrome["executable_path"],
+        chrome_binary_location=chrome["binary_location"],
         headless=True,
         max_workers=1,
         slow_mo=1.0,
