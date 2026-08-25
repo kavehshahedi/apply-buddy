@@ -60,6 +60,9 @@ async def settings_page(request: Request, session: Session = Depends(get_session
                 "prompt_cover_letter_model", ""
             ),
             "default_model": settings.llm_model,
+            "convert_cv_pdf": db_settings.get("convert_cv_pdf", "1"),
+            "convert_cl_pdf": db_settings.get("convert_cl_pdf", "1"),
+            "convert_cl_docx": db_settings.get("convert_cl_docx", "1"),
         },
     )
 

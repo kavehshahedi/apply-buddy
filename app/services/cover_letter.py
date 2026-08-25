@@ -7,7 +7,7 @@ from sqlmodel import Session
 
 from app.config import settings
 from app.db import engine
-from app.models import Job
+from app.models import Job, Setting
 from app.services.llm import chat_completion, LLMError, _load_prompt, _load_prompt_model
 from app.services.compile import (
     convert_markdown_to_docx,
@@ -55,39 +55,61 @@ def generate_cover_letter(job_id: int, state: dict = None) -> None:
         session.add(job)
         session.commit()
 
-    can_convert = pandoc_available() or latex_available()
-    if can_convert:
-        state["message"] = "Converting to DOCX/PDF..."
-        docx_ok = False
-        if pandoc_available():
-            docx_ok, docx_err = convert_markdown_to_docx(md_path, output_dir)
-            if not docx_ok:
-                logger.warning("DOCX conversion failed: %s", docx_err)
+    with Session(engine) as session:
+        convert_cl_pdf = session.get(Setting, "convert_cl_pdf")
+        convert_cl_docx = session.get(Setting, "convert_cl_docx")
+        want_pdf = convert_cl_pdf.value == "1" if convert_cl_pdf else True
+        want_docx = convert_cl_docx.value == "1" if convert_cl_docx else True
+
+    docx_ok = False
+    pdf_ok = False
+    conversion_attempted = False
+
+    if want_docx and pandoc_available():
+        state["message"] = "Converting to DOCX..."
+        docx_ok, docx_err = convert_markdown_to_docx(md_path, output_dir)
+        if not docx_ok:
+            logger.warning("DOCX conversion failed: %s", docx_err)
+        conversion_attempted = True
+
+    if want_pdf and (pandoc_available() or latex_available()):
+        state["message"] = "Converting to PDF..."
         pdf_ok, pdf_err = convert_markdown_to_pdf(md_path, output_dir)
         if not pdf_ok:
             logger.warning("PDF conversion failed: %s", pdf_err)
-        with Session(engine) as session:
-            job = session.get(Job, job_id)
-            docx_path = output_dir / "cover_letter.docx"
-            pdf_path = output_dir / "cover_letter.pdf"
-            if docx_ok and docx_path.exists():
-                job.cover_letter_docx_path = str(docx_path)
-            if pdf_ok and pdf_path.exists():
-                job.cover_letter_pdf_path = str(pdf_path)
-            session.add(job)
-            session.commit()
+        conversion_attempted = True
+
+    with Session(engine) as session:
+        job = session.get(Job, job_id)
+        docx_path = output_dir / "cover_letter.docx"
+        pdf_path = output_dir / "cover_letter.pdf"
+        if docx_ok and docx_path.exists():
+            job.cover_letter_docx_path = str(docx_path)
+        if pdf_ok and pdf_path.exists():
+            job.cover_letter_pdf_path = str(pdf_path)
+        session.add(job)
+        session.commit()
+
+    if conversion_attempted:
+        parts = []
+        if docx_ok:
+            parts.append("DOCX")
         if pdf_ok:
-            state["message"] = "Cover letter saved with PDF"
+            parts.append("PDF")
+        if parts:
+            state["message"] = f"Cover letter saved with {' & '.join(parts)}"
         else:
-            state["message"] = (
-                f"Cover letter .md saved (PDF conversion failed: {pdf_err[:120]})"
-            )
-            logger.error("PDF conversion failed for job %s: %s", job_id, pdf_err)
+            msg = "Cover letter .md saved (conversion failed)"
+            if want_docx and not docx_ok:
+                msg += f" DOCX: {docx_err[:120]}"
+            if want_pdf and not pdf_ok:
+                msg += f" PDF: {pdf_err[:120]}"
+            state["message"] = msg
     else:
-        state["message"] = "Cover letter .md saved (no PDF engine available)"
-        logger.info(
-            "No PDF engine (pandoc or pdflatex) available, cover letter .md saved without conversion"
-        )
+        if not want_pdf and not want_docx:
+            state["message"] = "Cover letter .md saved (conversions disabled)"
+        else:
+            state["message"] = "Cover letter .md saved (no conversion engine available)"
 
 
 DEFAULT_COVER_LETTER_PROMPT = """Write a professional cover letter in Markdown format. Natural, human tone. No commentary.

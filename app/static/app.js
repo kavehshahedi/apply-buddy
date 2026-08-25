@@ -269,6 +269,21 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
+  // Toggle switch save
+  document.querySelectorAll('.toggle-input').forEach(cb => {
+    cb.addEventListener('change', async function () {
+      const key = this.dataset.toggleKey;
+      const value = this.checked ? '1' : '0';
+      const resp = await fetch(`/settings/setting/${key}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ value })
+      });
+      if (resp.ok) showToast('Setting saved', '');
+      else showToast('Failed to save setting', 'error');
+    });
+  });
+
   // Save setting
   document.querySelectorAll('.save-setting').forEach(btn => {
     btn.addEventListener('click', async function () {

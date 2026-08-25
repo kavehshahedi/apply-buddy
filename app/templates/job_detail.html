@@ -89,61 +89,7 @@
       </div>
     </div>
 
-    {% if job.tailored_cv_path or job.tailored_cv_pdf_path or job.cover_letter_path or job.cover_letter_docx_path or job.cover_letter_pdf_path %}
-    <div class="card">
-      <div class="card-header" style="margin-bottom:14px;">
-        <div class="card-title">Generated Files</div>
-      </div>
-      <div class="files-list">
-        {% if job.tailored_cv_path %}
-        <a href="/actions/download/{{ job.id }}/cv.tex" class="file-item">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-          </svg>
-          Tailored CV
-          <span class="file-item-type">.tex</span>
-        </a>
-        {% endif %}
-        {% if job.tailored_cv_pdf_path %}
-        <a href="/actions/download/{{ job.id }}/cv.pdf" class="file-item">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-          </svg>
-          Tailored CV
-          <span class="file-item-type">.pdf</span>
-        </a>
-        {% endif %}
-        {% if job.cover_letter_path %}
-        <a href="/actions/download/{{ job.id }}/cover_letter.md" class="file-item">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
-          </svg>
-          Cover Letter
-          <span class="file-item-type">.md</span>
-        </a>
-        {% endif %}
-        {% if job.cover_letter_docx_path %}
-        <a href="/actions/download/{{ job.id }}/cover_letter.docx" class="file-item">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
-          </svg>
-          Cover Letter
-          <span class="file-item-type">.docx</span>
-        </a>
-        {% endif %}
-        {% if job.cover_letter_pdf_path %}
-        <a href="/actions/download/{{ job.id }}/cover_letter.pdf" class="file-item">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-          </svg>
-          Cover Letter
-          <span class="file-item-type">.pdf</span>
-        </a>
-        {% endif %}
-      </div>
     </div>
-    {% endif %}
-  </div>
 
   <div class="detail-stack">
     <div class="fit-card">
@@ -198,6 +144,61 @@
         </button>
       </div>
     </div>
+
+    {% if job.tailored_cv_path or job.tailored_cv_pdf_path or job.cover_letter_path or job.cover_letter_docx_path or job.cover_letter_pdf_path %}
+    <div class="card">
+      <div class="card-header" style="margin-bottom:14px;">
+        <div class="card-title">Generated Files</div>
+      </div>
+      <div class="files-list">
+        {% if job.tailored_cv_path %}
+        <a href="/actions/download/{{ job.id }}/cv.tex" class="file-item">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Tailored CV
+          <span class="file-item-type">.tex</span>
+        </a>
+        {% endif %}
+        {% if job.tailored_cv_pdf_path %}
+        <a href="/actions/download/{{ job.id }}/cv.pdf" class="file-item">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Tailored CV
+          <span class="file-item-type">.pdf</span>
+        </a>
+        {% endif %}
+        {% if job.cover_letter_path %}
+        <a href="/actions/download/{{ job.id }}/cover_letter.md" class="file-item">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+          </svg>
+          Cover Letter
+          <span class="file-item-type">.md</span>
+        </a>
+        {% endif %}
+        {% if job.cover_letter_docx_path %}
+        <a href="/actions/download/{{ job.id }}/cover_letter.docx" class="file-item">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+          </svg>
+          Cover Letter
+          <span class="file-item-type">.docx</span>
+        </a>
+        {% endif %}
+        {% if job.cover_letter_pdf_path %}
+        <a href="/actions/download/{{ job.id }}/cover_letter.pdf" class="file-item">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Cover Letter
+          <span class="file-item-type">.pdf</span>
+        </a>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
 
     <div class="card">
       <div class="card-header" style="margin-bottom:16px;">

@@ -141,6 +141,40 @@
         <div class="form-hint">Parallel LLM calls (1–50)</div>
       </div>
 
+      <div class="settings-section">
+        <div class="settings-section-title">Conversion Settings</div>
+        <div class="toggle-row">
+          <div class="toggle-label">
+            <span class="toggle-label-title">CV to PDF</span>
+            <span class="toggle-label-desc">Convert tailored CV to PDF via LaTeX after generation</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" class="toggle-input" data-toggle-key="convert_cv_pdf" {% if convert_cv_pdf == '1' %}checked{% endif %}>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-label">
+            <span class="toggle-label-title">Cover Letter to PDF</span>
+            <span class="toggle-label-desc">Convert cover letter to PDF via Pandoc/LaTeX after generation</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" class="toggle-input" data-toggle-key="convert_cl_pdf" {% if convert_cl_pdf == '1' %}checked{% endif %}>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-label">
+            <span class="toggle-label-title">Cover Letter to DOCX</span>
+            <span class="toggle-label-desc">Convert cover letter to DOCX via Pandoc after generation</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" class="toggle-input" data-toggle-key="convert_cl_docx" {% if convert_cl_docx == '1' %}checked{% endif %}>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
       <div style="padding-top:8px;border-top:1px solid var(--border-light);">
         <div class="card-title" style="margin-bottom:12px;">Tool Status</div>
         <ul class="tool-status-list" id="tool-status">

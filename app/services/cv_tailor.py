@@ -11,6 +11,7 @@ from app.db import engine
 from app.models import Job
 from app.services.llm import chat_completion, LLMError, _load_prompt, _load_prompt_model
 from app.services.compile import compile_latex_to_pdf, latex_available
+from app.models import Setting
 
 logger = logging.getLogger("apply-buddy.cv_tailor")
 
@@ -55,7 +56,13 @@ def tailor_cv_for_job(job_id: int, state: dict = None) -> None:
         session.add(job)
         session.commit()
 
-    if latex_available():
+    convert_pdf = True
+    with Session(engine) as session:
+        setting = session.get(Setting, "convert_cv_pdf")
+        if setting:
+            convert_pdf = setting.value == "1"
+
+    if convert_pdf and latex_available():
         state["message"] = "Compiling CV to PDF..."
         success, msg = compile_latex_to_pdf(tex_path, output_dir)
         if success:
@@ -71,8 +78,11 @@ def tailor_cv_for_job(job_id: int, state: dict = None) -> None:
             state["message"] = f"CV saved but compilation had issues: {msg[:200]}"
             logger.warning(f"CV compilation failed for job {job_id}: {msg}")
     else:
-        state["message"] = "CV .tex saved (LaTeX not available for PDF)"
-        logger.info("LaTeX not available, CV .tex saved without compilation")
+        if not convert_pdf:
+            state["message"] = "CV .tex saved (PDF conversion disabled)"
+        else:
+            state["message"] = "CV .tex saved (LaTeX not available for PDF)"
+        logger.info("CV .tex saved without PDF compilation")
 
 
 DEFAULT_TAILOR_CV_PROMPT = """You are editing a LaTeX CV. Return ONLY a complete, compilable .tex document — no commentary, no markdown fences.
