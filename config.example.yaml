@@ -1,0 +1,30 @@
+# Apply-Buddy Configuration
+# Copy this to config.yaml and customize
+# NOTE: Secrets and LLM settings go in .env, not here.
+# Precedence: .env > config.yaml > code defaults
+
+# Path to your master LaTeX CV
+cv_tex_path: data/cv/cv.tex
+
+# Output directory for generated files (tailored CVs, cover letters)
+output_dir: data/output
+
+# Chrome profile directory for the LinkedIn scraper session
+chrome_profile_dir: chrome-profile
+
+# Minimum fit score threshold (0–100) used in KPI filtering
+min_fit_score: 30
+
+# Minimum keyword score to proceed to LLM scoring (0 = disabled)
+min_keyword_score: 0
+
+# Maximum parallel LLM calls when batch-scoring jobs
+llm_max_concurrency: 4
+
+# Available models shown in the Prompts & Models settings tab.
+# Each prompt type (Score Fit, CV Tailor, Cover Letter) can use a different model.
+# Override this list to match your LLM provider's available models.
+llm_available_models: '["llama3.2", "gpt-4o", "gpt-4o-mini", "claude-3-opus", "claude-3-sonnet", "mistral-large"]'
+
+# match_keywords must be a JSON string (the YAML parser will handle dicts automatically):
+# match_keywords: '{"python": 5, "machine learning": 3}'

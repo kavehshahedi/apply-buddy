@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+{% block title %} — Settings{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Settings</h1>
+    <p class="page-title-sub">Manage search queries, application configuration, and LLM prompts</p>
+  </div>
+</div>
+
+<div class="settings-tabs">
+  <button class="settings-tab active" data-tab="queries">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+    Search Queries
+  </button>
+  <button class="settings-tab" data-tab="settings">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.32 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
+    </svg>
+    Application Settings
+  </button>
+  <button class="settings-tab" data-tab="prompts">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+    </svg>
+    Prompts &amp; Models
+  </button>
+</div>
+
+<div class="settings-panel active" id="panel-queries">
+  <div class="card">
+    <div class="card-header" style="margin-bottom:18px;">
+      <div class="card-title">Search Queries</div>
+      <span style="font-size:12px;color:var(--text-muted);">{{ queries|length }} queries</span>
+    </div>
+
+    <div id="queries-list">
+      {% for q in queries %}
+      <div class="query-card" data-query-id="{{ q.id }}">
+        <div class="query-card-info">
+          <div class="query-card-keywords">{{ q.keywords or '(any keywords)' }}</div>
+          <div class="query-card-meta">
+            {{ q.locations | join(', ') if q.locations else 'Any location' }}
+            &middot; Limit: {{ q.limit }}
+            {% if q.days_back %}&middot; Days back: {{ q.days_back }}{% endif %}
+            &middot; {% if q.enabled %}<span style="color:var(--success);">Enabled</span>{% else %}Disabled{% endif %}
+          </div>
+        </div>
+        <div class="query-card-actions">
+          <button class="delete-query btn btn-danger btn-xs" data-query-id="{{ q.id }}">Delete</button>
+        </div>
+      </div>
+      {% else %}
+      <div style="text-align:center;padding:24px 12px;color:var(--text-muted);font-size:13px;">
+        No search queries configured yet.
+      </div>
+      {% endfor %}
+    </div>
+
+    <button id="add-query-btn" class="btn btn-secondary btn-sm" style="margin-top:14px;width:100%;justify-content:center;">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Add Query
+    </button>
+
+    <div id="add-query-form" class="hidden" style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border-light);display:none;">
+      <div class="form-group">
+        <label class="form-label">Keywords</label>
+        <input id="q-keywords" class="form-control" placeholder="e.g. software engineer">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Locations (comma-separated)</label>
+        <input id="q-locations" class="form-control" placeholder="e.g. Toronto, Remote">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Limit</label>
+        <input id="q-limit" type="number" value="25" class="form-control" style="width:120px;">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Days Back (optional)</label>
+        <input id="q-days-back" type="number" class="form-control" style="width:120px;" placeholder="e.g. 5">
+        <div class="form-hint">Only fetch jobs posted/reposted within this many days</div>
+      </div>
+      <button id="save-query-btn" class="btn btn-primary btn-sm">Save Query</button>
+    </div>
+  </div>
+</div>
+
+<div class="settings-panel" id="panel-settings">
+  <div class="card">
+    <div class="card-header" style="margin-bottom:18px;">
+      <div class="card-title">Application Settings</div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:18px;">
+      <div>
+        <label class="form-label">CV .tex Path</label>
+        <div style="display:flex;gap:8px;">
+          <input id="cv-path" value="{{ cv_path }}" class="form-control" style="font-size:12px;font-family:var(--font-mono);">
+          <button data-setting-key="cv_tex_path" data-input-id="cv-path" class="save-setting btn btn-primary btn-sm" style="flex-shrink:0;">Save</button>
+        </div>
+      </div>
+
+      <div>
+        <label class="form-label">Match Keywords (JSON)</label>
+        <div style="display:flex;gap:8px;">
+          <input id="match-keywords" value='{{ match_keywords }}' class="form-control" style="font-size:12px;font-family:var(--font-mono);">
+          <button data-setting-key="match_keywords" data-input-id="match-keywords" class="save-setting btn btn-primary btn-sm" style="flex-shrink:0;">Save</button>
+        </div>
+        <div class="form-hint">Format: {"keyword": weight}</div>
+      </div>
+
+      <div>
+        <label class="form-label">Min Fit Score</label>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input id="min-fit-score" type="number" value="{{ min_fit_score }}" class="form-control" style="width:100px;" min="0" max="100">
+          <button data-setting-key="min_fit_score" data-input-id="min-fit-score" class="save-setting btn btn-primary btn-sm">Save</button>
+        </div>
+        <div class="form-hint">LLM fit threshold (0–100)</div>
+      </div>
+
+      <div>
+        <label class="form-label">Min Keyword Score</label>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input id="min-keyword-score" type="number" value="{{ min_keyword_score }}" class="form-control" style="width:100px;" min="0">
+          <button data-setting-key="min_keyword_score" data-input-id="min-keyword-score" class="save-setting btn btn-primary btn-sm">Save</button>
+        </div>
+        <div class="form-hint">Pre-filter cutoff (0 = disabled)</div>
+      </div>
+
+      <div>
+        <label class="form-label">LLM Max Concurrency</label>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input id="llm-max-concurrency" type="number" value="{{ llm_max_concurrency }}" class="form-control" style="width:100px;" min="1" max="50">
+          <button data-setting-key="llm_max_concurrency" data-input-id="llm-max-concurrency" class="save-setting btn btn-primary btn-sm">Save</button>
+        </div>
+        <div class="form-hint">Parallel LLM calls (1–50)</div>
+      </div>
+
+      <div style="padding-top:8px;border-top:1px solid var(--border-light);">
+        <div class="card-title" style="margin-bottom:12px;">Tool Status</div>
+        <ul class="tool-status-list" id="tool-status">
+          <li class="tool-status-item">
+            <span>Chrome</span>
+            <span class="tool-status-value" data-tool="chrome">checking...</span>
+          </li>
+          <li class="tool-status-item">
+            <span>LaTeX</span>
+            <span class="tool-status-value" data-tool="latex">checking...</span>
+          </li>
+          <li class="tool-status-item">
+            <span>Pandoc</span>
+            <span class="tool-status-value" data-tool="pandoc">checking...</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="settings-panel" id="panel-prompts">
+  <div class="card">
+    <div class="card-header" style="margin-bottom:18px;">
+      <div class="card-title">Prompts &amp; Models</div>
+      <span style="font-size:12px;color:var(--text-muted);">Customize prompts and select the model for each AI action</span>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:28px;">
+      <div class="prompt-block">
+        <div class="prompt-block-header">
+          <div class="prompt-block-title">Score Fit</div>
+          <span style="font-size:11px;color:var(--text-muted);font-family:var(--font-mono);">Variables: <code>{cv_plain}</code> <code>{job_title}</code> <code>{company}</code> <code>{description}</code></span>
+        </div>
+        <div class="prompt-block-model">
+          <label class="form-label" style="margin-bottom:0;font-size:11px;">Model</label>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <select class="form-control prompt-model-select" data-setting-key="prompt_score_fit_model" data-input-id="prompt-score-fit-model">
+              <option value="">Use default ({{ default_model }})</option>
+              {% for m in available_models %}
+              <option value="{{ m }}" {% if prompt_score_fit_model == m %}selected{% endif %}>{{ m }}</option>
+              {% endfor %}
+            </select>
+            <button class="btn btn-primary btn-xs save-setting" data-setting-key="prompt_score_fit_model" data-input-id="prompt-score-fit-model">Save</button>
+          </div>
+        </div>
+        <div class="prompt-block-textarea">
+          <textarea id="prompt-score-fit" class="form-control prompt-textarea" rows="7" spellcheck="false">{{ prompt_score_fit }}</textarea>
+          <div style="display:flex;gap:6px;margin-top:6px;">
+            <button data-setting-key="prompt_score_fit" data-input-id="prompt-score-fit" class="save-setting btn btn-primary btn-sm">Save Prompt</button>
+            <button class="btn btn-secondary btn-sm reset-prompt" data-setting-key="prompt_score_fit" data-input-id="prompt-score-fit" data-default="{{ DEFAULT_SCORE_FIT_PROMPT }}">Reset to Default</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="prompt-block">
+        <div class="prompt-block-header">
+          <div class="prompt-block-title">CV Tailor</div>
+          <span style="font-size:11px;color:var(--text-muted);font-family:var(--font-mono);">Variables: <code>{title}</code> <code>{company}</code> <code>{description}</code> <code>{master_tex}</code></span>
+        </div>
+        <div class="prompt-block-model">
+          <label class="form-label" style="margin-bottom:0;font-size:11px;">Model</label>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <select class="form-control prompt-model-select" data-setting-key="prompt_tailor_cv_model" data-input-id="prompt-tailor-cv-model">
+              <option value="">Use default ({{ default_model }})</option>
+              {% for m in available_models %}
+              <option value="{{ m }}" {% if prompt_tailor_cv_model == m %}selected{% endif %}>{{ m }}</option>
+              {% endfor %}
+            </select>
+            <button class="btn btn-primary btn-xs save-setting" data-setting-key="prompt_tailor_cv_model" data-input-id="prompt-tailor-cv-model">Save</button>
+          </div>
+        </div>
+        <div class="prompt-block-textarea">
+          <textarea id="prompt-tailor-cv" class="form-control prompt-textarea" rows="7" spellcheck="false">{{ prompt_tailor_cv }}</textarea>
+          <div style="display:flex;gap:6px;margin-top:6px;">
+            <button data-setting-key="prompt_tailor_cv" data-input-id="prompt-tailor-cv" class="save-setting btn btn-primary btn-sm">Save Prompt</button>
+            <button class="btn btn-secondary btn-sm reset-prompt" data-setting-key="prompt_tailor_cv" data-input-id="prompt-tailor-cv" data-default="{{ DEFAULT_TAILOR_CV_PROMPT }}">Reset to Default</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="prompt-block">
+        <div class="prompt-block-header">
+          <div class="prompt-block-title">Cover Letter</div>
+          <span style="font-size:11px;color:var(--text-muted);font-family:var(--font-mono);">Variables: <code>{title}</code> <code>{company}</code> <code>{description}</code> <code>{cv_text}</code></span>
+        </div>
+        <div class="prompt-block-model">
+          <label class="form-label" style="margin-bottom:0;font-size:11px;">Model</label>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <select class="form-control prompt-model-select" data-setting-key="prompt_cover_letter_model" data-input-id="prompt-cover-letter-model">
+              <option value="">Use default ({{ default_model }})</option>
+              {% for m in available_models %}
+              <option value="{{ m }}" {% if prompt_cover_letter_model == m %}selected{% endif %}>{{ m }}</option>
+              {% endfor %}
+            </select>
+            <button class="btn btn-primary btn-xs save-setting" data-setting-key="prompt_cover_letter_model" data-input-id="prompt-cover-letter-model">Save</button>
+          </div>
+        </div>
+        <div class="prompt-block-textarea">
+          <textarea id="prompt-cover-letter" class="form-control prompt-textarea" rows="7" spellcheck="false">{{ prompt_cover_letter }}</textarea>
+          <div style="display:flex;gap:6px;margin-top:6px;">
+            <button data-setting-key="prompt_cover_letter" data-input-id="prompt-cover-letter" class="save-setting btn btn-primary btn-sm">Save Prompt</button>
+            <button class="btn btn-secondary btn-sm reset-prompt" data-setting-key="prompt_cover_letter" data-input-id="prompt-cover-letter" data-default="{{ DEFAULT_COVER_LETTER_PROMPT }}">Reset to Default</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

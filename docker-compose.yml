@@ -1,0 +1,10 @@
+services:
+  apply-buddy:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./chrome-profile:/app/chrome-profile
+      - ./.env:/app/.env:ro
+    restart: unless-stopped

@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+*.pyo
+data/
+chrome-profile/
+.env
+.git/
+.gitignore
+.ruff_cache/
+CHANGES.md
+README.md
+config.example.yaml
+Dockerfile
+docker-compose.yml
+.dockerignore

@@ -1,0 +1,30 @@
+# Dependencies
+__pycache__/
+*.pyc
+*.pyo
+
+# Data
+data/
+!data/.gitkeep
+
+# Chrome profile
+chrome-profile/
+
+# Environment
+.env
+
+# Database
+*.db
+*.sqlite
+
+# LaTeX build artifacts
+*.aux
+*.log
+*.out
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+
+# OS
+.DS_Store
+Thumbs.db
