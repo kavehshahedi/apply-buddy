@@ -1562,6 +1562,39 @@ select.form-control {
   gap: 8px;
 }
 
+/* ─── Viewed / Unviewed (Gmail-style) ──────────────────────── */
+.job-row-info {
+  position: relative;
+}
+.unviewed-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  position: absolute;
+  left: -16px;
+  top: 5px;
+}
+tr.unviewed {
+  background: var(--accent-soft);
+}
+tr.unviewed:hover {
+  background: #E0E7FF;
+}
+tr.unviewed .job-row-title {
+  font-weight: 700;
+  color: var(--text);
+}
+tr.unviewed .job-row-meta {
+  font-weight: 500;
+  color: var(--text-muted);
+}
+tr.unviewed td:first-child {
+  box-shadow: inset 3px 0 0 0 var(--accent);
+}
+tr.viewed .unviewed-dot {
+  display: none;
+}
+
 @media (max-width: 900px) {
   .sidebar { width: 60px; }
   .sidebar-logo span, .sidebar-section-label, .nav-link span, .sidebar-user { display: none; }

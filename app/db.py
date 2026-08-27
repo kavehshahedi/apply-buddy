@@ -25,15 +25,19 @@ def _migrate_schema():
     inspector = inspect(engine)
 
     jobs_columns = [c["name"] for c in inspector.get_columns("jobs")]
-    for col in [
-        "cover_letter_docx_path",
-        "cover_letter_pdf_path",
-        "company_logo",
-        "date_posted_dt",
+    for col, col_type, default in [
+        ("cover_letter_docx_path", "VARCHAR", None),
+        ("cover_letter_pdf_path", "VARCHAR", None),
+        ("company_logo", "VARCHAR", None),
+        ("date_posted_dt", "VARCHAR", None),
+        ("viewed", "BOOLEAN", "1"),
     ]:
         if col not in jobs_columns:
+            sql = f"ALTER TABLE jobs ADD COLUMN {col} {col_type}"
+            if default:
+                sql += f" DEFAULT {default}"
             with engine.connect() as conn:
-                conn.execute(text(f"ALTER TABLE jobs ADD COLUMN {col} VARCHAR"))
+                conn.execute(text(sql))
                 conn.commit()
 
     try:

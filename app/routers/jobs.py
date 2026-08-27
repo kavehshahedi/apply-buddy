@@ -16,6 +16,7 @@ async def job_list(
     order: str = "desc",
     min_score: int = 0,
     source: str = "all",
+    viewed: str = "all",
 ):
     query = select(Job).where(Job.status.in_([JobStatus.new, JobStatus.interested]))
     if min_score > 0:
@@ -24,6 +25,10 @@ async def job_list(
         query = query.where(~Job.linkedin_job_id.like("manual%"))
     elif source == "manual":
         query = query.where(Job.linkedin_job_id.like("manual%"))
+    if viewed == "viewed":
+        query = query.where(Job.viewed.is_(True))
+    elif viewed == "unviewed":
+        query = query.where(Job.viewed.is_(False))
     if sort == "score":
         order_col = Job.fit_score
     elif sort == "scraped":
@@ -42,6 +47,7 @@ async def job_list(
             "order": order,
             "min_score": min_score,
             "source": source,
+            "viewed": viewed,
         },
     )
 
@@ -53,6 +59,10 @@ async def job_detail(
     job = session.get(Job, job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
+    if not job.viewed:
+        job.viewed = True
+        session.add(job)
+        session.commit()
     return request.app.state.templates.TemplateResponse(
         "job_detail.html", {"request": request, "job": job}
     )

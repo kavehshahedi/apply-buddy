@@ -17,7 +17,8 @@ document.addEventListener('DOMContentLoaded', function () {
       const order = document.getElementById('order-select').value;
       const minScore = document.getElementById('min-score-input').value || '0';
       const source = document.getElementById('source-select').value;
-      window.location.href = `/jobs/?sort=${sort}&order=${order}&min_score=${minScore}&source=${source}`;
+      const viewed = document.getElementById('viewed-select').value;
+      window.location.href = `/jobs/?sort=${sort}&order=${order}&min_score=${minScore}&source=${source}&viewed=${viewed}`;
     });
   }
 

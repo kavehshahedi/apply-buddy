@@ -2,7 +2,7 @@ import enum
 from datetime import datetime, timezone
 from typing import Optional
 
-from sqlmodel import Field, SQLModel, JSON, Column
+from sqlmodel import Field, SQLModel, JSON
 
 
 class JobStatus(str, enum.Enum):
@@ -33,6 +33,7 @@ class Job(SQLModel, table=True):
     date_posted_dt: Optional[datetime] = None
     date_scraped: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+    viewed: bool = False
     status: JobStatus = Field(default=JobStatus.new)
     fit_score: Optional[int] = None
     fit_reason: Optional[str] = None

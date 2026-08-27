@@ -2,10 +2,11 @@
 {% block title %} — Job Listings{% endblock %}
 {% block content %}
 
-{% set ns = namespace(new_count=0, interested_count=0, scored_count=0, score_sum=0, high_match=0) %}
+{% set ns = namespace(new_count=0, interested_count=0, scored_count=0, score_sum=0, high_match=0, unviewed_count=0) %}
 {% for j in jobs %}
 {% if j.status == 'new' %}{% set ns.new_count = ns.new_count + 1 %}{% endif %}
 {% if j.status == 'interested' %}{% set ns.interested_count = ns.interested_count + 1 %}{% endif %}
+{% if not j.viewed %}{% set ns.unviewed_count = ns.unviewed_count + 1 %}{% endif %}
 {% if j.fit_score is not none %}
 {% set ns.scored_count = ns.scored_count + 1 %}
 {% set ns.score_sum = ns.score_sum + j.fit_score %}
@@ -17,13 +18,17 @@
 <div class="page-header">
   <div>
     <h1 class="page-title">Job Listings</h1>
-    <p class="page-title-sub">{{ jobs|length }} jobs in pipeline · {{ ns.new_count }} new · {{ ns.interested_count }}
+    <p class="page-title-sub">{{ jobs|length }} jobs in pipeline · {{ ns.unviewed_count }} unviewed · {{ ns.new_count }} new · {{ ns.interested_count }}
       interested</p>
   </div>
 </div>
 
 <div class="stats-bar">
   <div class="stats-grid">
+    <div class="stat-item">
+      <span class="stat-value" style="color:var(--accent);">{{ ns.unviewed_count }}</span>
+      <span class="stat-label">Unviewed</span>
+    </div>
     <div class="stat-item">
       <span class="stat-value" style="color:var(--success);">{{ ns.new_count }}</span>
       <span class="stat-label">New</span>
@@ -242,6 +247,15 @@
         <option value="manual" {% if source=='manual' %}selected{% endif %}>Manual</option>
       </select>
     </div>
+    <div class="filter-divider" aria-hidden="true"></div>
+    <div class="filter-group">
+      <label for="viewed-select" class="filter-label">Viewed</label>
+      <select id="viewed-select" name="viewed" class="filter-select">
+        <option value="all" {% if viewed=='all' %}selected{% endif %}>All</option>
+        <option value="unviewed" {% if viewed=='unviewed' %}selected{% endif %}>Unviewed</option>
+        <option value="viewed" {% if viewed=='viewed' %}selected{% endif %}>Viewed</option>
+      </select>
+    </div>
     <button id="apply-filters-btn" type="button" class="btn btn-secondary btn-sm">Apply</button>
   </div>
 </form>
@@ -261,7 +275,7 @@
       </thead>
       <tbody>
         {% for job in jobs %}
-        <tr>
+        <tr class="{% if job.viewed %}viewed{% else %}unviewed{% endif %}">
           <td>
             {% if job.company_logo %}
             <div class="company-avatar" style="background:var(--card);border:1px solid var(--border);"><img
@@ -277,7 +291,7 @@
           <td>
             <div class="job-row-main">
               <div class="job-row-info">
-                <a href="/jobs/{{ job.id }}" class="job-row-title">{{ job.title }}</a>
+                <span class="unviewed-dot"></span><a href="/jobs/{{ job.id }}" class="job-row-title">{{ job.title }}</a>
                 <div class="job-row-meta">
                   <span>{{ job.company }}</span>
                   {% if job.date_posted_dt %}
