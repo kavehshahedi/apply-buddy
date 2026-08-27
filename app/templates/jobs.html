@@ -144,7 +144,8 @@
     <div class="filter-group">
       <label for="sort-select" class="filter-label">Sort</label>
       <select id="sort-select" name="sort" class="filter-select">
-        <option value="date" {% if sort=='date' %}selected{% endif %}>Date</option>
+        <option value="date" {% if sort=='date' %}selected{% endif %}>Date Posted</option>
+        <option value="scraped" {% if sort=='scraped' %}selected{% endif %}>Date Fetched</option>
         <option value="score" {% if sort=='score' %}selected{% endif %}>Fit Score</option>
       </select>
     </div>

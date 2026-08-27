@@ -1,5 +1,5 @@
-import asyncio
-from fastapi import APIRouter, Depends, BackgroundTasks, Request
+from typing import Optional
+from fastapi import APIRouter, Depends, BackgroundTasks
 from fastapi.responses import FileResponse, JSONResponse
 from sqlmodel import Session
 from app.db import get_session
@@ -38,6 +38,7 @@ async def score_fit_single(
     job_id: int,
     background_tasks: BackgroundTasks,
     session: Session = Depends(get_session),
+    cv_source: str = "reference",
 ):
     job = session.get(Job, job_id)
     if not job:
@@ -46,21 +47,27 @@ async def score_fit_single(
         return JSONResponse(
             {"error": "Scoring already running for this job"}, status_code=409
         )
+
+    cv_path = None
+    if cv_source == "tailored" and job.tailored_cv_path:
+        cv_path = str(Path(job.tailored_cv_path).resolve())
+
     _action_state[str(job_id)] = {
         "running": True,
         "message": "Starting scoring...",
         "action": "score-fit",
+        "cv_source": cv_source,
     }
-    background_tasks.add_task(_run_score_fit, job_id)
+    background_tasks.add_task(_run_score_fit, job_id, cv_path)
     return JSONResponse({"ok": True})
 
 
-def _run_score_fit(job_id: int):
+def _run_score_fit(job_id: int, cv_path: Optional[str] = None):
     from app.services.matcher import score_single_job
 
     state = _action_state.get(str(job_id))
     try:
-        score_single_job(job_id, state)
+        score_single_job(job_id, state, cv_path)
         if state:
             state["message"] = "Scoring complete"
     except Exception as e:
@@ -98,7 +105,7 @@ def _run_tailor_cv(job_id: int):
 
     state = _action_state.get(str(job_id))
     try:
-        tailor_cv_for_job(job_id, state)
+        tailor_cv_for_job(job_id, state) if state else tailor_cv_for_job(job_id)
         if state:
             state["message"] = "CV tailored successfully"
     except Exception as e:
@@ -136,7 +143,7 @@ def _run_cover_letter(job_id: int):
 
     state = _action_state.get(str(job_id))
     try:
-        generate_cover_letter(job_id, state)
+        generate_cover_letter(job_id, state) if state else generate_cover_letter(job_id)
     except Exception as e:
         if state:
             state["message"] = f"Error: {e}"

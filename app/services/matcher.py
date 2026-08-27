@@ -2,6 +2,7 @@ import json
 import logging
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from pathlib import Path
 from threading import Lock
 from typing import Dict, List, Optional, Tuple, Any
 
@@ -138,7 +139,6 @@ def score_all_new_jobs(
     lock = Lock()
     try:
         keywords = _load_keywords()
-        min_score = _load_min_score()
         min_kw_score = _load_min_keyword_score()
         cv_text = _read_cv_text()
         cv_plain = _strip_tex_to_plain(cv_text) if cv_text else ""
@@ -233,15 +233,29 @@ def score_all_new_jobs(
         state["running"] = False
 
 
+def _read_cv_text_with_fallback(cv_path: Optional[str] = None) -> Optional[str]:
+    if cv_path:
+        path = Path(cv_path)
+        if not path.exists():
+            logger.warning(f"CV not found at {path}, falling back to default")
+            return _read_cv_text()
+        try:
+            return path.read_text(encoding="utf-8")
+        except Exception as e:
+            logger.error(f"Failed to read CV at {path}: {e}, falling back to default")
+            return _read_cv_text()
+    return _read_cv_text()
+
+
 def score_single_job(
-    job_id: int, state: Optional[Dict[str, Any]] = None
+    job_id: int, state: Optional[Dict[str, Any]] = None, cv_path: Optional[str] = None
 ) -> None:
     if state is None:
         state = {}
     try:
         keywords = _load_keywords()
         min_kw_score = _load_min_keyword_score()
-        cv_text = _read_cv_text()
+        cv_text = _read_cv_text_with_fallback(cv_path)
         cv_plain = _strip_tex_to_plain(cv_text) if cv_text else ""
 
         with Session(engine) as session:
@@ -273,9 +287,7 @@ def score_single_job(
             score_result = _llm_score_job(job, cv_plain)
             job.fit_score = score_result.get("fit_score", 0)
             job.fit_reason = score_result.get("reason", "")
-            job.cv_change_recommended = score_result.get(
-                "cv_change_recommended", False
-            )
+            job.cv_change_recommended = score_result.get("cv_change_recommended", False)
             job.cv_change_reason = score_result.get("cv_change_reason", "")
             session.add(job)
             session.commit()
@@ -304,7 +316,9 @@ def _llm_score_job(job: Job, cv_plain: str) -> dict:
         {"role": "user", "content": prompt},
     ]
 
-    result = chat_completion(messages, response_format="json", model=_load_score_fit_model())
+    result = chat_completion(
+        messages, response_format="json", model=_load_score_fit_model()
+    )
     result = result.strip()
     if result.startswith("```"):
         result = re.sub(r"^```(?:json)?\s*", "", result)

@@ -20,6 +20,8 @@ async def job_list(
         query = query.where(Job.fit_score >= min_score)
     if sort == "score":
         order_col = Job.fit_score
+    elif sort == "scraped":
+        order_col = Job.date_scraped
     else:
         order_col = Job.date_posted_dt
     order_fn = order_col.desc if order == "desc" else order_col.asc

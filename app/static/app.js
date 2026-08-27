@@ -201,10 +201,15 @@ document.addEventListener('DOMContentLoaded', function () {
     btn.addEventListener('click', async function () {
       const action = this.dataset.action;
       const jobId = this.dataset.jobId;
+      let url = `/actions/${action}/${jobId}`;
+      if (action === 'score-fit') {
+        const cvSelect = this.closest('.fit-card')?.querySelector('.fit-card-cv-select');
+        if (cvSelect) url += `?cv_source=${cvSelect.value}`;
+      }
       this.disabled = true;
       this.textContent = 'Starting...';
       try {
-        const resp = await fetch(`/actions/${action}/${jobId}`, { method: 'POST' });
+        const resp = await fetch(url, { method: 'POST' });
         if (!resp.ok) {
           const err = await resp.json();
           showToast(err.error || 'Action failed', 'error');

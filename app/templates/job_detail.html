@@ -116,13 +116,22 @@
       <div class="fit-card-score none">—</div>
       <div class="fit-card-label">Not yet scored</div>
       <div class="fit-card-reason">Run <strong>Score Fit</strong> from the job listings page to evaluate this role against your CV.</div>
+      {% endif %}
+      <div class="fit-card-cv-row">
+        <span class="fit-card-cv-label">CV:</span>
+        <select class="fit-card-cv-select">
+          <option value="reference">Reference</option>
+          {% if job.tailored_cv_path %}
+          <option value="tailored">Tailored</option>
+          {% endif %}
+        </select>
+      </div>
       <button data-action="score-fit" data-job-id="{{ job.id }}" class="btn btn-gold btn-sm fit-card-btn">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
         </svg>
         Score This Job
       </button>
-      {% endif %}
     </div>
 
     <div class="card">
