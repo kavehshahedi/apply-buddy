@@ -527,6 +527,7 @@ tbody td {
   min-height: 140px;
 }
 .form-hint { font-size: 11.5px; color: var(--text-muted); margin-top: 5px; }
+.form-required { color: var(--danger); margin-left: 2px; }
 
 select.form-control {
   appearance: none;

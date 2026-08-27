@@ -1,3 +1,4 @@
+import uuid
 from fastapi import APIRouter, Depends, HTTPException, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlmodel import Session, select
@@ -14,10 +15,15 @@ async def job_list(
     sort: str = "date",
     order: str = "desc",
     min_score: int = 0,
+    source: str = "all",
 ):
     query = select(Job).where(Job.status.in_([JobStatus.new, JobStatus.interested]))
     if min_score > 0:
         query = query.where(Job.fit_score >= min_score)
+    if source == "linkedin":
+        query = query.where(~Job.linkedin_job_id.like("manual%"))
+    elif source == "manual":
+        query = query.where(Job.linkedin_job_id.like("manual%"))
     if sort == "score":
         order_col = Job.fit_score
     elif sort == "scraped":
@@ -35,6 +41,7 @@ async def job_list(
             "sort": sort,
             "order": order,
             "min_score": min_score,
+            "source": source,
         },
     )
 
@@ -49,6 +56,32 @@ async def job_detail(
     return request.app.state.templates.TemplateResponse(
         "job_detail.html", {"request": request, "job": job}
     )
+
+
+@router.post("/manual", response_class=RedirectResponse)
+async def create_manual_job(
+    request: Request,
+    title: str = Form(...),
+    company: str = Form(...),
+    description: str = Form(...),
+    location: str = Form(""),
+    link: str = Form(""),
+    apply_link: str = Form(""),
+    session: Session = Depends(get_session),
+):
+    job = Job(
+        linkedin_job_id=f"manual_{uuid.uuid4().hex}",
+        title=title,
+        company=company,
+        description=description,
+        location=location,
+        link=link,
+        apply_link=apply_link or None,
+    )
+    session.add(job)
+    session.commit()
+    session.refresh(job)
+    return RedirectResponse(url=f"/jobs/{job.id}", status_code=303)
 
 
 @router.post("/{job_id}/status")

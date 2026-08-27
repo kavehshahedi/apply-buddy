@@ -16,7 +16,8 @@ document.addEventListener('DOMContentLoaded', function () {
       const sort = document.getElementById('sort-select').value;
       const order = document.getElementById('order-select').value;
       const minScore = document.getElementById('min-score-input').value || '0';
-      window.location.href = `/jobs/?sort=${sort}&order=${order}&min_score=${minScore}`;
+      const source = document.getElementById('source-select').value;
+      window.location.href = `/jobs/?sort=${sort}&order=${order}&min_score=${minScore}&source=${source}`;
     });
   }
 
@@ -155,6 +156,49 @@ document.addEventListener('DOMContentLoaded', function () {
           location.reload();
         }
       }, 1000);
+    });
+  }
+
+  // Manual job by title/description
+  const manualJobBtn = document.getElementById('manual-job-btn');
+  const manualJobOverlay = document.getElementById('manual-job-overlay');
+  const manualJobClose = document.getElementById('manual-job-close');
+  const manualJobCancel = document.getElementById('manual-job-cancel');
+  const manualJobForm = document.getElementById('manual-job-form');
+
+  function openManualJobModal() {
+    if (manualJobOverlay) {
+      manualJobOverlay.classList.remove('hidden');
+      document.getElementById('manual-job-title').focus();
+    }
+  }
+
+  function closeManualJobModal() {
+    if (manualJobOverlay) manualJobOverlay.classList.add('hidden');
+  }
+
+  if (manualJobBtn) {
+    manualJobBtn.addEventListener('click', openManualJobModal);
+  }
+  const manualJobBtnEmpty = document.getElementById('manual-job-btn-empty');
+  if (manualJobBtnEmpty) {
+    manualJobBtnEmpty.addEventListener('click', openManualJobModal);
+  }
+  if (manualJobClose) {
+    manualJobClose.addEventListener('click', closeManualJobModal);
+  }
+  if (manualJobCancel) {
+    manualJobCancel.addEventListener('click', closeManualJobModal);
+  }
+  if (manualJobOverlay) {
+    manualJobOverlay.addEventListener('click', function (e) {
+      if (e.target === this) closeManualJobModal();
+    });
+  }
+  if (manualJobForm) {
+    manualJobForm.addEventListener('submit', function () {
+      manualJobForm.querySelector('button[type="submit"]').disabled = true;
+      manualJobForm.querySelector('button[type="submit"]').textContent = 'Adding...';
     });
   }
 
