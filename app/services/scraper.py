@@ -2,8 +2,8 @@ import json
 import logging
 import os
 import re
-from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from sqlmodel import Session, select
 
@@ -39,11 +39,11 @@ _UNIT_MAP = {
 }
 
 
-def _parse_relative_date(date_text: str) -> Optional[datetime]:
+def _parse_relative_date(date_text: str) -> datetime | None:
     if not date_text:
         return None
     text = date_text.strip().lower()
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     m = re.search(
         r"(\d+)\s*\+?\s*(second|seconds|minute|minutes|hour|hours|day|days|week|weeks|month|months|year|years)\s*ago",
@@ -77,7 +77,7 @@ def _parse_relative_date(date_text: str) -> Optional[datetime]:
     return None
 
 
-def _extract_linkedin_job_id(url: str) -> Optional[str]:
+def _extract_linkedin_job_id(url: str) -> str | None:
     m = re.search(r"/jobs/view/(\d+)", url)
     if m:
         return m.group(1)
@@ -118,7 +118,6 @@ _STOP_WORDS = frozenset(
         "do",
         "does",
         "did",
-        "but",
         "if",
         "so",
         "no",
@@ -137,20 +136,17 @@ _STOP_WORDS = frozenset(
 )
 
 
-def _significant_words(query: str) -> List[str]:
+def _significant_words(query: str) -> list[str]:
     words = re.findall(r"[a-zA-ZÀ-ÖØ-öø-ÿ]+", query.lower())
     return [w for w in words if w not in _STOP_WORDS]
 
 
-def _title_matches_query(title: str, query_words: List[str]) -> bool:
+def _title_matches_query(title: str, query_words: list[str]) -> bool:
     if not query_words:
         return True
     title_lower = title.lower()
     title_words = re.findall(r"[a-zA-ZÀ-ÖØ-öø-ÿ]+", title_lower)
-    for qw in query_words:
-        if not any(_words_match(tw, qw) for tw in title_words):
-            return False
-    return True
+    return all(any(_words_match(tw, qw) for tw in title_words) for qw in query_words)
 
 
 def _words_match(word: str, query_word: str) -> bool:
@@ -160,7 +156,7 @@ def _words_match(word: str, query_word: str) -> bool:
     return word[:stem_len] == query_word[:stem_len]
 
 
-def _title_matches_any_query(title: str, queries: List[SearchQuery]) -> bool:
+def _title_matches_any_query(title: str, queries: list[SearchQuery]) -> bool:
     if not title:
         return False
     for q in queries:
@@ -170,9 +166,9 @@ def _title_matches_any_query(title: str, queries: List[SearchQuery]) -> bool:
     return False
 
 
-def scrape_single_job(url: str, state: Dict[str, Any]) -> None:
+def scrape_single_job(url: str, state: dict[str, Any]) -> None:
     from linkedin_jobs_scraper import LinkedinScraper
-    from linkedin_jobs_scraper.events import Events, EventData, EventNotFound
+    from linkedin_jobs_scraper.events import EventData, EventNotFound, Events
 
     job_id = _extract_linkedin_job_id(url)
     if not job_id:
@@ -237,9 +233,7 @@ def scrape_single_job(url: str, state: Dict[str, Any]) -> None:
         date_dt = _parse_relative_date(data.date_text)
 
         with Session(engine) as session:
-            existing = session.exec(
-                select(Job).where(Job.linkedin_job_id == data.job_id)
-            ).first()
+            existing = session.exec(select(Job).where(Job.linkedin_job_id == data.job_id)).first()
 
             if existing:
                 existing.title = data.title or existing.title
@@ -254,11 +248,9 @@ def scrape_single_job(url: str, state: Dict[str, Any]) -> None:
                 if data.date_text:
                     existing.date_posted = data.date_text
                     existing.date_posted_dt = date_dt
-                existing.updated_at = datetime.now(timezone.utc)
+                existing.updated_at = datetime.now(UTC)
                 session.add(existing)
-                state["message"] = (
-                    f"Updated existing job: {data.title} at {data.company}"
-                )
+                state["message"] = f"Updated existing job: {data.title} at {data.company}"
             else:
                 job = Job(
                     linkedin_job_id=data.job_id,
@@ -288,17 +280,17 @@ def scrape_single_job(url: str, state: Dict[str, Any]) -> None:
         state["running"] = False
 
 
-def scrape_jobs(queries: List[SearchQuery], state: Dict[str, Any]) -> None:
+def scrape_jobs(queries: list[SearchQuery], state: dict[str, Any]) -> None:
     from linkedin_jobs_scraper import LinkedinScraper
-    from linkedin_jobs_scraper.events import Events, EventData
-    from linkedin_jobs_scraper.query import Query, QueryOptions, QueryFilters
+    from linkedin_jobs_scraper.events import EventData, Events
     from linkedin_jobs_scraper.filters import (
+        ExperienceLevelFilters,
+        OnSiteOrRemoteFilters,
         RelevanceFilters,
         TimeFilters,
         TypeFilters,
-        ExperienceLevelFilters,
-        OnSiteOrRemoteFilters,
     )
+    from linkedin_jobs_scraper.query import Query, QueryFilters, QueryOptions
 
     chrome = _chrome_paths()
     scraper = LinkedinScraper(
@@ -322,9 +314,7 @@ def scrape_jobs(queries: List[SearchQuery], state: Dict[str, Any]) -> None:
             return
 
         with Session(engine) as session:
-            existing = session.exec(
-                select(Job).where(Job.linkedin_job_id == data.job_id)
-            ).first()
+            existing = session.exec(select(Job).where(Job.linkedin_job_id == data.job_id)).first()
 
             if existing:
                 existing.title = data.title or existing.title
@@ -339,7 +329,7 @@ def scrape_jobs(queries: List[SearchQuery], state: Dict[str, Any]) -> None:
                 if data.date_text:
                     existing.date_posted = data.date_text
                     existing.date_posted_dt = date_dt
-                existing.updated_at = datetime.now(timezone.utc)
+                existing.updated_at = datetime.now(UTC)
                 session.add(existing)
             else:
                 job = Job(
@@ -405,9 +395,7 @@ def scrape_jobs(queries: List[SearchQuery], state: Dict[str, Any]) -> None:
     for q in queries:
         locations = []
         try:
-            locations = (
-                json.loads(q.locations) if isinstance(q.locations, str) else q.locations
-            )
+            locations = json.loads(q.locations) if isinstance(q.locations, str) else q.locations
         except (json.JSONDecodeError, TypeError):
             locations = []
 
@@ -439,12 +427,12 @@ def scrape_jobs(queries: List[SearchQuery], state: Dict[str, Any]) -> None:
     days_back_values = [q.days_back for q in queries if q.days_back is not None]
     min_days_back = min(days_back_values) if days_back_values else None
 
-    def _is_within_days_back(job_date_dt: Optional[datetime]) -> bool:
+    def _is_within_days_back(job_date_dt: datetime | None) -> bool:
         if min_days_back is None:
             return True
         if job_date_dt is None:
             return True
-        cutoff = datetime.now(timezone.utc) - timedelta(days=min_days_back)
+        cutoff = datetime.now(UTC) - timedelta(days=min_days_back)
         return job_date_dt >= cutoff
 
     state["total"] = sum(q.limit or 25 for q in queries)

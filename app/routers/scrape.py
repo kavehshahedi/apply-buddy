@@ -1,7 +1,9 @@
 import asyncio
-from fastapi import APIRouter, Depends, BackgroundTasks
+
+from fastapi import APIRouter, BackgroundTasks, Depends
 from fastapi.responses import JSONResponse
 from sqlmodel import Session, select
+
 from app.db import get_session
 from app.models import SearchQuery
 
@@ -11,12 +13,10 @@ _scrape_state = {"running": False, "total": 0, "current": 0, "errors": 0, "messa
 
 
 @router.post("/run")
-async def run_scrape(
-    background_tasks: BackgroundTasks, session: Session = Depends(get_session)
-):
+async def run_scrape(background_tasks: BackgroundTasks, session: Session = Depends(get_session)):
     if _scrape_state["running"]:
         return JSONResponse({"error": "Scrape already running"}, status_code=409)
-    queries = session.exec(select(SearchQuery).where(SearchQuery.enabled == True)).all()
+    queries = session.exec(select(SearchQuery).where(SearchQuery.enabled)).all()
     if not queries:
         return JSONResponse({"error": "No enabled search queries"}, status_code=400)
     _scrape_state["running"] = True

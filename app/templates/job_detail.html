@@ -1,256 +1,521 @@
-{% extends "base.html" %}
-{% block title %} — {{ job.title }}{% endblock %}
-{% block content %}
+{% extends "base.html" %} {% block title %} — {{ job.title }}{% endblock %} {% block content %}
 
 <a href="/jobs/" class="back-link">
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-    <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
-  </svg>
-  Back to Jobs
+    <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+    >
+        <line x1="19" y1="12" x2="5" y2="12" />
+        <polyline points="12 19 5 12 12 5" />
+    </svg>
+    Back to Jobs
 </a>
 
-{% set steps = ['new','interested','applied','interview','offer','accepted'] %}
-{% set step_idx = steps.index(job.status) if job.status in steps else -1 %}
-{% set status_labels = {'new':'New','interested':'Interested','applied':'Applied','interview':'Interview','offer':'Offer','accepted':'Accepted'} %}
+{% set steps = ['new','interested','applied','interview','offer','accepted'] %} {% set step_idx =
+steps.index(job.status) if job.status in steps else -1 %} {% set status_labels =
+{'new':'New','interested':'Interested','applied':'Applied','interview':'Interview','offer':'Offer','accepted':'Accepted'}
+%}
 
 <div class="detail-grid">
-  <div class="detail-stack">
-    <div class="card">
-      {% set colors = ['#4F46E5','#0891B2','#059669','#D97706','#DC2626','#7C3AED','#DB2777','#2563EB'] %}
-<div style="display:flex;align-items:flex-start;gap:16px;">
-        {% if job.company_logo %}
-        <div class="company-avatar" style="width:48px;height:48px;background:var(--card);border:1px solid var(--border);"><img src="{{ job.company_logo }}" alt="{{ job.company }} logo" style="width:100%;height:100%;object-fit:contain;border-radius:var(--radius-md);"></div>
-        {% else %}
-        {% set initial = job.company[:1]|upper if job.company else '?' %}
-        <div class="company-avatar" style="width:48px;height:48px;font-size:18px;background:{{ colors[0] }};" aria-hidden="true">{{ initial }}</div>
-        {% endif %}
-        <div style="flex:1;">
-          <h1 class="detail-title">{{ job.title }}</h1>
-          <div class="detail-meta">
-            <span class="detail-meta-item">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/>
-              </svg>
-              {{ job.company }}
-            </span>
-            <span class="detail-meta-item">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
-              </svg>
-              {{ job.location }}
-            </span>
-            {% if job.date_posted_dt %}
-            <span class="detail-meta-item">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-              </svg>
-              {{ job.date_posted_dt | timeago }}
-            </span>
-            {% elif job.date_posted %}
-            <span class="detail-meta-item">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-              </svg>
-              {{ job.date_posted }}
-            </span>
+    <div class="detail-stack">
+        <div class="card">
+            {% set colors =
+            ['#4F46E5','#0891B2','#059669','#D97706','#DC2626','#7C3AED','#DB2777','#2563EB'] %}
+            <div style="display: flex; align-items: flex-start; gap: 16px">
+                {% if job.company_logo %}
+                <div
+                    class="company-avatar"
+                    style="
+                        width: 48px;
+                        height: 48px;
+                        background: var(--card);
+                        border: 1px solid var(--border);
+                    "
+                >
+                    <img
+                        src="{{ job.company_logo }}"
+                        alt="{{ job.company }} logo"
+                        style="
+                            width: 100%;
+                            height: 100%;
+                            object-fit: contain;
+                            border-radius: var(--radius-md);
+                        "
+                    />
+                </div>
+                {% else %} {% set initial = job.company[:1]|upper if job.company else '?' %}
+                <div
+                    class="company-avatar"
+                    style="width:48px;height:48px;font-size:18px;background:{{ colors[0] }};"
+                    aria-hidden="true"
+                >
+                    {{ initial }}
+                </div>
+                {% endif %}
+                <div style="flex: 1">
+                    <h1 class="detail-title">{{ job.title }}</h1>
+                    <div class="detail-meta">
+                        <span class="detail-meta-item">
+                            <svg
+                                width="14"
+                                height="14"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                aria-hidden="true"
+                            >
+                                <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+                                <path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" />
+                            </svg>
+                            {{ job.company }}
+                        </span>
+                        <span class="detail-meta-item">
+                            <svg
+                                width="14"
+                                height="14"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                aria-hidden="true"
+                            >
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
+                                <circle cx="12" cy="10" r="3" />
+                            </svg>
+                            {{ job.location }}
+                        </span>
+                        {% if job.date_posted_dt %}
+                        <span class="detail-meta-item">
+                            <svg
+                                width="14"
+                                height="14"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                aria-hidden="true"
+                            >
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                <line x1="16" y1="2" x2="16" y2="6" />
+                                <line x1="8" y1="2" x2="8" y2="6" />
+                                <line x1="3" y1="10" x2="21" y2="10" />
+                            </svg>
+                            {{ job.date_posted_dt | timeago }}
+                        </span>
+                        {% elif job.date_posted %}
+                        <span class="detail-meta-item">
+                            <svg
+                                width="14"
+                                height="14"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                aria-hidden="true"
+                            >
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                <line x1="16" y1="2" x2="16" y2="6" />
+                                <line x1="8" y1="2" x2="8" y2="6" />
+                                <line x1="3" y1="10" x2="21" y2="10" />
+                            </svg>
+                            {{ job.date_posted }}
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if job.link %}
+                <a
+                    href="{{ job.link }}"
+                    target="_blank"
+                    rel="noopener"
+                    class="btn btn-secondary btn-sm"
+                    style="flex-shrink: 0"
+                    aria-label="View job posting"
+                >
+                    <svg
+                        width="13"
+                        height="13"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                    >
+                        <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
+                        <polyline points="15 3 21 3 21 9" />
+                        <line x1="10" y1="14" x2="21" y2="3" />
+                    </svg>
+                    Open Job Posting
+                </a>
+                {% endif %}
+            </div>
+
+            {% if step_idx >= 0 %}
+            <div
+                class="pipeline-progress"
+                role="progressbar"
+                aria-label="Application pipeline progress"
+            >
+                {% for s in steps %}
+                <div
+                    class="pipeline-step {% if steps.index(s) < step_idx %}done{% elif s == job.status %}active{% endif %}"
+                >
+                    <div class="pipeline-step-dot">
+                        {% if steps.index(s) < step_idx %}
+                        <svg
+                            width="10"
+                            height="10"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="#fff"
+                            stroke-width="3"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        >
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        {% else %} {{ loop.index }} {% endif %}
+                    </div>
+                    <span class="pipeline-step-label">{{ status_labels[s] }}</span>
+                </div>
+                {% endfor %}
+            </div>
             {% endif %}
-          </div>
-        </div>
-        {% if job.link %}
-        <a href="{{ job.link }}" target="_blank" rel="noopener" class="btn btn-secondary btn-sm" style="flex-shrink:0;" aria-label="View job posting">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
-          </svg>
-          Open Job Posting
-        </a>
-        {% endif %}
-      </div>
 
-      {% if step_idx >= 0 %}
-      <div class="pipeline-progress" role="progressbar" aria-label="Application pipeline progress">
-        {% for s in steps %}
-        <div class="pipeline-step {% if steps.index(s) < step_idx %}done{% elif s == job.status %}active{% endif %}">
-          <div class="pipeline-step-dot">
-            {% if steps.index(s) < step_idx %}
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            {% else %}
-            {{ loop.index }}
+            <div class="detail-section">
+                <div class="detail-section-title">Description</div>
+                <div class="detail-description">
+                    {{ job.description | beautify_description | safe }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="detail-stack">
+        <div class="fit-card">
+            {% if job.fit_score is not none %}
+            <div
+                class="fit-card-score {% if job.fit_score >= 70 %}high {% elif job.fit_score >= 40 %}medium {% else %}low{% endif %}"
+            >
+                {{ job.fit_score }}
+            </div>
+            <div class="fit-card-label">Fit Score</div>
+            {% if job.fit_reason %}
+            <div class="fit-card-reason">{{ job.fit_reason }}</div>
+            {% endif %} {% if job.cv_change_recommended %}
+            <div class="fit-card-warning">
+                <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    style="flex-shrink: 0; margin-top: 1px"
+                    aria-hidden="true"
+                >
+                    <path
+                        d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
+                    />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+                <span>CV change recommended: {{ job.cv_change_reason }}</span>
+            </div>
+            {% endif %} {% else %}
+            <div class="fit-card-score none">—</div>
+            <div class="fit-card-label">Not yet scored</div>
+            <div class="fit-card-reason">
+                Run <strong>Score Fit</strong> from the job listings page to evaluate this role
+                against your CV.
+            </div>
             {% endif %}
-          </div>
-          <span class="pipeline-step-label">{{ status_labels[s] }}</span>
+            <div class="fit-card-cv-row">
+                <span class="fit-card-cv-label">CV:</span>
+                <select class="fit-card-cv-select">
+                    <option value="reference">Reference</option>
+                    {% if job.tailored_cv_path %}
+                    <option value="tailored">Tailored</option>
+                    {% endif %}
+                </select>
+            </div>
+            <button
+                data-action="score-fit"
+                data-job-id="{{ job.id }}"
+                class="btn btn-gold btn-sm fit-card-btn"
+            >
+                <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                >
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                </svg>
+                Score This Job
+            </button>
         </div>
-        {% endfor %}
-      </div>
-      {% endif %}
 
-      <div class="detail-section">
-        <div class="detail-section-title">Description</div>
-        <div class="detail-description">{{ job.description | beautify_description | safe }}</div>
-      </div>
-    </div>
+        <div class="card">
+            <div class="card-header" style="margin-bottom: 12px">
+                <div class="card-title">CV</div>
+            </div>
+            <div class="action-panel">
+                <button
+                    data-action="tailor-cv"
+                    data-job-id="{{ job.id }}"
+                    class="btn btn-primary btn-sm"
+                >
+                    <svg
+                        width="13"
+                        height="13"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                    >
+                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                        <line x1="16" y1="13" x2="8" y2="13" />
+                        <line x1="16" y1="17" x2="8" y2="17" />
+                    </svg>
+                    Tailor CV for This Job
+                </button>
+            </div>
+        </div>
 
-    </div>
+        <div class="card">
+            <div class="card-header" style="margin-bottom: 12px">
+                <div class="card-title">Cover Letter</div>
+            </div>
+            <div class="action-panel">
+                <button
+                    data-action="cover-letter"
+                    data-job-id="{{ job.id }}"
+                    class="btn btn-success btn-sm"
+                >
+                    <svg
+                        width="13"
+                        height="13"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                    >
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                    </svg>
+                    Generate Cover Letter
+                </button>
+                {% if cover_letter_template_exists %}
+                <div class="cl-template-toggle">
+                    <label class="toggle-switch toggle-switch-sm toggle-switch-success">
+                        <input type="checkbox" id="cl-use-template" checked />
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <span class="cl-template-label">Use template</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
 
-  <div class="detail-stack">
-    <div class="fit-card">
-      {% if job.fit_score is not none %}
-      <div class="fit-card-score
-        {% if job.fit_score >= 70 %}high
-        {% elif job.fit_score >= 40 %}medium
-        {% else %}low{% endif %}">
-        {{ job.fit_score }}
-      </div>
-      <div class="fit-card-label">Fit Score</div>
-      {% if job.fit_reason %}
-      <div class="fit-card-reason">{{ job.fit_reason }}</div>
-      {% endif %}
-      {% if job.cv_change_recommended %}
-      <div class="fit-card-warning">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px;" aria-hidden="true">
-          <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-        </svg>
-        <span>CV change recommended: {{ job.cv_change_reason }}</span>
-      </div>
-      {% endif %}
-      {% else %}
-      <div class="fit-card-score none">—</div>
-      <div class="fit-card-label">Not yet scored</div>
-      <div class="fit-card-reason">Run <strong>Score Fit</strong> from the job listings page to evaluate this role against your CV.</div>
-      {% endif %}
-      <div class="fit-card-cv-row">
-        <span class="fit-card-cv-label">CV:</span>
-        <select class="fit-card-cv-select">
-          <option value="reference">Reference</option>
-          {% if job.tailored_cv_path %}
-          <option value="tailored">Tailored</option>
-          {% endif %}
-        </select>
-      </div>
-      <button data-action="score-fit" data-job-id="{{ job.id }}" class="btn btn-gold btn-sm fit-card-btn">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-        </svg>
-        Score This Job
-      </button>
-    </div>
-
-    <div class="card">
-      <div class="card-header" style="margin-bottom:12px;">
-        <div class="card-title">CV</div>
-      </div>
-      <div class="action-panel">
-        <button data-action="tailor-cv" data-job-id="{{ job.id }}" class="btn btn-primary btn-sm">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
-          </svg>
-          Tailor CV for This Job
-        </button>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-header" style="margin-bottom:12px;">
-        <div class="card-title">Cover Letter</div>
-      </div>
-      <div class="action-panel">
-        <button data-action="cover-letter" data-job-id="{{ job.id }}" class="btn btn-success btn-sm">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-          </svg>
-          Generate Cover Letter
-        </button>
-        {% if cover_letter_template_exists %}
-        <div class="cl-template-toggle">
-          <label class="toggle-switch toggle-switch-sm toggle-switch-success">
-            <input type="checkbox" id="cl-use-template" checked>
-            <span class="toggle-slider"></span>
-          </label>
-          <span class="cl-template-label">Use template</span>
+        {% if job.tailored_cv_path or job.tailored_cv_pdf_path or job.cover_letter_path or
+        job.cover_letter_docx_path or job.cover_letter_pdf_path %}
+        <div class="card">
+            <div class="card-header" style="margin-bottom: 14px">
+                <div class="card-title">Generated Files</div>
+            </div>
+            <div class="files-list">
+                {% if job.tailored_cv_path %}
+                <a href="/actions/download/{{ job.id }}/cv.tex" class="file-item">
+                    <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                    >
+                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                        <polyline points="7 10 12 15 17 10" />
+                        <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    Tailored CV
+                    <span class="file-item-type">.tex</span>
+                </a>
+                {% endif %} {% if job.tailored_cv_pdf_path %}
+                <a href="/actions/download/{{ job.id }}/cv.pdf" class="file-item">
+                    <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                    >
+                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                        <polyline points="7 10 12 15 17 10" />
+                        <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    Tailored CV
+                    <span class="file-item-type">.pdf</span>
+                </a>
+                {% endif %} {% if job.cover_letter_path %}
+                <a href="/actions/download/{{ job.id }}/cover_letter.md" class="file-item">
+                    <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                    >
+                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                        <line x1="16" y1="13" x2="8" y2="13" />
+                        <line x1="16" y1="17" x2="8" y2="17" />
+                    </svg>
+                    Cover Letter
+                    <span class="file-item-type">.md</span>
+                </a>
+                {% endif %} {% if job.cover_letter_docx_path %}
+                <a href="/actions/download/{{ job.id }}/cover_letter.docx" class="file-item">
+                    <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                    >
+                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                        <line x1="16" y1="13" x2="8" y2="13" />
+                        <line x1="16" y1="17" x2="8" y2="17" />
+                    </svg>
+                    Cover Letter
+                    <span class="file-item-type">.docx</span>
+                </a>
+                {% endif %} {% if job.cover_letter_pdf_path %}
+                <a href="/actions/download/{{ job.id }}/cover_letter.pdf" class="file-item">
+                    <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                    >
+                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                        <polyline points="7 10 12 15 17 10" />
+                        <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    Cover Letter
+                    <span class="file-item-type">.pdf</span>
+                </a>
+                {% endif %}
+            </div>
         </div>
         {% endif %}
-      </div>
-    </div>
 
-    {% if job.tailored_cv_path or job.tailored_cv_pdf_path or job.cover_letter_path or job.cover_letter_docx_path or job.cover_letter_pdf_path %}
-    <div class="card">
-      <div class="card-header" style="margin-bottom:14px;">
-        <div class="card-title">Generated Files</div>
-      </div>
-      <div class="files-list">
-        {% if job.tailored_cv_path %}
-        <a href="/actions/download/{{ job.id }}/cv.tex" class="file-item">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-          </svg>
-          Tailored CV
-          <span class="file-item-type">.tex</span>
-        </a>
-        {% endif %}
-        {% if job.tailored_cv_pdf_path %}
-        <a href="/actions/download/{{ job.id }}/cv.pdf" class="file-item">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-          </svg>
-          Tailored CV
-          <span class="file-item-type">.pdf</span>
-        </a>
-        {% endif %}
-        {% if job.cover_letter_path %}
-        <a href="/actions/download/{{ job.id }}/cover_letter.md" class="file-item">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
-          </svg>
-          Cover Letter
-          <span class="file-item-type">.md</span>
-        </a>
-        {% endif %}
-        {% if job.cover_letter_docx_path %}
-        <a href="/actions/download/{{ job.id }}/cover_letter.docx" class="file-item">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
-          </svg>
-          Cover Letter
-          <span class="file-item-type">.docx</span>
-        </a>
-        {% endif %}
-        {% if job.cover_letter_pdf_path %}
-        <a href="/actions/download/{{ job.id }}/cover_letter.pdf" class="file-item">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-          </svg>
-          Cover Letter
-          <span class="file-item-type">.pdf</span>
-        </a>
-        {% endif %}
-      </div>
-    </div>
-    {% endif %}
-
-    <div class="card">
-      <div class="card-header" style="margin-bottom:16px;">
-        <div class="card-title">Status &amp; Notes</div>
-      </div>
-      <form method="post" action="/jobs/{{ job.id }}/status" class="status-update">
-        <div class="form-group">
-          <label for="status-select" class="form-label">Status</label>
-          <select id="status-select" name="status" class="form-control" onchange="this.form.submit()">
-            <option value="new" {% if job.status == 'new' %}selected{% endif %}>New</option>
-            <option value="interested" {% if job.status == 'interested' %}selected{% endif %}>Interested</option>
-            <option value="applied" {% if job.status == 'applied' %}selected{% endif %}>Applied</option>
-            <option value="interview" {% if job.status == 'interview' %}selected{% endif %}>Interview</option>
-            <option value="rejected" {% if job.status == 'rejected' %}selected{% endif %}>Rejected</option>
-            <option value="offer" {% if job.status == 'offer' %}selected{% endif %}>Offer</option>
-            <option value="accepted" {% if job.status == 'accepted' %}selected{% endif %}>Accepted</option>
-            <option value="archived" {% if job.status == 'archived' %}selected{% endif %}>Archived</option>
-          </select>
+        <div class="card">
+            <div class="card-header" style="margin-bottom: 16px">
+                <div class="card-title">Status &amp; Notes</div>
+            </div>
+            <form method="post" action="/jobs/{{ job.id }}/status" class="status-update">
+                <div class="form-group">
+                    <label for="status-select" class="form-label">Status</label>
+                    <select
+                        id="status-select"
+                        name="status"
+                        class="form-control"
+                        onchange="this.form.submit()"
+                    >
+                        <option value="new" {% if job.status == "new" %}selected{% endif %}>
+                            New
+                        </option>
+                        <option value="interested" {% if job.status == "interested" %}selected{% endif %}>
+                            Interested
+                        </option>
+                        <option value="applied" {% if job.status == "applied" %}selected{% endif %}>
+                            Applied
+                        </option>
+                        <option value="interview" {% if job.status == "interview" %}selected{% endif %}>
+                            Interview
+                        </option>
+                        <option value="rejected" {% if job.status == "rejected" %}selected{% endif %}>
+                            Rejected
+                        </option>
+                        <option value="offer" {% if job.status == "offer" %}selected{% endif %}>
+                            Offer
+                        </option>
+                        <option value="accepted" {% if job.status == "accepted" %}selected{% endif %}>
+                            Accepted
+                        </option>
+                        <option value="archived" {% if job.status == "archived" %}selected{% endif %}>
+                            Archived
+                        </option>
+                    </select>
+                </div>
+                <div class="form-group" style="flex: 2">
+                    <label for="notes-input" class="form-label">Notes</label>
+                    <input
+                        id="notes-input"
+                        name="notes"
+                        value="{{ job.notes }}"
+                        class="form-control"
+                        placeholder="Add notes about this application..."
+                        style="font-size: 12px"
+                    />
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm">Update</button>
+            </form>
         </div>
-        <div class="form-group" style="flex:2;">
-          <label for="notes-input" class="form-label">Notes</label>
-          <input id="notes-input" name="notes" value="{{ job.notes }}" class="form-control" placeholder="Add notes about this application..." style="font-size:12px;">
-        </div>
-        <button type="submit" class="btn btn-primary btn-sm">Update</button>
-      </form>
     </div>
-  </div>
 </div>
 {% endblock %}

@@ -12,4 +12,5 @@ README.md
 config.example.yaml
 Dockerfile
 docker-compose.yml
+.venv/
 .dockerignore

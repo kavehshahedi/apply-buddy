@@ -1,4 +1,5 @@
 import asyncio
+
 from fastapi import APIRouter, BackgroundTasks
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
@@ -21,7 +22,9 @@ async def run_manual_fetch(
 
     if not url.startswith("https://www.linkedin.com/jobs/view/"):
         return JSONResponse(
-            {"error": "Invalid LinkedIn job URL. Must start with https://www.linkedin.com/jobs/view/"},
+            {
+                "error": "Invalid LinkedIn job URL. Must start with https://www.linkedin.com/jobs/view/"
+            },
             status_code=400,
         )
 

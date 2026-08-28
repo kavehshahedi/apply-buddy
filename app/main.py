@@ -1,10 +1,11 @@
 import contextlib
 import re
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from fastapi import FastAPI, Request
-from fastapi.staticfiles import StaticFiles
+
+from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 
 from app.config import settings
@@ -26,9 +27,9 @@ templates = Jinja2Templates(directory=str(templates_dir))
 def _timeago(dt: datetime) -> str:
     if dt is None:
         return ""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=timezone.utc)
+        dt = dt.replace(tzinfo=UTC)
     diff = now - dt
     if diff < timedelta(seconds=0):
         return "just now"
@@ -122,7 +123,7 @@ def _beautify_description(text: str) -> str:
         elif is_header:
             flush_list()
             flush_paragraph()
-            result.append(f"<p class=\"desc-heading\">{stripped}</p>")
+            result.append(f'<p class="desc-heading">{stripped}</p>')
         else:
             flush_list()
             buffer.append(stripped)
@@ -145,7 +146,7 @@ async def root():
     return RedirectResponse(url="/jobs/")
 
 
-from app.routers import jobs, applied, scrape, actions, settings, manual_fetch
+from app.routers import actions, applied, jobs, manual_fetch, scrape, settings
 
 app.include_router(jobs.router)
 app.include_router(applied.router)

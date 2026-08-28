@@ -1,11 +1,10 @@
 import enum
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import UTC, datetime
 
-from sqlmodel import Field, SQLModel, JSON
+from sqlmodel import JSON, Field, SQLModel
 
 
-class JobStatus(str, enum.Enum):
+class JobStatus(enum.StrEnum):
     new = "new"
     interested = "interested"
     applied = "applied"
@@ -19,54 +18,54 @@ class JobStatus(str, enum.Enum):
 class Job(SQLModel, table=True):
     __tablename__ = "jobs"
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     linkedin_job_id: str = Field(unique=True, index=True, nullable=False)
 
     title: str = ""
     company: str = ""
-    company_logo: Optional[str] = None
+    company_logo: str | None = None
     location: str = ""
     link: str = ""
-    apply_link: Optional[str] = None
+    apply_link: str | None = None
     description: str = ""
-    date_posted: Optional[str] = None
-    date_posted_dt: Optional[datetime] = None
-    date_scraped: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    date_posted: str | None = None
+    date_posted_dt: datetime | None = None
+    date_scraped: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
     viewed: bool = False
     status: JobStatus = Field(default=JobStatus.new)
-    fit_score: Optional[int] = None
-    fit_reason: Optional[str] = None
-    cv_change_recommended: Optional[bool] = None
-    cv_change_reason: Optional[str] = None
-    matched_keywords: Optional[str] = None
+    fit_score: int | None = None
+    fit_reason: str | None = None
+    cv_change_recommended: bool | None = None
+    cv_change_reason: str | None = None
+    matched_keywords: str | None = None
 
-    tailored_cv_path: Optional[str] = None
-    tailored_cv_pdf_path: Optional[str] = None
-    cover_letter_path: Optional[str] = None
-    cover_letter_docx_path: Optional[str] = None
-    cover_letter_pdf_path: Optional[str] = None
+    tailored_cv_path: str | None = None
+    tailored_cv_pdf_path: str | None = None
+    cover_letter_path: str | None = None
+    cover_letter_docx_path: str | None = None
+    cover_letter_pdf_path: str | None = None
 
-    applied_at: Optional[datetime] = None
+    applied_at: datetime | None = None
     notes: str = ""
     updated_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
-        sa_column_kwargs={"onupdate": lambda: datetime.now(timezone.utc)},
+        default_factory=lambda: datetime.now(UTC),
+        sa_column_kwargs={"onupdate": lambda: datetime.now(UTC)},
     )
 
 
 class SearchQuery(SQLModel, table=True):
     __tablename__ = "search_queries"
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     keywords: str = ""
     locations: str = Field(default="[]", sa_type=JSON)
     time_filter: str = "any"
-    job_type: Optional[str] = None
-    experience: Optional[str] = None
-    on_site_or_remote: Optional[str] = None
+    job_type: str | None = None
+    experience: str | None = None
+    on_site_or_remote: str | None = None
     limit: int = 25
-    days_back: Optional[int] = None
+    days_back: int | None = None
     enabled: bool = True
 
 

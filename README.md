@@ -6,7 +6,7 @@ A local job-application assistant that scrapes LinkedIn job postings, scores the
 
 ### Prerequisites
 
-- **Python 3.10+**
+- **Python 3.12+**
 - **Google Chrome** (for the scraper)
 - **LaTeX distribution** (MiKTeX or TeX Live) — optional, for auto-compiling tailored CVs
 - **Pandoc** — optional, for converting cover letters to .docx/.pdf
@@ -15,18 +15,21 @@ A local job-application assistant that scrapes LinkedIn job postings, scores the
 ### Install
 
 ```bash
-pip install -r requirements.txt
+pip install poetry
+poetry install
 ```
 
 ### Configuration
 
 1. Copy `.env.example` to `.env` and set your LLM config:
+
    ```
    LLM_PROVIDER=openai
    LLM_BASE_URL=http://localhost:11434/v1
    LLM_API_KEY=sk-dummy
    LLM_MODEL=llama3.2
    ```
+
    - For **OpenAI**: `LLM_PROVIDER=openai`, `LLM_BASE_URL=https://api.openai.com/v1`
    - For **Databricks**: `LLM_PROVIDER=databricks`, `LLM_BASE_URL=<your-serving-endpoint>` (e.g. `https://adb-<workspace-id>.18.azuredatabricks.net/serving-endpoints`), `LLM_MODEL=<deployed-endpoint-name>`
 
@@ -37,7 +40,7 @@ pip install -r requirements.txt
 ### LinkedIn Login (First Time)
 
 ```bash
-python -m linkedin_jobs_scraper login --chrome-user-data-dir ./chrome-profile
+poetry run python -m linkedin_jobs_scraper login --chrome-user-data-dir ./chrome-profile
 ```
 
 Log in with your LinkedIn credentials and **tick "Keep me logged in"**. After that, the scraper reuses this profile.
@@ -45,7 +48,7 @@ Log in with your LinkedIn credentials and **tick "Keep me logged in"**. After th
 ### Run
 
 ```bash
-uvicorn app.main:app --reload
+poetry run uvicorn app.main:app --reload
 ```
 
 Open http://localhost:8000 in your browser.
@@ -65,6 +68,16 @@ In **Settings → Prompts & Models**, you can:
 - **Edit prompts** — Customize the LLM instructions for Score Fit, CV Tailor, and Cover Letter generation. Each prompt uses template variables like `{job_title}`, `{company}`, `{description}`, `{cv_plain}`, etc.
 - **Select a model per action** — Override the default LLM model for each prompt type independently. The available models list is configured in `config.yaml` via `llm_available_models`.
 - **Reset to default** — Restore any prompt to its original template with one click.
+
+## Code Quality
+
+```bash
+poetry run ruff check app/                    # Lint
+poetry run ruff format app/                   # Format
+poetry run pyright                            # Type check
+npx prettier --write "app/static/**/*.js" "app/static/**/*.css" "app/templates/**/*.html"  # Format frontend
+poetry run pre-commit run --all-files         # Run all pre-commit hooks
+```
 
 ## Notes
 

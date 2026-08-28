@@ -1,44 +1,44 @@
 :root {
-  --bg:           #F2F4F8;
-  --card:         #FFFFFF;
-  --card-hover:   #FAFBFC;
+    --bg: #f2f4f8;
+    --card: #ffffff;
+    --card-hover: #fafbfc;
 
-  --text:         #0F172A;
-  --text-muted:   #64748B;
-  --text-light:   #94A3B8;
+    --text: #0f172a;
+    --text-muted: #64748b;
+    --text-light: #94a3b8;
 
-  --border:       #E8ECF0;
-  --border-light: #F1F5F9;
+    --border: #e8ecf0;
+    --border-light: #f1f5f9;
 
-  --accent:       #4F46E5;
-  --accent-dark:  #4338CA;
-  --accent-soft:  #EEF2FF;
-  --accent-glow:  rgba(79,70,229,.16);
+    --accent: #4f46e5;
+    --accent-dark: #4338ca;
+    --accent-soft: #eef2ff;
+    --accent-glow: rgba(79, 70, 229, 0.16);
 
-  --success:      #10B981;
-  --success-soft: #ECFDF5;
-  --danger:       #EF4444;
-  --danger-soft:  #FEF2F2;
-  --warning:      #F59E0B;
-  --warning-soft: #FFFBEB;
-  --purple:       #8B5CF6;
-  --purple-soft:  #F5F3FF;
+    --success: #10b981;
+    --success-soft: #ecfdf5;
+    --danger: #ef4444;
+    --danger-soft: #fef2f2;
+    --warning: #f59e0b;
+    --warning-soft: #fffbeb;
+    --purple: #8b5cf6;
+    --purple-soft: #f5f3ff;
 
-  --sidebar-w:    240px;
-  --topbar-h:     64px;
+    --sidebar-w: 240px;
+    --topbar-h: 64px;
 
-  --radius-xl:    20px;
-  --radius-lg:    14px;
-  --radius-md:    10px;
-  --radius-sm:    7px;
-  --radius-xs:    5px;
+    --radius-xl: 20px;
+    --radius-lg: 14px;
+    --radius-md: 10px;
+    --radius-sm: 7px;
+    --radius-xs: 5px;
 
-  --shadow-xs:    0 1px 2px rgba(15,23,42,.04);
-  --shadow-sm:    0 1px 4px rgba(15,23,42,.06), 0 2px 8px rgba(15,23,42,.04);
-  --shadow-md:    0 4px 16px rgba(15,23,42,.08), 0 1px 4px rgba(15,23,42,.06);
-  --shadow-lg:    0 8px 32px rgba(15,23,42,.12), 0 2px 8px rgba(15,23,42,.06);
-  --shadow-xl:    0 20px 60px rgba(15,23,42,.16), 0 4px 16px rgba(15,23,42,.08);
+    --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+    --shadow-sm: 0 1px 4px rgba(15, 23, 42, 0.06), 0 2px 8px rgba(15, 23, 42, 0.04);
+    --shadow-md: 0 4px 16px rgba(15, 23, 42, 0.08), 0 1px 4px rgba(15, 23, 42, 0.06);
+    --shadow-lg: 0 8px 32px rgba(15, 23, 42, 0.12), 0 2px 8px rgba(15, 23, 42, 0.06);
+    --shadow-xl: 0 20px 60px rgba(15, 23, 42, 0.16), 0 4px 16px rgba(15, 23, 42, 0.08);
 
-  --font:         "Inter", system-ui, -apple-system, sans-serif;
-  --font-mono:    "JetBrains Mono", "Fira Code", monospace;
+    --font: "Inter", system-ui, -apple-system, sans-serif;
+    --font-mono: "JetBrains Mono", "Fira Code", monospace;
 }

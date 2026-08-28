@@ -25,6 +25,14 @@ chrome-profile/
 *.fls
 *.fdb_latexmk
 
+# Node
+node_modules/
+package.json
+package-lock.json
+
+# Poetry
+poetry.toml
+
 # OS
 .DS_Store
 Thumbs.db

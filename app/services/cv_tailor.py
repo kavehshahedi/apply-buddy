@@ -1,17 +1,13 @@
-import json
 import logging
 import re
-from pathlib import Path
-from typing import Optional
 
 from sqlmodel import Session
 
 from app.config import settings
 from app.db import engine
-from app.models import Job
-from app.services.llm import chat_completion, LLMError, _load_prompt, _load_prompt_model
+from app.models import Job, Setting
 from app.services.compile import compile_latex_to_pdf, latex_available
-from app.models import Setting
+from app.services.llm import LLMError, _load_prompt, _load_prompt_model, chat_completion
 
 logger = logging.getLogger("apply-buddy.cv_tailor")
 
@@ -102,7 +98,7 @@ def _load_tailor_cv_prompt() -> str:
     return _load_prompt("prompt_tailor_cv", DEFAULT_TAILOR_CV_PROMPT)
 
 
-def _load_tailor_cv_model() -> Optional[str]:
+def _load_tailor_cv_model() -> str | None:
     return _load_prompt_model("prompt_tailor_cv_model")
 
 

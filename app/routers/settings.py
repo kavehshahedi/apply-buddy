@@ -1,15 +1,20 @@
 import shutil
+
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from sqlmodel import Session, select
+
+from app.config import settings
 from app.db import get_session
 from app.models import SearchQuery, Setting
 from app.schemas import SearchQueryCreate, SearchQueryUpdate, SettingUpdate
-from app.config import settings
-from app.services.matcher import DEFAULT_SCORE_FIT_PROMPT
+from app.services.cover_letter import (
+    DEFAULT_COVER_LETTER_PROMPT,
+    DEFAULT_COVER_LETTER_TEMPLATE_PROMPT,
+)
 from app.services.cv_tailor import DEFAULT_TAILOR_CV_PROMPT
-from app.services.cover_letter import DEFAULT_COVER_LETTER_PROMPT, DEFAULT_COVER_LETTER_TEMPLATE_PROMPT
 from app.services.llm import _load_available_models
+from app.services.matcher import DEFAULT_SCORE_FIT_PROMPT
 
 router = APIRouter(prefix="/settings", tags=["settings"])
 
@@ -25,24 +30,16 @@ async def settings_page(request: Request, session: Session = Depends(get_session
             "request": request,
             "queries": queries,
             "cv_path": db_settings.get("cv_tex_path", settings.cv_tex_path),
-            "match_keywords": db_settings.get(
-                "match_keywords", settings.match_keywords
-            ),
-            "min_fit_score": db_settings.get(
-                "min_fit_score", str(settings.min_fit_score)
-            ),
+            "match_keywords": db_settings.get("match_keywords", settings.match_keywords),
+            "min_fit_score": db_settings.get("min_fit_score", str(settings.min_fit_score)),
             "min_keyword_score": db_settings.get(
                 "min_keyword_score", str(settings.min_keyword_score)
             ),
             "llm_max_concurrency": db_settings.get(
                 "llm_max_concurrency", str(settings.llm_max_concurrency)
             ),
-            "prompt_score_fit": db_settings.get(
-                "prompt_score_fit", DEFAULT_SCORE_FIT_PROMPT
-            ),
-            "prompt_tailor_cv": db_settings.get(
-                "prompt_tailor_cv", DEFAULT_TAILOR_CV_PROMPT
-            ),
+            "prompt_score_fit": db_settings.get("prompt_score_fit", DEFAULT_SCORE_FIT_PROMPT),
+            "prompt_tailor_cv": db_settings.get("prompt_tailor_cv", DEFAULT_TAILOR_CV_PROMPT),
             "prompt_cover_letter": db_settings.get(
                 "prompt_cover_letter", DEFAULT_COVER_LETTER_PROMPT
             ),
@@ -54,15 +51,9 @@ async def settings_page(request: Request, session: Session = Depends(get_session
             "DEFAULT_COVER_LETTER_PROMPT": DEFAULT_COVER_LETTER_PROMPT,
             "DEFAULT_COVER_LETTER_TEMPLATE_PROMPT": DEFAULT_COVER_LETTER_TEMPLATE_PROMPT,
             "available_models": available_models,
-            "prompt_score_fit_model": db_settings.get(
-                "prompt_score_fit_model", ""
-            ),
-            "prompt_tailor_cv_model": db_settings.get(
-                "prompt_tailor_cv_model", ""
-            ),
-            "prompt_cover_letter_model": db_settings.get(
-                "prompt_cover_letter_model", ""
-            ),
+            "prompt_score_fit_model": db_settings.get("prompt_score_fit_model", ""),
+            "prompt_tailor_cv_model": db_settings.get("prompt_tailor_cv_model", ""),
+            "prompt_cover_letter_model": db_settings.get("prompt_cover_letter_model", ""),
             "prompt_cover_letter_template_model": db_settings.get(
                 "prompt_cover_letter_template_model", ""
             ),
@@ -97,13 +88,9 @@ async def tool_check():
             os.name == "nt"
             and (
                 os.path.exists(r"C:\Program Files\MiKTeX\miktex\bin\x64\latexmk.exe")
+                or os.path.exists(r"C:\Program Files\MiKTeX\miktex\bin\x64\pdflatex.exe")
                 or os.path.exists(
-                    r"C:\Program Files\MiKTeX\miktex\bin\x64\pdflatex.exe"
-                )
-                or os.path.exists(
-                    os.path.expandvars(
-                        r"%LOCALAPPDATA%\Programs\MiKTeX\miktex\bin\x64\latexmk.exe"
-                    )
+                    os.path.expandvars(r"%LOCALAPPDATA%\Programs\MiKTeX\miktex\bin\x64\latexmk.exe")
                 )
                 or os.path.exists(
                     os.path.expandvars(
@@ -128,9 +115,7 @@ async def tool_check():
 
 
 @router.post("/queries")
-async def create_query(
-    data: SearchQueryCreate, session: Session = Depends(get_session)
-):
+async def create_query(data: SearchQueryCreate, session: Session = Depends(get_session)):
     query = SearchQuery(**data.model_dump())
     session.add(query)
     session.commit()
@@ -159,9 +144,7 @@ async def delete_query(query_id: int, session: Session = Depends(get_session)):
 
 
 @router.post("/setting/{key}")
-async def update_setting(
-    key: str, data: SettingUpdate, session: Session = Depends(get_session)
-):
+async def update_setting(key: str, data: SettingUpdate, session: Session = Depends(get_session)):
     setting = session.get(Setting, key)
     if setting:
         setting.value = data.value

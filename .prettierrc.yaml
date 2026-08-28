@@ -1,0 +1,13 @@
+semi: true
+singleQuote: false
+tabWidth: 4
+trailingComma: es5
+printWidth: 100
+endOfLine: lf
+overrides:
+  - files: "*.html"
+    options:
+      tabWidth: 4
+  - files: "*.{yml,yaml,json,md}"
+    options:
+      tabWidth: 2

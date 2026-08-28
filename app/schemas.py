@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Optional, List
 
 from pydantic import BaseModel
 
@@ -11,40 +10,40 @@ class JobRead(BaseModel):
     company: str
     location: str
     link: str
-    apply_link: Optional[str] = None
+    apply_link: str | None = None
     description: str
-    date_posted: Optional[str] = None
+    date_posted: str | None = None
     date_scraped: datetime
     status: str
-    fit_score: Optional[int] = None
-    fit_reason: Optional[str] = None
-    cv_change_recommended: Optional[bool] = None
-    cv_change_reason: Optional[str] = None
-    matched_keywords: Optional[str] = None
-    tailored_cv_path: Optional[str] = None
-    tailored_cv_pdf_path: Optional[str] = None
-    cover_letter_path: Optional[str] = None
-    cover_letter_docx_path: Optional[str] = None
-    cover_letter_pdf_path: Optional[str] = None
-    applied_at: Optional[datetime] = None
+    fit_score: int | None = None
+    fit_reason: str | None = None
+    cv_change_recommended: bool | None = None
+    cv_change_reason: str | None = None
+    matched_keywords: str | None = None
+    tailored_cv_path: str | None = None
+    tailored_cv_pdf_path: str | None = None
+    cover_letter_path: str | None = None
+    cover_letter_docx_path: str | None = None
+    cover_letter_pdf_path: str | None = None
+    applied_at: datetime | None = None
     notes: str
     updated_at: datetime
 
 
 class JobUpdate(BaseModel):
-    status: Optional[str] = None
-    notes: Optional[str] = None
+    status: str | None = None
+    notes: str | None = None
 
 
 class SearchQueryCreate(BaseModel):
     keywords: str = ""
-    locations: List[str] = []
+    locations: list[str] = []
     time_filter: str = "any"
-    job_type: Optional[str] = None
-    experience: Optional[str] = None
-    on_site_or_remote: Optional[str] = None
+    job_type: str | None = None
+    experience: str | None = None
+    on_site_or_remote: str | None = None
     limit: int = 25
-    days_back: Optional[int] = None
+    days_back: int | None = None
     enabled: bool = True
 
 
@@ -53,15 +52,15 @@ class SearchQueryRead(SearchQueryCreate):
 
 
 class SearchQueryUpdate(BaseModel):
-    keywords: Optional[str] = None
-    locations: Optional[List[str]] = None
-    time_filter: Optional[str] = None
-    job_type: Optional[str] = None
-    experience: Optional[str] = None
-    on_site_or_remote: Optional[str] = None
-    limit: Optional[int] = None
-    days_back: Optional[int] = None
-    enabled: Optional[bool] = None
+    keywords: str | None = None
+    locations: list[str] | None = None
+    time_filter: str | None = None
+    job_type: str | None = None
+    experience: str | None = None
+    on_site_or_remote: str | None = None
+    limit: int | None = None
+    days_back: int | None = None
+    enabled: bool | None = None
 
 
 class SettingUpdate(BaseModel):

@@ -4,19 +4,19 @@ import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from threading import Lock
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Any
 
 from sqlmodel import Session, select
 
 from app.config import settings
 from app.db import engine
-from app.models import Job, Setting, JobStatus
-from app.services.llm import chat_completion, LLMError, _load_prompt, _load_prompt_model
+from app.models import Job, JobStatus, Setting
+from app.services.llm import LLMError, _load_prompt, _load_prompt_model, chat_completion
 
 logger = logging.getLogger("apply-buddy.matcher")
 
 
-def _load_keywords() -> Dict[str, float]:
+def _load_keywords() -> dict[str, float]:
     with Session(engine) as session:
         setting = session.get(Setting, "match_keywords")
         if setting and setting.value:
@@ -73,13 +73,13 @@ def _load_score_fit_prompt() -> str:
     return _load_prompt("prompt_score_fit", DEFAULT_SCORE_FIT_PROMPT)
 
 
-def _load_score_fit_model() -> Optional[str]:
+def _load_score_fit_model() -> str | None:
     return _load_prompt_model("prompt_score_fit_model")
 
 
 def _keyword_score(
-    title: str, description: str, keywords: Dict[str, float]
-) -> Tuple[float, List[str]]:
+    title: str, description: str, keywords: dict[str, float]
+) -> tuple[float, list[str]]:
     if not keywords:
         return 0.0, []
     text = (title + " " + description).lower()
@@ -92,7 +92,7 @@ def _keyword_score(
     return score, matched
 
 
-def _read_cv_text() -> Optional[str]:
+def _read_cv_text() -> str | None:
     cv_path = settings.cv_tex_path_resolved
     if not cv_path.exists():
         logger.warning(f"CV not found at {cv_path}")
@@ -131,9 +131,7 @@ def _strip_tex_to_plain(tex: str) -> str:
     return body
 
 
-def score_all_new_jobs(
-    state: Optional[Dict[str, Any]] = None, force_rescore: bool = False
-) -> None:
+def score_all_new_jobs(state: dict[str, Any] | None = None, force_rescore: bool = False) -> None:
     if state is None:
         state = {}
     lock = Lock()
@@ -184,13 +182,10 @@ def score_all_new_jobs(
 
             if llm_jobs:
                 max_conc = settings.llm_max_concurrency
-                state["message"] = (
-                    f"LLM scoring {len(llm_jobs)} jobs ({max_conc} concurrent)..."
-                )
+                state["message"] = f"LLM scoring {len(llm_jobs)} jobs ({max_conc} concurrent)..."
                 with ThreadPoolExecutor(max_workers=max_conc) as executor:
                     future_to_job = {
-                        executor.submit(_llm_score_job, job, cv_plain): job
-                        for job in llm_jobs
+                        executor.submit(_llm_score_job, job, cv_plain): job for job in llm_jobs
                     }
                     for future in as_completed(future_to_job):
                         job = future_to_job[future]
@@ -201,15 +196,11 @@ def score_all_new_jobs(
                             job.cv_change_recommended = score_result.get(
                                 "cv_change_recommended", False
                             )
-                            job.cv_change_reason = score_result.get(
-                                "cv_change_reason", ""
-                            )
+                            job.cv_change_reason = score_result.get("cv_change_reason", "")
                             session.add(job)
                             with lock:
                                 state["current"] += 1
-                                state["message"] = (
-                                    f"Scored {job.title}: {job.fit_score}/100"
-                                )
+                                state["message"] = f"Scored {job.title}: {job.fit_score}/100"
                         except LLMError as e:
                             logger.error(f"LLM scoring failed for job {job.id}: {e}")
                             job.fit_score = 0
@@ -221,9 +212,7 @@ def score_all_new_jobs(
                                 state["message"] = f"Error scoring {job.title}: {e}"
 
             session.commit()
-            state["message"] = (
-                f"Scored {state['current']} jobs ({state['errors']} errors)"
-            )
+            state["message"] = f"Scored {state['current']} jobs ({state['errors']} errors)"
             logger.info(f"Scored {len(jobs)} jobs")
     except Exception as e:
         logger.exception(f"Scoring crashed: {e}")
@@ -233,7 +222,7 @@ def score_all_new_jobs(
         state["running"] = False
 
 
-def _read_cv_text_with_fallback(cv_path: Optional[str] = None) -> Optional[str]:
+def _read_cv_text_with_fallback(cv_path: str | None = None) -> str | None:
     if cv_path:
         path = Path(cv_path)
         if not path.exists():
@@ -248,7 +237,7 @@ def _read_cv_text_with_fallback(cv_path: Optional[str] = None) -> Optional[str]:
 
 
 def score_single_job(
-    job_id: int, state: Optional[Dict[str, Any]] = None, cv_path: Optional[str] = None
+    job_id: int, state: dict[str, Any] | None = None, cv_path: str | None = None
 ) -> None:
     if state is None:
         state = {}
@@ -316,9 +305,7 @@ def _llm_score_job(job: Job, cv_plain: str) -> dict:
         {"role": "user", "content": prompt},
     ]
 
-    result = chat_completion(
-        messages, response_format="json", model=_load_score_fit_model()
-    )
+    result = chat_completion(messages, response_format="json", model=_load_score_fit_model())
     result = result.strip()
     if result.startswith("```"):
         result = re.sub(r"^```(?:json)?\s*", "", result)

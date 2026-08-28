@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from sqlmodel import SQLModel, create_engine, Session
+from sqlmodel import Session, SQLModel, create_engine
 
 from app.config import settings
 
@@ -44,9 +44,7 @@ def _migrate_schema():
         queries_columns = [c["name"] for c in inspector.get_columns("search_queries")]
         if "days_back" not in queries_columns:
             with engine.connect() as conn:
-                conn.execute(
-                    text("ALTER TABLE search_queries ADD COLUMN days_back INTEGER")
-                )
+                conn.execute(text("ALTER TABLE search_queries ADD COLUMN days_back INTEGER"))
                 conn.commit()
     except Exception:
         pass

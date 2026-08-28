@@ -20,8 +20,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir "poetry==2.4.1" && poetry config virtualenvs.in-project true
+
+COPY pyproject.toml poetry.lock ./
+RUN poetry install --no-interaction --no-ansi --no-root
+
+ENV VIRTUAL_ENV=/app/.venv \
+    PATH="/app/.venv/bin:$PATH"
 
 COPY . .
 

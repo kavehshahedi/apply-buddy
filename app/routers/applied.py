@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse
-from fastapi import Request
 from sqlmodel import Session, select
+
 from app.db import get_session
 from app.models import Job, JobStatus
 

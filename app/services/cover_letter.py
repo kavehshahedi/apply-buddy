@@ -1,19 +1,18 @@
 import logging
 import re
-from typing import Optional
 
 from sqlmodel import Session
 
 from app.config import settings
 from app.db import engine
 from app.models import Job, Setting
-from app.services.llm import chat_completion, LLMError, _load_prompt, _load_prompt_model
 from app.services.compile import (
     convert_markdown_to_docx,
     convert_markdown_to_pdf,
     latex_available,
     pandoc_available,
 )
+from app.services.llm import LLMError, _load_prompt, _load_prompt_model, chat_completion
 
 logger = logging.getLogger("apply-buddy.cover_letter")
 
@@ -168,15 +167,17 @@ def _load_cover_letter_template_prompt() -> str:
     return _load_prompt("prompt_cover_letter_template", DEFAULT_COVER_LETTER_TEMPLATE_PROMPT)
 
 
-def _load_cover_letter_model() -> Optional[str]:
+def _load_cover_letter_model() -> str | None:
     return _load_prompt_model("prompt_cover_letter_model")
 
 
-def _load_cover_letter_template_model() -> Optional[str]:
+def _load_cover_letter_template_model() -> str | None:
     return _load_prompt_model("prompt_cover_letter_template_model")
 
 
-def _llm_cover_letter(title: str, company: str, description: str, cv_text: str, template_text: str = "") -> str:
+def _llm_cover_letter(
+    title: str, company: str, description: str, cv_text: str, template_text: str = ""
+) -> str:
     if template_text:
         prompt_template = _load_cover_letter_template_prompt()
         prompt = prompt_template.format(

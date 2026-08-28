@@ -1,16 +1,16 @@
 import json
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import yaml
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-def _load_yaml_config() -> Dict[str, Any]:
+def _load_yaml_config() -> dict[str, Any]:
     config_path = Path("config.yaml")
     if not config_path.exists():
         return {}
-    with open(config_path, "r") as f:
+    with open(config_path) as f:
         data = yaml.safe_load(f) or {}
     if isinstance(data.get("match_keywords"), dict):
         data["match_keywords"] = json.dumps(data["match_keywords"])
@@ -40,7 +40,9 @@ class Settings(BaseSettings):
     match_keywords: str = "{}"
     min_keyword_score: int = 0
     llm_max_concurrency: int = 4
-    llm_available_models: str = '["llama3.2", "gpt-4o", "gpt-4o-mini", "claude-3-opus", "claude-3-sonnet", "mistral-large"]'
+    llm_available_models: str = (
+        '["llama3.2", "gpt-4o", "gpt-4o-mini", "claude-3-opus", "claude-3-sonnet", "mistral-large"]'
+    )
 
     @property
     def output_path(self) -> Path:

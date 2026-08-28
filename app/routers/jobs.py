@@ -1,10 +1,13 @@
 import uuid
-from fastapi import APIRouter, Depends, HTTPException, Request, Form
+from datetime import UTC
+
+from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlmodel import Session, select
+
+from app.config import settings
 from app.db import get_session
 from app.models import Job, JobStatus
-from app.config import settings
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
 
@@ -54,9 +57,7 @@ async def job_list(
 
 
 @router.get("/{job_id}", response_class=HTMLResponse)
-async def job_detail(
-    request: Request, job_id: int, session: Session = Depends(get_session)
-):
+async def job_detail(request: Request, job_id: int, session: Session = Depends(get_session)):
     job = session.get(Job, job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
@@ -76,7 +77,7 @@ async def job_detail(
 
 @router.post("/manual", response_class=RedirectResponse)
 async def create_manual_job(
-    request: Request,
+    _request: Request,
     title: str = Form(...),
     company: str = Form(...),
     description: str = Form(...),
@@ -114,9 +115,9 @@ async def update_job_status(
     if notes:
         job.notes = notes
     if status == "applied" and job.applied_at is None:
-        from datetime import datetime, timezone
+        from datetime import datetime
 
-        job.applied_at = datetime.now(timezone.utc)
+        job.applied_at = datetime.now(UTC)
     session.add(job)
     session.commit()
     return RedirectResponse(url="/jobs/", status_code=303)

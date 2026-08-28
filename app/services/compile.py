@@ -3,12 +3,11 @@ import os
 import shutil
 import subprocess
 from pathlib import Path
-from typing import Optional, Tuple
 
 logger = logging.getLogger("apply-buddy.compile")
 
 
-def _find_exe(name: str) -> Optional[str]:
+def _find_exe(name: str) -> str | None:
     found = shutil.which(name)
     if found:
         return found
@@ -24,7 +23,7 @@ def latex_available() -> bool:
     return bool(_find_exe("latexmk") or _find_exe("pdflatex"))
 
 
-def _find_pandoc() -> Optional[str]:
+def _find_pandoc() -> str | None:
     found = shutil.which("pandoc")
     if found:
         return found
@@ -43,7 +42,7 @@ def pandoc_available() -> bool:
     return _find_pandoc() is not None
 
 
-def compile_latex_to_pdf(tex_path: Path, output_dir: Path) -> Tuple[bool, str]:
+def compile_latex_to_pdf(tex_path: Path, output_dir: Path) -> tuple[bool, str]:
     if not latex_available():
         return False, "LaTeX toolchain not found"
 
@@ -63,7 +62,7 @@ def compile_latex_to_pdf(tex_path: Path, output_dir: Path) -> Tuple[bool, str]:
                 timeout=120,
             )
             if result.returncode == 0:
-                result2 = subprocess.run(
+                subprocess.run(
                     [
                         pdflatex,
                         "-interaction=nonstopmode",
@@ -106,7 +105,7 @@ def compile_latex_to_pdf(tex_path: Path, output_dir: Path) -> Tuple[bool, str]:
         return False, f"LaTeX compilation error: {e}"
 
 
-def convert_markdown_to_docx(md_path: Path, output_dir: Path) -> Tuple[bool, str]:
+def convert_markdown_to_docx(md_path: Path, output_dir: Path) -> tuple[bool, str]:
     pandoc_exe = _find_pandoc()
     if not pandoc_exe:
         return False, "Pandoc not found"
@@ -127,7 +126,7 @@ def convert_markdown_to_docx(md_path: Path, output_dir: Path) -> Tuple[bool, str
         return False, f"Pandoc error: {e}"
 
 
-def convert_markdown_to_pdf(md_path: Path, output_dir: Path) -> Tuple[bool, str]:
+def convert_markdown_to_pdf(md_path: Path, output_dir: Path) -> tuple[bool, str]:
     pandoc_exe = _find_pandoc()
     if pandoc_exe:
         pdf_engine = _find_exe("pdflatex") or shutil.which("wkhtmltopdf")
@@ -141,9 +140,7 @@ def convert_markdown_to_pdf(md_path: Path, output_dir: Path) -> Tuple[bool, str]
                     str(pdf_path),
                     f"--pdf-engine={pdf_engine}",
                 ]
-                result = subprocess.run(
-                    cmd, capture_output=True, text=True, timeout=120
-                )
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
                 if result.returncode == 0 and pdf_path.exists():
                     return True, "Converted to pdf via pandoc"
                 return False, result.stdout + result.stderr
@@ -154,9 +151,7 @@ def convert_markdown_to_pdf(md_path: Path, output_dir: Path) -> Tuple[bool, str]
     return _convert_markdown_to_pdf_direct(md_path, output_dir)
 
 
-def _convert_markdown_to_pdf_direct(
-    md_path: Path, output_dir: Path
-) -> Tuple[bool, str]:
+def _convert_markdown_to_pdf_direct(md_path: Path, output_dir: Path) -> tuple[bool, str]:
     pdflatex = _find_exe("pdflatex")
     if not pdflatex:
         return False, "No PDF engine available (install pandoc or pdflatex)"
@@ -225,7 +220,7 @@ def _convert_markdown_to_pdf_direct(
             i += 1
             continue
 
-        if stripped.startswith("- ") or stripped.startswith("* "):
+        if stripped.startswith(("- ", "* ")):
             content = _convert_inline_markdown(_escape_latex(stripped[2:]))
             if not in_list:
                 in_list = True
@@ -236,9 +231,7 @@ def _convert_markdown_to_pdf_direct(
             continue
 
         if stripped[0].isdigit() and ". " in stripped[:4]:
-            content = _convert_inline_markdown(
-                _escape_latex(stripped.split(". ", 1)[1])
-            )
+            content = _convert_inline_markdown(_escape_latex(stripped.split(". ", 1)[1]))
             if not in_list:
                 in_list = True
                 list_env = "enumerate"

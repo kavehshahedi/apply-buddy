@@ -1,11 +1,12 @@
-from typing import Optional
-from fastapi import APIRouter, Depends, BackgroundTasks
+from pathlib import Path
+
+from fastapi import APIRouter, BackgroundTasks, Depends
 from fastapi.responses import FileResponse, JSONResponse
 from sqlmodel import Session
+
+from app.config import settings
 from app.db import get_session
 from app.models import Job
-from app.config import settings
-from pathlib import Path
 
 router = APIRouter(prefix="/actions", tags=["actions"])
 
@@ -44,9 +45,7 @@ async def score_fit_single(
     if not job:
         return JSONResponse({"error": "Job not found"}, status_code=404)
     if str(job_id) in _action_state and _action_state[str(job_id)].get("running"):
-        return JSONResponse(
-            {"error": "Scoring already running for this job"}, status_code=409
-        )
+        return JSONResponse({"error": "Scoring already running for this job"}, status_code=409)
 
     cv_path = None
     if cv_source == "tailored" and job.tailored_cv_path:
@@ -62,7 +61,7 @@ async def score_fit_single(
     return JSONResponse({"ok": True})
 
 
-def _run_score_fit(job_id: int, cv_path: Optional[str] = None):
+def _run_score_fit(job_id: int, cv_path: str | None = None):
     from app.services.matcher import score_single_job
 
     state = _action_state.get(str(job_id))
@@ -88,9 +87,7 @@ async def tailor_cv(
     if not job:
         return JSONResponse({"error": "Job not found"}, status_code=404)
     if str(job_id) in _action_state and _action_state[str(job_id)].get("running"):
-        return JSONResponse(
-            {"error": "Action already running for this job"}, status_code=409
-        )
+        return JSONResponse({"error": "Action already running for this job"}, status_code=409)
     _action_state[str(job_id)] = {
         "running": True,
         "message": "Starting CV tailoring...",
@@ -127,9 +124,7 @@ async def cover_letter(
     if not job:
         return JSONResponse({"error": "Job not found"}, status_code=404)
     if str(job_id) in _action_state and _action_state[str(job_id)].get("running"):
-        return JSONResponse(
-            {"error": "Action already running for this job"}, status_code=409
-        )
+        return JSONResponse({"error": "Action already running for this job"}, status_code=409)
     _action_state[str(job_id)] = {
         "running": True,
         "message": "Starting cover letter...",

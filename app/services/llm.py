@@ -1,7 +1,7 @@
 import json
 import logging
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import httpx
 from sqlmodel import Session
@@ -29,7 +29,7 @@ def _load_prompt(key: str, default: str) -> str:
     return default
 
 
-def _load_available_models() -> List[str]:
+def _load_available_models() -> list[str]:
     raw = settings.llm_available_models
     try:
         models = json.loads(raw)
@@ -38,7 +38,7 @@ def _load_available_models() -> List[str]:
         return []
 
 
-def _load_prompt_model(key: str) -> Optional[str]:
+def _load_prompt_model(key: str) -> str | None:
     from app.db import engine
 
     try:
@@ -57,7 +57,7 @@ def _is_reasoning_model(model_name: str) -> bool:
     )
 
 
-def _build_url(model: Optional[str] = None) -> str:
+def _build_url(model: str | None = None) -> str:
     base = settings.llm_base_url.rstrip("/")
     effective_model = model or settings.llm_model
     if settings.llm_provider == "databricks":
@@ -66,10 +66,10 @@ def _build_url(model: Optional[str] = None) -> str:
 
 
 def chat_completion(
-    messages: List[Dict[str, str]],
-    response_format: Optional[str] = None,
+    messages: list[dict[str, str]],
+    response_format: str | None = None,
     max_retries: int = 3,
-    model: Optional[str] = None,
+    model: str | None = None,
 ) -> str:
     headers = {
         "Authorization": f"Bearer {settings.llm_api_key}",
@@ -77,7 +77,7 @@ def chat_completion(
     }
     effective_model = model or settings.llm_model
     is_reasoning = _is_reasoning_model(effective_model)
-    body: Dict[str, Any] = {
+    body: dict[str, Any] = {
         "messages": messages,
     }
     if not is_reasoning:

@@ -28,6 +28,5 @@ llm_max_concurrency: 4
 # Each prompt type (Score Fit, CV Tailor, Cover Letter) can use a different model.
 # Override this list to match your LLM provider's available models.
 llm_available_models: '["llama3.2", "gpt-4o", "gpt-4o-mini", "claude-3-opus", "claude-3-sonnet", "mistral-large"]'
-
 # match_keywords must be a JSON string (the YAML parser will handle dicts automatically):
 # match_keywords: '{"python": 5, "machine learning": 3}'
