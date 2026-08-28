@@ -9,18 +9,56 @@ document.addEventListener('DOMContentLoaded', function () {
     setTimeout(() => toast.classList.add('hidden'), 4000);
   }
 
-  // Sort / Filter controls
+  // Sort / Filter controls — persist to localStorage
+  const filterForm = document.getElementById('filter-form');
+
+  function getFilterKeys() {
+    return Array.from(filterForm.elements)
+      .filter(el => el.name)
+      .map(el => el.name);
+  }
+
+  function saveFilters() {
+    const params = new URLSearchParams();
+    getFilterKeys().forEach(key => {
+      const el = filterForm.elements[key];
+      if (el) params.set(key, el.value);
+    });
+    localStorage.setItem('jobFilters', params.toString());
+  }
+
+  function restoreFilters() {
+    const saved = localStorage.getItem('jobFilters');
+    if (!saved) return;
+    const urlParams = new URLSearchParams(window.location.search);
+    const savedParams = new URLSearchParams(saved);
+    let needsRedirect = false;
+    getFilterKeys().forEach(key => {
+      if (!urlParams.has(key) && savedParams.has(key)) {
+        urlParams.set(key, savedParams.get(key));
+        needsRedirect = true;
+      }
+    });
+    if (needsRedirect) {
+      const qs = urlParams.toString();
+      window.location.href = '/jobs/' + (qs ? '?' + qs : '');
+    }
+  }
+
   const applyFiltersBtn = document.getElementById('apply-filters-btn');
   if (applyFiltersBtn) {
     applyFiltersBtn.addEventListener('click', function () {
-      const sort = document.getElementById('sort-select').value;
-      const order = document.getElementById('order-select').value;
-      const minScore = document.getElementById('min-score-input').value || '0';
-      const source = document.getElementById('source-select').value;
-      const viewed = document.getElementById('viewed-select').value;
-      window.location.href = `/jobs/?sort=${sort}&order=${order}&min_score=${minScore}&source=${source}&viewed=${viewed}`;
+      saveFilters();
+      const params = new URLSearchParams();
+      getFilterKeys().forEach(key => {
+        const el = filterForm.elements[key];
+        if (el) params.set(key, el.value);
+      });
+      window.location.href = '/jobs/?' + params.toString();
     });
   }
+
+  if (applyFiltersBtn) restoreFilters();
 
   // Fetch Jobs
   function setupFetchJobs(btnId, progressId, textId) {
@@ -250,6 +288,9 @@ document.addEventListener('DOMContentLoaded', function () {
       if (action === 'score-fit') {
         const cvSelect = this.closest('.fit-card')?.querySelector('.fit-card-cv-select');
         if (cvSelect) url += `?cv_source=${cvSelect.value}`;
+      } else if (action === 'cover-letter') {
+        const clToggle = document.getElementById('cl-use-template');
+        if (clToggle) url += `?use_template=${clToggle.checked}`;
       }
       this.disabled = true;
       this.textContent = 'Starting...';
@@ -388,7 +429,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   // Applied board: filter by status
-  window.filterByStatus = function(status, btn) {
+  window.filterByStatus = function (status, btn) {
     document.querySelectorAll('.status-tab').forEach(t => t.classList.remove('active'));
     if (btn) btn.classList.add('active');
     document.querySelectorAll('#applied-table tbody tr').forEach(row => {
@@ -401,7 +442,7 @@ document.addEventListener('DOMContentLoaded', function () {
   };
 
   // Job listings: toggle status dropdown
-  window.toggleStatusMenu = function(btn) {
+  window.toggleStatusMenu = function (btn) {
     const menu = btn.nextElementSibling;
     const isOpen = menu.classList.contains('open');
     document.querySelectorAll('.status-dropdown-menu.open').forEach(m => m.classList.remove('open'));
@@ -409,7 +450,7 @@ document.addEventListener('DOMContentLoaded', function () {
   };
 
   // Job listings: change status via dropdown
-  window.changeStatus = async function(jobId, status) {
+  window.changeStatus = async function (jobId, status) {
     const form = document.createElement('form');
     form.method = 'POST';
     form.action = `/jobs/${jobId}/status`;
@@ -423,7 +464,7 @@ document.addEventListener('DOMContentLoaded', function () {
   };
 
   // Close dropdowns on click outside
-  document.addEventListener('click', function(e) {
+  document.addEventListener('click', function (e) {
     if (!e.target.closest('.status-dropdown-wrap')) {
       document.querySelectorAll('.status-dropdown-menu.open').forEach(m => m.classList.remove('open'));
     }
@@ -431,14 +472,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Enter key on job rows goes to detail
   document.querySelectorAll('.job-row-title').forEach(el => {
-    el.addEventListener('keydown', function(e) {
+    el.addEventListener('keydown', function (e) {
       if (e.key === 'Enter') window.location.href = this.href;
     });
   });
 
   // Settings tabs
   document.querySelectorAll('.settings-tab').forEach(tab => {
-    tab.addEventListener('click', function() {
+    tab.addEventListener('click', function () {
       document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.settings-panel').forEach(p => p.classList.remove('active'));
       this.classList.add('active');

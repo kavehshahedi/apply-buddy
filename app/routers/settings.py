@@ -8,7 +8,7 @@ from app.schemas import SearchQueryCreate, SearchQueryUpdate, SettingUpdate
 from app.config import settings
 from app.services.matcher import DEFAULT_SCORE_FIT_PROMPT
 from app.services.cv_tailor import DEFAULT_TAILOR_CV_PROMPT
-from app.services.cover_letter import DEFAULT_COVER_LETTER_PROMPT
+from app.services.cover_letter import DEFAULT_COVER_LETTER_PROMPT, DEFAULT_COVER_LETTER_TEMPLATE_PROMPT
 from app.services.llm import _load_available_models
 
 router = APIRouter(prefix="/settings", tags=["settings"])
@@ -46,9 +46,13 @@ async def settings_page(request: Request, session: Session = Depends(get_session
             "prompt_cover_letter": db_settings.get(
                 "prompt_cover_letter", DEFAULT_COVER_LETTER_PROMPT
             ),
+            "prompt_cover_letter_template": db_settings.get(
+                "prompt_cover_letter_template", DEFAULT_COVER_LETTER_TEMPLATE_PROMPT
+            ),
             "DEFAULT_SCORE_FIT_PROMPT": DEFAULT_SCORE_FIT_PROMPT,
             "DEFAULT_TAILOR_CV_PROMPT": DEFAULT_TAILOR_CV_PROMPT,
             "DEFAULT_COVER_LETTER_PROMPT": DEFAULT_COVER_LETTER_PROMPT,
+            "DEFAULT_COVER_LETTER_TEMPLATE_PROMPT": DEFAULT_COVER_LETTER_TEMPLATE_PROMPT,
             "available_models": available_models,
             "prompt_score_fit_model": db_settings.get(
                 "prompt_score_fit_model", ""
@@ -58,6 +62,9 @@ async def settings_page(request: Request, session: Session = Depends(get_session
             ),
             "prompt_cover_letter_model": db_settings.get(
                 "prompt_cover_letter_model", ""
+            ),
+            "prompt_cover_letter_template_model": db_settings.get(
+                "prompt_cover_letter_template_model", ""
             ),
             "default_model": settings.llm_model,
             "convert_cv_pdf": db_settings.get("convert_cv_pdf", "1"),

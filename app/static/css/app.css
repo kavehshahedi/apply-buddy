@@ -1014,6 +1014,21 @@ select.form-control {
 }
 .action-panel .btn { justify-content: center; width: 100%; padding: 10px 13px; }
 
+.cl-template-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 6px 0 2px;
+  border-top: 1px solid var(--border-light);
+}
+.cl-template-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  user-select: none;
+}
+
 /* ─── Generated files list ────────────────────────────────── */
 .files-list {
   display: flex;
@@ -1493,6 +1508,9 @@ select.form-control {
 }
 .toggle-switch input:focus-visible + .toggle-slider {
   box-shadow: 0 0 0 3px var(--accent-glow);
+}
+.toggle-switch.toggle-switch-success input:checked + .toggle-slider {
+  background: var(--success);
 }
 .toggle-switch-sm {
   width: 32px;

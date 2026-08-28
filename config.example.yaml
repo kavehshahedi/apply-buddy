@@ -6,6 +6,9 @@
 # Path to your master LaTeX CV
 cv_tex_path: data/cv/cv.tex
 
+# Path to your cover letter template (used as a style/structure reference)
+cover_letter_template_path: data/cover-letter/cover_letter.md
+
 # Output directory for generated files (tailored CVs, cover letters)
 output_dir: data/output
 

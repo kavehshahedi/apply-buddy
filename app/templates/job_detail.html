@@ -136,7 +136,7 @@
 
     <div class="card">
       <div class="card-header" style="margin-bottom:12px;">
-        <div class="card-title">Quick Actions</div>
+        <div class="card-title">CV</div>
       </div>
       <div class="action-panel">
         <button data-action="tailor-cv" data-job-id="{{ job.id }}" class="btn btn-primary btn-sm">
@@ -145,12 +145,29 @@
           </svg>
           Tailor CV for This Job
         </button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header" style="margin-bottom:12px;">
+        <div class="card-title">Cover Letter</div>
+      </div>
+      <div class="action-panel">
         <button data-action="cover-letter" data-job-id="{{ job.id }}" class="btn btn-success btn-sm">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
           </svg>
           Generate Cover Letter
         </button>
+        {% if cover_letter_template_exists %}
+        <div class="cl-template-toggle">
+          <label class="toggle-switch toggle-switch-sm toggle-switch-success">
+            <input type="checkbox" id="cl-use-template" checked>
+            <span class="toggle-slider"></span>
+          </label>
+          <span class="cl-template-label">Use template</span>
+        </div>
+        {% endif %}
       </div>
     </div>
 

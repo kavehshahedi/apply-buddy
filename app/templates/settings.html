@@ -281,6 +281,32 @@
           </div>
         </div>
       </div>
+
+      <div class="prompt-block">
+        <div class="prompt-block-header">
+          <div class="prompt-block-title">Cover Letter (with Template)</div>
+          <span style="font-size:11px;color:var(--text-muted);font-family:var(--font-mono);">Variables: <code>{title}</code> <code>{company}</code> <code>{description}</code> <code>{cv_text}</code> <code>{template}</code></span>
+        </div>
+        <div class="prompt-block-model">
+          <label class="form-label" style="margin-bottom:0;font-size:11px;">Model</label>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <select class="form-control prompt-model-select" data-setting-key="prompt_cover_letter_template_model" data-input-id="prompt-cover-letter-template-model">
+              <option value="">Use default ({{ default_model }})</option>
+              {% for m in available_models %}
+              <option value="{{ m }}" {% if prompt_cover_letter_template_model == m %}selected{% endif %}>{{ m }}</option>
+              {% endfor %}
+            </select>
+            <button class="btn btn-primary btn-xs save-setting" data-setting-key="prompt_cover_letter_template_model" data-input-id="prompt-cover-letter-template-model">Save</button>
+          </div>
+        </div>
+        <div class="prompt-block-textarea">
+          <textarea id="prompt-cover-letter-template" class="form-control prompt-textarea" rows="7" spellcheck="false">{{ prompt_cover_letter_template }}</textarea>
+          <div style="display:flex;gap:6px;margin-top:6px;">
+            <button data-setting-key="prompt_cover_letter_template" data-input-id="prompt-cover-letter-template" class="save-setting btn btn-primary btn-sm">Save Prompt</button>
+            <button class="btn btn-secondary btn-sm reset-prompt" data-setting-key="prompt_cover_letter_template" data-input-id="prompt-cover-letter-template" data-default="{{ DEFAULT_COVER_LETTER_TEMPLATE_PROMPT }}">Reset to Default</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>

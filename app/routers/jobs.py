@@ -4,6 +4,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlmodel import Session, select
 from app.db import get_session
 from app.models import Job, JobStatus
+from app.config import settings
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
 
@@ -64,7 +65,12 @@ async def job_detail(
         session.add(job)
         session.commit()
     return request.app.state.templates.TemplateResponse(
-        "job_detail.html", {"request": request, "job": job}
+        "job_detail.html",
+        {
+            "request": request,
+            "job": job,
+            "cover_letter_template_exists": settings.cover_letter_template_path_resolved.exists(),
+        },
     )
 
 

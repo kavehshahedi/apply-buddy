@@ -1,6 +1,5 @@
 import logging
 import re
-from pathlib import Path
 from typing import Optional
 
 from sqlmodel import Session
@@ -19,7 +18,7 @@ from app.services.compile import (
 logger = logging.getLogger("apply-buddy.cover_letter")
 
 
-def generate_cover_letter(job_id: int, state: dict = None) -> None:
+def generate_cover_letter(job_id: int, state: dict = None, use_template: bool = True) -> None:
     if state is None:
         state = {}
     with Session(engine) as session:
@@ -34,9 +33,18 @@ def generate_cover_letter(job_id: int, state: dict = None) -> None:
         if cv_path.exists():
             cv_text = cv_path.read_text(encoding="utf-8")
 
+    template_text = ""
+    if use_template:
+        template_path = settings.cover_letter_template_path_resolved
+        if template_path.exists():
+            template_text = template_path.read_text(encoding="utf-8")
+            state["message"] = "Using cover letter template..."
+        else:
+            state["message"] = "No template found, generating from scratch..."
+
     state["message"] = "Requesting LLM to write cover letter..."
     try:
-        md = _llm_cover_letter(job.title, job.company, job.description, cv_text)
+        md = _llm_cover_letter(job.title, job.company, job.description, cv_text, template_text)
     except LLMError as e:
         state["message"] = f"LLM error: {e}"
         logger.error(f"LLM cover letter failed for job {job_id}: {e}")
@@ -126,6 +134,28 @@ Write a cover letter that connects the candidate's experience to the job require
 - Opening: what role and where
 - Body: relevant experience and skills
 - Closing: enthusiasm and call to action
+- Use English only. If the job description is in another language, translate it to English first.
+
+Return ONLY the markdown cover letter."""
+
+DEFAULT_COVER_LETTER_TEMPLATE_PROMPT = """Write a professional cover letter in Markdown format. Follow the style, structure, tone, and format of the template below. Natural, human tone. No commentary.
+
+Job Title: {title}
+Company: {company}
+Job Description:
+{description}
+
+Candidate CV:
+{cv_text}
+
+Cover Letter Template (follow this style and structure):
+{template}
+
+Write a cover letter that connects the candidate's experience to the job requirements, adapting the template's style and structure to this specific role. Include:
+- Opening: what role and where
+- Body: relevant experience and skills
+- Closing: enthusiasm and call to action
+- Use English only. If the job description is in another language, translate it to English first.
 
 Return ONLY the markdown cover letter."""
 
@@ -134,18 +164,38 @@ def _load_cover_letter_prompt() -> str:
     return _load_prompt("prompt_cover_letter", DEFAULT_COVER_LETTER_PROMPT)
 
 
+def _load_cover_letter_template_prompt() -> str:
+    return _load_prompt("prompt_cover_letter_template", DEFAULT_COVER_LETTER_TEMPLATE_PROMPT)
+
+
 def _load_cover_letter_model() -> Optional[str]:
     return _load_prompt_model("prompt_cover_letter_model")
 
 
-def _llm_cover_letter(title: str, company: str, description: str, cv_text: str) -> str:
-    prompt_template = _load_cover_letter_prompt()
-    prompt = prompt_template.format(
-        title=title,
-        company=company,
-        description=description[:4000],
-        cv_text=cv_text[:4000],
-    )
+def _load_cover_letter_template_model() -> Optional[str]:
+    return _load_prompt_model("prompt_cover_letter_template_model")
+
+
+def _llm_cover_letter(title: str, company: str, description: str, cv_text: str, template_text: str = "") -> str:
+    if template_text:
+        prompt_template = _load_cover_letter_template_prompt()
+        prompt = prompt_template.format(
+            title=title,
+            company=company,
+            description=description[:4000],
+            cv_text=cv_text[:4000],
+            template=template_text,
+        )
+        model = _load_cover_letter_template_model()
+    else:
+        prompt_template = _load_cover_letter_prompt()
+        prompt = prompt_template.format(
+            title=title,
+            company=company,
+            description=description[:4000],
+            cv_text=cv_text[:4000],
+        )
+        model = _load_cover_letter_model()
 
     messages = [
         {
@@ -155,7 +205,7 @@ def _llm_cover_letter(title: str, company: str, description: str, cv_text: str) 
         {"role": "user", "content": prompt},
     ]
 
-    result = chat_completion(messages, model=_load_cover_letter_model())
+    result = chat_completion(messages, model=model)
     result = result.strip()
     if result.startswith("```"):
         result = re.sub(r"^```(?:markdown)?\s*", "", result)

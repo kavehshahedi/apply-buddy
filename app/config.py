@@ -33,6 +33,7 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///data/apply_buddy.db"
 
     cv_tex_path: str = "data/cv/cv.tex"
+    cover_letter_template_path: str = "data/cover-letter/cover_letter.md"
     output_dir: str = "data/output"
     chrome_profile_dir: str = "chrome-profile"
     min_fit_score: int = 30
@@ -52,6 +53,10 @@ class Settings(BaseSettings):
     @property
     def chrome_profile_path(self) -> Path:
         return Path(self.chrome_profile_dir)
+
+    @property
+    def cover_letter_template_path_resolved(self) -> Path:
+        return Path(self.cover_letter_template_path)
 
 
 yaml_overrides = _load_yaml_config()

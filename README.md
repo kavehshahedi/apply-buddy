@@ -37,7 +37,7 @@ pip install -r requirements.txt
 ### LinkedIn Login (First Time)
 
 ```bash
-python -m linkedin_jobs_scraper.login --user-data-dir ./chrome-profile
+python -m linkedin_jobs_scraper login --chrome-user-data-dir ./chrome-profile
 ```
 
 Log in with your LinkedIn credentials and **tick "Keep me logged in"**. After that, the scraper reuses this profile.

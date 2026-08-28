@@ -121,6 +121,7 @@ async def cover_letter(
     job_id: int,
     background_tasks: BackgroundTasks,
     session: Session = Depends(get_session),
+    use_template: bool = True,
 ):
     job = session.get(Job, job_id)
     if not job:
@@ -133,17 +134,21 @@ async def cover_letter(
         "running": True,
         "message": "Starting cover letter...",
         "action": "cover-letter",
+        "use_template": use_template,
     }
-    background_tasks.add_task(_run_cover_letter, job_id)
+    background_tasks.add_task(_run_cover_letter, job_id, use_template)
     return JSONResponse({"ok": True})
 
 
-def _run_cover_letter(job_id: int):
+def _run_cover_letter(job_id: int, use_template: bool = True):
     from app.services.cover_letter import generate_cover_letter
 
     state = _action_state.get(str(job_id))
     try:
-        generate_cover_letter(job_id, state) if state else generate_cover_letter(job_id)
+        if state:
+            generate_cover_letter(job_id, state, use_template=use_template)
+        else:
+            generate_cover_letter(job_id, use_template=use_template)
     except Exception as e:
         if state:
             state["message"] = f"Error: {e}"
