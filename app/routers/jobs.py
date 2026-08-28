@@ -43,9 +43,9 @@ async def job_list(
     query = query.order_by(order_fn())
     jobs = session.exec(query).all()
     return request.app.state.templates.TemplateResponse(
+        request,
         "jobs.html",
         {
-            "request": request,
             "jobs": jobs,
             "sort": sort,
             "order": order,
@@ -66,9 +66,9 @@ async def job_detail(request: Request, job_id: int, session: Session = Depends(g
         session.add(job)
         session.commit()
     return request.app.state.templates.TemplateResponse(
+        request,
         "job_detail.html",
         {
-            "request": request,
             "job": job,
             "cover_letter_template_exists": settings.cover_letter_template_path_resolved.exists(),
         },

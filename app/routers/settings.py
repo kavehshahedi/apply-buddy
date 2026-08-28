@@ -25,9 +25,9 @@ async def settings_page(request: Request, session: Session = Depends(get_session
     db_settings = {s.key: s.value for s in session.exec(select(Setting)).all()}
     available_models = _load_available_models()
     return request.app.state.templates.TemplateResponse(
+        request,
         "settings.html",
         {
-            "request": request,
             "queries": queries,
             "cv_path": db_settings.get("cv_tex_path", settings.cv_tex_path),
             "match_keywords": db_settings.get("match_keywords", settings.match_keywords),

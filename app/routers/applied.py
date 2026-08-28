@@ -25,6 +25,4 @@ async def applied_board(request: Request, session: Session = Depends(get_session
         )
         .order_by(Job.updated_at.desc())
     ).all()
-    return request.app.state.templates.TemplateResponse(
-        "applied.html", {"request": request, "jobs": jobs}
-    )
+    return request.app.state.templates.TemplateResponse(request, "applied.html", {"jobs": jobs})

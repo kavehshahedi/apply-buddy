@@ -28,6 +28,8 @@ package-mode = false
 ruff = ">=0.16.5"
 pyright = ">=1.1.411"
 pre-commit = ">=4.6.2"
+pytest = ">=8.3.0"
+pytest-asyncio = ">=0.24.0"
 
 [build-system]
 requires = ["poetry-core>=2.4.0"]
@@ -51,8 +53,11 @@ ignore = ["E501"]
 "__init__.py" = ["F401"]
 "app/routers/*.py" = ["B008"]
 "app/main.py" = ["E402", "F811", "ARG001", "SIM103"]
+"tests/*.py" = ["ARG001", "ARG002", "ARG005"]
+"tests/conftest.py" = ["E402"]
 
 [tool.pytest.ini_options]
 minversion = "8.0"
 testpaths = ["tests"]
 python_files = ["test_*.py"]
+asyncio_mode = "auto"
