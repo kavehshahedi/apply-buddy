@@ -166,9 +166,17 @@ class TestSearchQueryModel:
         assert query.keywords == ""
         assert query.locations == "[]"
         assert query.time_filter == "any"
+        assert query.relevance == "recent"
         assert query.job_type is None
         assert query.experience is None
         assert query.on_site_or_remote is None
+        assert query.industry == "[]"
+        assert query.base_salary is None
+        assert query.job_function == "[]"
+        assert query.benefits == "[]"
+        assert query.commitments == "[]"
+        assert query.easy_apply is False
+        assert query.under_10_applicants is False
         assert query.limit == 25
         assert query.days_back is None
         assert query.enabled is True
@@ -178,9 +186,17 @@ class TestSearchQueryModel:
             keywords="data scientist",
             locations='["New York", "Remote"]',
             time_filter="week",
+            relevance="relevant",
             job_type="full-time",
             experience="mid-senior",
             on_site_or_remote="remote",
+            industry='["software_development", "it_services"]',
+            base_salary="100k",
+            job_function='["engineering"]',
+            benefits='["medical", "vision"]',
+            commitments='["work_life_balance"]',
+            easy_apply=True,
+            under_10_applicants=True,
             limit=50,
             days_back=7,
             enabled=False,
@@ -192,9 +208,19 @@ class TestSearchQueryModel:
         assert query.keywords == "data scientist"
         assert query.locations == '["New York", "Remote"]'
         assert query.time_filter == "week"
+        assert query.relevance == "relevant"
         assert query.job_type == "full-time"
         assert query.experience == "mid-senior"
         assert query.on_site_or_remote == "remote"
+        import json
+
+        assert json.loads(query.industry) == ["software_development", "it_services"]
+        assert query.base_salary == "100k"
+        assert json.loads(query.job_function) == ["engineering"]
+        assert json.loads(query.benefits) == ["medical", "vision"]
+        assert json.loads(query.commitments) == ["work_life_balance"]
+        assert query.easy_apply is True
+        assert query.under_10_applicants is True
         assert query.limit == 50
         assert query.days_back == 7
         assert query.enabled is False

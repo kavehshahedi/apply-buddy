@@ -97,9 +97,17 @@ class TestSearchQueryCreate:
         assert query.keywords == ""
         assert query.locations == []
         assert query.time_filter == "any"
+        assert query.relevance == "recent"
         assert query.job_type is None
         assert query.experience is None
         assert query.on_site_or_remote is None
+        assert query.industry == []
+        assert query.base_salary is None
+        assert query.job_function == []
+        assert query.benefits == []
+        assert query.commitments == []
+        assert query.easy_apply is False
+        assert query.under_10_applicants is False
         assert query.limit == 25
         assert query.days_back is None
         assert query.enabled is True
@@ -109,9 +117,17 @@ class TestSearchQueryCreate:
             keywords="python developer",
             locations=["Remote", "Austin"],
             time_filter="month",
+            relevance="relevant",
             job_type="contract",
             experience="entry",
             on_site_or_remote="hybrid",
+            industry=["software_development", "it_services"],
+            base_salary="100k",
+            job_function=["engineering"],
+            benefits=["medical", "vision"],
+            commitments=["work_life_balance"],
+            easy_apply=True,
+            under_10_applicants=True,
             limit=10,
             days_back=14,
             enabled=False,
@@ -119,7 +135,17 @@ class TestSearchQueryCreate:
         assert query.keywords == "python developer"
         assert query.locations == ["Remote", "Austin"]
         assert query.time_filter == "month"
+        assert query.relevance == "relevant"
         assert query.job_type == "contract"
+        assert query.experience == "entry"
+        assert query.on_site_or_remote == "hybrid"
+        assert query.industry == ["software_development", "it_services"]
+        assert query.base_salary == "100k"
+        assert query.job_function == ["engineering"]
+        assert query.benefits == ["medical", "vision"]
+        assert query.commitments == ["work_life_balance"]
+        assert query.easy_apply is True
+        assert query.under_10_applicants is True
         assert query.limit == 10
         assert query.days_back == 14
         assert query.enabled is False
@@ -145,9 +171,17 @@ class TestSearchQueryRead:
             keywords="data scientist",
             locations=["NYC", "SF"],
             time_filter="week",
+            relevance="relevant",
             job_type="full-time",
             experience="senior",
             on_site_or_remote="remote",
+            industry=["software_development"],
+            base_salary="120k",
+            job_function=["engineering", "research"],
+            benefits=["medical"],
+            commitments=["work_life_balance"],
+            easy_apply=True,
+            under_10_applicants=False,
             limit=50,
             days_back=7,
             enabled=False,
@@ -155,6 +189,9 @@ class TestSearchQueryRead:
         assert data.id == 42
         assert data.days_back == 7
         assert data.on_site_or_remote == "remote"
+        assert data.industry == ["software_development"]
+        assert data.base_salary == "120k"
+        assert data.easy_apply is True
 
 
 class TestSearchQueryUpdate:
@@ -163,9 +200,17 @@ class TestSearchQueryUpdate:
         assert update.keywords is None
         assert update.locations is None
         assert update.time_filter is None
+        assert update.relevance is None
         assert update.job_type is None
         assert update.experience is None
         assert update.on_site_or_remote is None
+        assert update.industry is None
+        assert update.base_salary is None
+        assert update.job_function is None
+        assert update.benefits is None
+        assert update.commitments is None
+        assert update.easy_apply is None
+        assert update.under_10_applicants is None
         assert update.limit is None
         assert update.days_back is None
         assert update.enabled is None

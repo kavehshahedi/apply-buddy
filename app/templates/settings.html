@@ -81,12 +81,47 @@
                     <div class="query-card-meta">
                         {{ q.locations | join(', ') if q.locations else 'Any location' }} &middot;
                         Limit: {{ q.limit }} {% if q.days_back %}&middot; Days back: {{ q.days_back
-                        }}{% endif %} &middot; {% if q.enabled %}<span style="color: var(--success)"
-                            >Enabled</span
-                        >{% else %}Disabled{% endif %}
+                        }}{% endif %}
+                    </div>
+                    <div class="query-card-filters">
+                        {% if q.time_filter and q.time_filter != 'any' %}
+                        <span class="filter-badge">{{ q.time_filter | replace('_', ' ') | title }}</span>
+                        {% endif %}
+                        {% if q.relevance and q.relevance != 'recent' %}
+                        <span class="filter-badge">{{ q.relevance | title }}</span>
+                        {% endif %}
+                        {% if q.job_type %}
+                        <span class="filter-badge">{{ q.job_type | replace('_', ' ') | title }}</span>
+                        {% endif %}
+                        {% if q.experience %}
+                        <span class="filter-badge">{{ q.experience | replace('_', ' ') | title }}</span>
+                        {% endif %}
+                        {% if q.on_site_or_remote %}
+                        <span class="filter-badge">{{ q.on_site_or_remote | replace('_', ' ') | title }}</span>
+                        {% endif %}
+                        {% if q.base_salary %}
+                        <span class="filter-badge">${{ q.base_salary }}</span>
+                        {% endif %}
+                        {% if q.easy_apply %}
+                        <span class="filter-badge badge-easy-apply">Easy Apply</span>
+                        {% endif %}
+                        {% if q.under_10_applicants %}
+                        <span class="filter-badge badge-low-applicants">&lt;10 Applicants</span>
+                        {% endif %}
+                        {% if q.industry and q.industry is string and q.industry != '[]' %}
+                        <span class="filter-badge">{{ q.industry }}</span>
+                        {% endif %}
                     </div>
                 </div>
                 <div class="query-card-actions">
+                    {% if q.enabled %}
+                    <span class="query-card-enabled">Enabled</span>
+                    {% else %}
+                    <span class="query-card-disabled">Disabled</span>
+                    {% endif %}
+                    <button class="edit-query btn btn-secondary btn-xs" data-query-id="{{ q.id }}">
+                        Edit
+                    </button>
                     <button class="delete-query btn btn-danger btn-xs" data-query-id="{{ q.id }}">
                         Delete
                     </button>
@@ -105,6 +140,8 @@
             </div>
             {% endfor %}
         </div>
+
+        <script id="queries-data" type="application/json">{{ queries_json | safe }}</script>
 
         <button
             id="add-query-btn"
@@ -137,36 +174,192 @@
                 display: none;
             "
         >
-            <div class="form-group">
-                <label class="form-label">Keywords</label>
-                <input id="q-keywords" class="form-control" placeholder="e.g. software engineer" />
+            <div class="query-form-grid">
+                <div class="form-group">
+                    <label class="form-label">Keywords</label>
+                    <input id="q-keywords" class="form-control" placeholder="e.g. software engineer" />
+                    <div class="form-hint">Comma-separated for multiple terms: "engineer, product manager"</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Locations (comma-separated)</label>
+                    <input id="q-locations" class="form-control" placeholder="e.g. Toronto, Remote" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Limit</label>
+                    <input id="q-limit" type="number" value="25" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Days Back</label>
+                    <input id="q-days-back" type="number" class="form-control" placeholder="e.g. 5" />
+                    <div class="form-hint">Only jobs within this many days</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Time Filter</label>
+                    <select id="q-time-filter" class="form-control">
+                        <option value="any">Any Time</option>
+                        <option value="day">Past 24 Hours</option>
+                        <option value="week">Past Week</option>
+                        <option value="month">Past Month</option>
+                    </select>
+                    <div class="form-hint">LinkedIn filter — restricts search results</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Sort By</label>
+                    <select id="q-relevance" class="form-control">
+                        <option value="recent">Most Recent</option>
+                        <option value="relevant">Most Relevant</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Job Type</label>
+                    <select id="q-job-type" class="form-control">
+                        <option value="">Any</option>
+                        <option value="full_time">Full-time</option>
+                        <option value="part_time">Part-time</option>
+                        <option value="contract">Contract</option>
+                        <option value="temporary">Temporary</option>
+                        <option value="internship">Internship</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Experience Level</label>
+                    <select id="q-experience" class="form-control">
+                        <option value="">Any</option>
+                        <option value="internship">Internship</option>
+                        <option value="entry">Entry Level</option>
+                        <option value="associate">Associate</option>
+                        <option value="mid_senior">Mid-Senior</option>
+                        <option value="director">Director</option>
+                        <option value="executive">Executive</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">On-site / Remote</label>
+                    <select id="q-on-site-remote" class="form-control">
+                        <option value="">Any</option>
+                        <option value="on_site">On-site</option>
+                        <option value="remote">Remote</option>
+                        <option value="hybrid">Hybrid</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Base Salary</label>
+                    <select id="q-base-salary" class="form-control">
+                        <option value="">Any</option>
+                        <option value="40k">$40K+</option>
+                        <option value="60k">$60K+</option>
+                        <option value="80k">$80K+</option>
+                        <option value="100k">$100K+</option>
+                        <option value="120k">$120K+</option>
+                        <option value="140k">$140K+</option>
+                        <option value="160k">$160K+</option>
+                        <option value="180k">$180K+</option>
+                        <option value="200k">$200K+</option>
+                    </select>
+                </div>
             </div>
-            <div class="form-group">
-                <label class="form-label">Locations (comma-separated)</label>
-                <input id="q-locations" class="form-control" placeholder="e.g. Toronto, Remote" />
+
+            <div class="query-form-section">
+                <div class="query-form-section-title">Advanced Filters</div>
+                <div class="form-group">
+                    <label class="form-label">Industry</label>
+                    <div id="q-industry" class="filter-chips" data-chip-group="industry">
+                        <button type="button" class="filter-chip" data-value="airlines_aviation">Airlines &amp; Aviation</button>
+                        <button type="button" class="filter-chip" data-value="banking">Banking</button>
+                        <button type="button" class="filter-chip" data-value="civil_engineering">Civil Engineering</button>
+                        <button type="button" class="filter-chip" data-value="computer_games">Computer Games</button>
+                        <button type="button" class="filter-chip" data-value="environmental_services">Environmental Services</button>
+                        <button type="button" class="filter-chip" data-value="electronic_manufacturing">Electronic Manufacturing</button>
+                        <button type="button" class="filter-chip" data-value="financial_services">Financial Services</button>
+                        <button type="button" class="filter-chip" data-value="information_services">Information Services</button>
+                        <button type="button" class="filter-chip" data-value="investment_banking">Investment Banking</button>
+                        <button type="button" class="filter-chip" data-value="investment_management">Investment Management</button>
+                        <button type="button" class="filter-chip" data-value="it_services">IT Services</button>
+                        <button type="button" class="filter-chip" data-value="legal_services">Legal Services</button>
+                        <button type="button" class="filter-chip" data-value="motor_vehicles">Motor Vehicles</button>
+                        <button type="button" class="filter-chip" data-value="oil_gas">Oil &amp; Gas</button>
+                        <button type="button" class="filter-chip" data-value="software_development">Software Development</button>
+                        <button type="button" class="filter-chip" data-value="staffing_recruiting">Staffing &amp; Recruiting</button>
+                        <button type="button" class="filter-chip" data-value="technology_internet">Technology &amp; Internet</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Job Function</label>
+                    <div id="q-job-function" class="filter-chips" data-chip-group="job_function">
+                        <button type="button" class="filter-chip" data-value="accounting_auditing">Accounting &amp; Auditing</button>
+                        <button type="button" class="filter-chip" data-value="administrative">Administrative</button>
+                        <button type="button" class="filter-chip" data-value="advertising">Advertising</button>
+                        <button type="button" class="filter-chip" data-value="business_development">Business Development</button>
+                        <button type="button" class="filter-chip" data-value="consulting">Consulting</button>
+                        <button type="button" class="filter-chip" data-value="distribution">Distribution</button>
+                        <button type="button" class="filter-chip" data-value="design">Design</button>
+                        <button type="button" class="filter-chip" data-value="education">Education</button>
+                        <button type="button" class="filter-chip" data-value="engineering">Engineering</button>
+                        <button type="button" class="filter-chip" data-value="finance">Finance</button>
+                        <button type="button" class="filter-chip" data-value="general_business">General Business</button>
+                        <button type="button" class="filter-chip" data-value="health_care_provider">Health Care Provider</button>
+                        <button type="button" class="filter-chip" data-value="human_resources">Human Resources</button>
+                        <button type="button" class="filter-chip" data-value="information_technology">Information Technology</button>
+                        <button type="button" class="filter-chip" data-value="legal">Legal</button>
+                        <button type="button" class="filter-chip" data-value="management">Management</button>
+                        <button type="button" class="filter-chip" data-value="manufacturing">Manufacturing</button>
+                        <button type="button" class="filter-chip" data-value="marketing">Marketing</button>
+                        <button type="button" class="filter-chip" data-value="other">Other</button>
+                        <button type="button" class="filter-chip" data-value="public_relations">Public Relations</button>
+                        <button type="button" class="filter-chip" data-value="product_management">Product Management</button>
+                        <button type="button" class="filter-chip" data-value="project_management">Project Management</button>
+                        <button type="button" class="filter-chip" data-value="quality_assurance">Quality Assurance</button>
+                        <button type="button" class="filter-chip" data-value="research">Research</button>
+                        <button type="button" class="filter-chip" data-value="sales">Sales</button>
+                        <button type="button" class="filter-chip" data-value="supply_chain">Supply Chain</button>
+                        <button type="button" class="filter-chip" data-value="training">Training</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Benefits</label>
+                    <div id="q-benefits" class="filter-chips" data-chip-group="benefits">
+                        <button type="button" class="filter-chip" data-value="medical">Medical</button>
+                        <button type="button" class="filter-chip" data-value="vision">Vision</button>
+                        <button type="button" class="filter-chip" data-value="dental">Dental</button>
+                        <button type="button" class="filter-chip" data-value="retirement_401k">Retirement / 401K</button>
+                        <button type="button" class="filter-chip" data-value="pension_plan">Pension Plan</button>
+                        <button type="button" class="filter-chip" data-value="paid_maternity_leave">Paid Maternity Leave</button>
+                        <button type="button" class="filter-chip" data-value="paid_paternity_leave">Paid Paternity Leave</button>
+                        <button type="button" class="filter-chip" data-value="commuter_benefits">Commuter Benefits</button>
+                        <button type="button" class="filter-chip" data-value="student_loan_assistance">Student Loan Assistance</button>
+                        <button type="button" class="filter-chip" data-value="tuition_assistance">Tuition Assistance</button>
+                        <button type="button" class="filter-chip" data-value="disability_insurance">Disability Insurance</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Commitments</label>
+                    <div id="q-commitments" class="filter-chips" data-chip-group="commitments">
+                        <button type="button" class="filter-chip" data-value="diversity_equity_inclusion">Diversity, Equity &amp; Inclusion</button>
+                        <button type="button" class="filter-chip" data-value="environmental_sustainability">Environmental Sustainability</button>
+                        <button type="button" class="filter-chip" data-value="work_life_balance">Work-Life Balance</button>
+                        <button type="button" class="filter-chip" data-value="social_impact">Social Impact</button>
+                        <button type="button" class="filter-chip" data-value="career_growth_and_learning">Career Growth &amp; Learning</button>
+                    </div>
+                </div>
             </div>
-            <div class="form-group">
-                <label class="form-label">Limit</label>
-                <input
-                    id="q-limit"
-                    type="number"
-                    value="25"
-                    class="form-control"
-                    style="width: 120px"
-                />
+
+            <div class="query-form-checkboxes">
+                <label class="custom-checkbox">
+                    <input id="q-easy-apply" type="checkbox" />
+                    <span class="custom-checkbox-box"></span>
+                    Easy Apply only
+                </label>
+                <label class="custom-checkbox">
+                    <input id="q-under-10" type="checkbox" />
+                    <span class="custom-checkbox-box"></span>
+                    Under 10 applicants
+                </label>
             </div>
-            <div class="form-group">
-                <label class="form-label">Days Back (optional)</label>
-                <input
-                    id="q-days-back"
-                    type="number"
-                    class="form-control"
-                    style="width: 120px"
-                    placeholder="e.g. 5"
-                />
-                <div class="form-hint">Only fetch jobs posted/reposted within this many days</div>
+
+            <div style="display: flex; gap: 8px; margin-top: 4px">
+                <button id="save-query-btn" class="btn btn-primary btn-sm">Save Query</button>
+                <button id="cancel-edit-btn" class="btn btn-secondary btn-sm" style="display: none">Cancel</button>
             </div>
-            <button id="save-query-btn" class="btn btn-primary btn-sm">Save Query</button>
         </div>
     </div>
 </div>

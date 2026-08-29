@@ -1,3 +1,4 @@
+import json
 import shutil
 
 from fastapi import APIRouter, Depends, Request
@@ -29,6 +30,7 @@ async def settings_page(request: Request, session: Session = Depends(get_session
         "settings.html",
         {
             "queries": queries,
+            "queries_json": json.dumps([q.model_dump() for q in queries], default=str),
             "cv_path": db_settings.get("cv_tex_path", settings.cv_tex_path),
             "match_keywords": db_settings.get("match_keywords", settings.match_keywords),
             "min_fit_score": db_settings.get("min_fit_score", str(settings.min_fit_score)),

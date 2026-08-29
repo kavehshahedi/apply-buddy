@@ -341,12 +341,121 @@ document.addEventListener("DOMContentLoaded", function () {
     // Settings: Add query
     const addQueryBtn = document.getElementById("add-query-btn");
     const addQueryForm = document.getElementById("add-query-form");
+    const addQueryFormStyle = addQueryForm?.style;
     if (addQueryBtn) {
         addQueryBtn.addEventListener("click", () => {
-            const isHidden = addQueryForm.style.display === "none" || !addQueryForm.style.display;
-            addQueryForm.style.display = isHidden ? "block" : "none";
+            if (editingQueryId) {
+                exitEditMode();
+                addQueryFormStyle.display = "none";
+                return;
+            }
+            const isHidden = addQueryFormStyle.display === "none" || !addQueryFormStyle.display;
+            addQueryFormStyle.display = isHidden ? "block" : "none";
+            if (isHidden) clearForm();
         });
     }
+    // Filter chips — click to toggle
+    document.querySelectorAll(".filter-chips").forEach((container) => {
+        container.addEventListener("click", function (e) {
+            const chip = e.target.closest(".filter-chip");
+            if (!chip) return;
+            chip.classList.toggle("active");
+        });
+    });
+
+    function getChipValues(id) {
+        const container = document.getElementById(id);
+        if (!container) return [];
+        return Array.from(container.querySelectorAll(".filter-chip.active")).map(
+            (chip) => chip.dataset.value
+        );
+    }
+
+    let editingQueryId = null;
+    const queriesData = document.getElementById("queries-data");
+    const allQueries = queriesData ? JSON.parse(queriesData.textContent) : [];
+
+    function setChipValues(id, values) {
+        const container = document.getElementById(id);
+        if (!container) return;
+        container.querySelectorAll(".filter-chip").forEach((chip) => {
+            chip.classList.toggle("active", values.includes(chip.dataset.value));
+        });
+    }
+
+    function populateForm(q) {
+        document.getElementById("q-keywords").value = q.keywords || "";
+        document.getElementById("q-locations").value = (q.locations || []).join(", ");
+        document.getElementById("q-limit").value = q.limit || 25;
+        document.getElementById("q-days-back").value = q.days_back || "";
+        document.getElementById("q-time-filter").value = q.time_filter || "any";
+        document.getElementById("q-relevance").value = q.relevance || "recent";
+        document.getElementById("q-job-type").value = q.job_type || "";
+        document.getElementById("q-experience").value = q.experience || "";
+        document.getElementById("q-on-site-remote").value = q.on_site_or_remote || "";
+        document.getElementById("q-base-salary").value = q.base_salary || "";
+        setChipValues("q-industry", q.industry || []);
+        setChipValues("q-job-function", q.job_function || []);
+        setChipValues("q-benefits", q.benefits || []);
+        setChipValues("q-commitments", q.commitments || []);
+        document.getElementById("q-easy-apply").checked = q.easy_apply || false;
+        document.getElementById("q-under-10").checked = q.under_10_applicants || false;
+    }
+
+    function clearForm() {
+        populateForm({
+            keywords: "",
+            locations: [],
+            limit: 25,
+            days_back: null,
+            time_filter: "any",
+            relevance: "recent",
+            job_type: null,
+            experience: null,
+            on_site_or_remote: null,
+            base_salary: null,
+            industry: [],
+            job_function: [],
+            benefits: [],
+            commitments: [],
+            easy_apply: false,
+            under_10_applicants: false,
+        });
+    }
+
+    function enterEditMode(queryId) {
+        editingQueryId = queryId;
+        const q = allQueries.find((q) => q.id === queryId);
+        if (!q) return;
+        populateForm(q);
+        addQueryForm.style.display = "block";
+        document.getElementById("save-query-btn").textContent = "Update Query";
+        document.getElementById("cancel-edit-btn").style.display = "";
+        addQueryBtn.textContent = "Cancel";
+    }
+
+    function exitEditMode() {
+        editingQueryId = null;
+        clearForm();
+        document.getElementById("save-query-btn").textContent = "Save Query";
+        document.getElementById("cancel-edit-btn").style.display = "none";
+        addQueryBtn.textContent = "Add Query";
+    }
+
+    // Edit query
+    document.querySelectorAll(".edit-query").forEach((btn) => {
+        btn.addEventListener("click", function () {
+            enterEditMode(parseInt(this.dataset.queryId));
+        });
+    });
+
+    // Cancel edit
+    document.getElementById("cancel-edit-btn")?.addEventListener("click", function () {
+        exitEditMode();
+        addQueryFormStyle.display = "none";
+        addQueryBtn.textContent = "Add Query";
+    });
+
     const saveQueryBtn = document.getElementById("save-query-btn");
     if (saveQueryBtn) {
         saveQueryBtn.addEventListener("click", async function () {
@@ -359,13 +468,47 @@ document.addEventListener("DOMContentLoaded", function () {
             const limit = parseInt(document.getElementById("q-limit").value) || 25;
             const daysBackInput = document.getElementById("q-days-back");
             const days_back = daysBackInput.value ? parseInt(daysBackInput.value) : null;
-            const resp = await fetch("/settings/queries", {
-                method: "POST",
+            const time_filter = document.getElementById("q-time-filter").value;
+            const relevance = document.getElementById("q-relevance").value;
+            const job_type = document.getElementById("q-job-type").value || null;
+            const experience = document.getElementById("q-experience").value || null;
+            const on_site_or_remote = document.getElementById("q-on-site-remote").value || null;
+            const base_salary = document.getElementById("q-base-salary").value || null;
+            const industry = getChipValues("q-industry");
+            const job_function = getChipValues("q-job-function");
+            const benefits = getChipValues("q-benefits");
+            const commitments = getChipValues("q-commitments");
+            const easy_apply = document.getElementById("q-easy-apply").checked;
+            const under_10_applicants = document.getElementById("q-under-10").checked;
+            const body = {
+                keywords,
+                locations,
+                limit,
+                days_back,
+                time_filter,
+                relevance,
+                job_type,
+                experience,
+                on_site_or_remote,
+                base_salary,
+                industry,
+                job_function,
+                benefits,
+                commitments,
+                easy_apply,
+                under_10_applicants,
+            };
+            const method = editingQueryId ? "PUT" : "POST";
+            const url = editingQueryId
+                ? `/settings/queries/${editingQueryId}`
+                : "/settings/queries";
+            const resp = await fetch(url, {
+                method,
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ keywords, locations, limit, days_back }),
+                body: JSON.stringify(body),
             });
             if (resp.ok) {
-                showToast("Query saved", "");
+                showToast(editingQueryId ? "Query updated" : "Query saved", "");
                 location.reload();
             } else showToast("Failed to save query", "error");
         });

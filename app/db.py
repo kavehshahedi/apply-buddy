@@ -42,10 +42,21 @@ def _migrate_schema():
 
     try:
         queries_columns = [c["name"] for c in inspector.get_columns("search_queries")]
-        if "days_back" not in queries_columns:
-            with engine.connect() as conn:
-                conn.execute(text("ALTER TABLE search_queries ADD COLUMN days_back INTEGER"))
-                conn.commit()
+        for col, col_type in [
+            ("days_back", "INTEGER"),
+            ("relevance", "VARCHAR"),
+            ("industry", "VARCHAR"),
+            ("base_salary", "VARCHAR"),
+            ("job_function", "VARCHAR"),
+            ("benefits", "VARCHAR"),
+            ("commitments", "VARCHAR"),
+            ("easy_apply", "BOOLEAN"),
+            ("under_10_applicants", "BOOLEAN"),
+        ]:
+            if col not in queries_columns:
+                with engine.connect() as conn:
+                    conn.execute(text(f"ALTER TABLE search_queries ADD COLUMN {col} {col_type}"))
+                    conn.commit()
     except Exception:
         pass
 
