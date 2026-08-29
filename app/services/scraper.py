@@ -84,88 +84,6 @@ def _extract_linkedin_job_id(url: str) -> str | None:
     return None
 
 
-_STOP_WORDS = frozenset(
-    {
-        "a",
-        "an",
-        "the",
-        "of",
-        "in",
-        "for",
-        "and",
-        "or",
-        "to",
-        "with",
-        "at",
-        "by",
-        "on",
-        "is",
-        "it",
-        "as",
-        "be",
-        "but",
-        "from",
-        "not",
-        "that",
-        "this",
-        "are",
-        "was",
-        "were",
-        "will",
-        "has",
-        "have",
-        "had",
-        "do",
-        "does",
-        "did",
-        "if",
-        "so",
-        "no",
-        "up",
-        "out",
-        "all",
-        "just",
-        "about",
-        "into",
-        "over",
-        "also",
-        "more",
-        "can",
-        "its",
-    }
-)
-
-
-def _significant_words(query: str) -> list[str]:
-    words = re.findall(r"[a-zA-ZÀ-ÖØ-öø-ÿ]+", query.lower())
-    return [w for w in words if w not in _STOP_WORDS]
-
-
-def _title_matches_query(title: str, query_words: list[str]) -> bool:
-    if not query_words:
-        return True
-    title_lower = title.lower()
-    title_words = re.findall(r"[a-zA-ZÀ-ÖØ-öø-ÿ]+", title_lower)
-    return all(any(_words_match(tw, qw) for tw in title_words) for qw in query_words)
-
-
-def _words_match(word: str, query_word: str) -> bool:
-    if len(word) < 4 or len(query_word) < 4:
-        return word == query_word
-    stem_len = min(len(word), len(query_word), 5)
-    return word[:stem_len] == query_word[:stem_len]
-
-
-def _title_matches_any_query(title: str, queries: list[SearchQuery]) -> bool:
-    if not title:
-        return False
-    for q in queries:
-        words = _significant_words(q.keywords or "")
-        if _title_matches_query(title, words):
-            return True
-    return False
-
-
 def scrape_single_job(url: str, state: dict[str, Any]) -> None:
     from linkedin_jobs_scraper import LinkedinScraper
     from linkedin_jobs_scraper.events import EventData, EventNotFound, Events
@@ -306,10 +224,6 @@ def scrape_jobs(queries: list[SearchQuery], state: dict[str, Any]) -> None:
     def on_data(data: EventData):
         date_dt = _parse_relative_date(data.date_text)
         if not _is_within_days_back(date_dt):
-            state["total"] -= 1
-            return
-
-        if not _title_matches_any_query(data.title or "", queries):
             state["total"] -= 1
             return
 
