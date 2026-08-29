@@ -82,10 +82,16 @@ async def create_manual_job(
     company: str = Form(...),
     description: str = Form(...),
     location: str = Form(""),
-    link: str = Form(""),
+    link: str = Form(...),
     apply_link: str = Form(""),
     session: Session = Depends(get_session),
 ):
+    existing = session.exec(select(Job).where(Job.link == link)).first()
+    if existing:
+        raise HTTPException(
+            status_code=409,
+            detail=f"A job with this URL already exists (ID {existing.id}: {existing.title} at {existing.company}).",
+        )
     job = Job(
         linkedin_job_id=f"manual_{uuid.uuid4().hex}",
         title=title,

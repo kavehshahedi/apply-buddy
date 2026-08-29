@@ -78,6 +78,7 @@ def test_create_manual_job(client, db_session):
             "title": "New Job",
             "company": "New Corp",
             "description": "A new job description",
+            "link": "https://example.com/job",
         },
         follow_redirects=False,
     )
@@ -94,7 +95,7 @@ def test_create_manual_job_with_optional_fields(client, db_session):
             "company": "Tech Co",
             "description": "Engineering role",
             "location": "San Francisco",
-            "link": "https://example.com/job",
+            "link": "https://example.com/job2",
             "apply_link": "https://example.com/apply",
         },
         follow_redirects=False,
@@ -103,8 +104,24 @@ def test_create_manual_job_with_optional_fields(client, db_session):
     jobs = db_session.exec(select(Job).where(Job.title == "Engineer")).all()
     assert len(jobs) == 1
     assert jobs[0].location == "San Francisco"
-    assert jobs[0].link == "https://example.com/job"
+    assert jobs[0].link == "https://example.com/job2"
     assert jobs[0].apply_link == "https://example.com/apply"
+
+
+def test_create_manual_job_duplicate_link(client, db_session, sample_job):
+    response = client.post(
+        "/jobs/manual",
+        data={
+            "title": "Dup Job",
+            "company": "Dup Corp",
+            "description": "Another description",
+            "link": sample_job.link,
+        },
+        follow_redirects=False,
+    )
+    assert response.status_code == 409
+    jobs = db_session.exec(select(Job).where(Job.title == "Dup Job")).all()
+    assert len(jobs) == 0
 
 
 def test_update_job_status(client, db_session, sample_job):

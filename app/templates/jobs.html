@@ -292,17 +292,20 @@ ns.scored_count + 1 %} {% set ns.score_sum = ns.score_sum + j.fit_score %} {% if
                     />
                 </div>
                 <div class="form-group">
-                    <label for="manual-job-link" class="form-label">Job Posting URL</label>
+                    <label for="manual-job-link" class="form-label"
+                        >Job Posting URL <span class="form-required">*</span></label
+                    >
                     <input
                         id="manual-job-link"
                         name="link"
                         type="url"
                         class="form-control"
+                        required
                         placeholder="https://company.com/careers/..."
                         autocomplete="off"
                         spellcheck="false"
                     />
-                    <div class="form-hint">Link to the original job posting (optional)</div>
+                    <div class="form-hint">Link to the original job posting (used to prevent duplicates)</div>
                 </div>
                 <div class="form-group">
                     <label for="manual-job-apply-link" class="form-label">Apply URL</label>
