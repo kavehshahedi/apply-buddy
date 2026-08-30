@@ -146,11 +146,12 @@ async def root():
     return RedirectResponse(url="/jobs/")
 
 
-from app.routers import actions, applied, jobs, manual_fetch, scrape, settings
+from app.routers import actions, applied, autopilot, jobs, manual_fetch, scrape, settings
 
 app.include_router(jobs.router)
 app.include_router(applied.router)
 app.include_router(scrape.router)
 app.include_router(actions.router)
 app.include_router(settings.router)
+app.include_router(autopilot.router)
 app.include_router(manual_fetch.router)

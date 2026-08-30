@@ -44,15 +44,17 @@ def test_engine():
 def _patch_engine_and_state(test_engine):
     import app.db as db_mod
     import app.routers.actions as actions_router
+    import app.routers.autopilot as autopilot_router
     import app.routers.manual_fetch as manual_fetch_router
     import app.routers.scrape as scrape_router
+    import app.services.autopilot as autopilot_mod
     import app.services.cover_letter as cl_mod
     import app.services.cv_tailor as cv_mod
     import app.services.matcher as matcher_mod
     import app.services.scraper as scraper_mod
 
     originals = {}
-    for mod in [db_mod, matcher_mod, cv_mod, cl_mod, scraper_mod]:
+    for mod in [db_mod, autopilot_mod, matcher_mod, cv_mod, cl_mod, scraper_mod]:
         originals[mod] = mod.engine
         mod.engine = test_engine
 
@@ -75,6 +77,14 @@ def _patch_engine_and_state(test_engine):
     actions_router._score_state["message"] = ""
 
     actions_router._action_state.clear()
+
+    autopilot_router._autopilot_state["running"] = False
+    autopilot_router._autopilot_state["phase"] = ""
+    autopilot_router._autopilot_state["total"] = 0
+    autopilot_router._autopilot_state["current"] = 0
+    autopilot_router._autopilot_state["errors"] = 0
+    autopilot_router._autopilot_state["message"] = ""
+    autopilot_router._autopilot_state["run_id"] = None
 
     with Session(test_engine) as session:
         for table in reversed(SQLModel.metadata.sorted_tables):
@@ -322,8 +332,7 @@ def temp_cv_file(monkeypatch):
     cv_path.write_text(
         "\\documentclass{article}\\begin{document}Test CV\\end{document}", encoding="utf-8"
     )
-    monkeypatch.setattr(settings.__class__, "cv_tex_path", str(cv_path))
-    monkeypatch.setattr(settings.__class__, "cv_tex_path_resolved", property(lambda s: cv_path))
+    monkeypatch.setattr(settings, "cv_tex_path", str(cv_path))
     return cv_path
 
 
@@ -333,8 +342,5 @@ def temp_cover_letter_template(monkeypatch):
     cl_dir.mkdir(parents=True, exist_ok=True)
     cl_path = cl_dir / "cover_letter.md"
     cl_path.write_text("# Template\n\nDear [Name],\n\n{{body}}\n", encoding="utf-8")
-    monkeypatch.setattr(settings.__class__, "cover_letter_template_path", str(cl_path))
-    monkeypatch.setattr(
-        settings.__class__, "cover_letter_template_path_resolved", property(lambda s: cl_path)
-    )
+    monkeypatch.setattr(settings, "cover_letter_template_path", str(cl_path))
     return cl_path

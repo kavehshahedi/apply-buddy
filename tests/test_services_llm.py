@@ -39,7 +39,11 @@ def test_load_prompt_returns_default_on_empty_value(db_session):
     assert result == "fallback"
 
 
-def test_load_available_models_default():
+def test_load_available_models_default(monkeypatch):
+    monkeypatch.setattr(
+        "app.services.llm.settings.llm_available_models",
+        '["llama3.2", "gpt-4o", "gpt-4o-mini"]',
+    )
     models = _load_available_models()
     assert isinstance(models, list)
     assert len(models) > 0

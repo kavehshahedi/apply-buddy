@@ -37,6 +37,22 @@
         </svg>
         Application Settings
     </button>
+    <button class="settings-tab" data-tab="autopilot">
+        <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+        >
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+        </svg>
+        Auto-Pilot
+    </button>
     <button class="settings-tab" data-tab="prompts">
         <svg
             width="14"
@@ -432,6 +448,63 @@ LLM Settings
                         <span class="tool-status-value" data-tool="pandoc">checking...</span>
                     </li>
                 </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="settings-panel" id="panel-autopilot">
+    <div class="card">
+        <div class="card-header" style="margin-bottom: 18px">
+            <div class="card-title">Auto-Pilot Settings</div>
+            <span style="font-size: 12px; color: var(--ink-muted-48)">Configure how Auto-Pilot prepares jobs for you</span>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 18px">
+            <div class="settings-section">
+                <div class="settings-section-title">Thresholds</div>
+                <div class="form-group">
+                    <label class="form-label">Minimum Fit Score</label>
+                    <div style="display: flex; gap: 8px; align-items: center">
+                        <input id="autopilot-min-score" type="number" value="{{ autopilot_min_score }}" class="form-control" style="width: 100px" min="0" max="100" />
+                        <button data-setting-key="autopilot_min_score" data-input-id="autopilot-min-score" class="save-setting btn btn-primary btn-sm">Save</button>
+                    </div>
+                    <div class="form-hint">Jobs with a fit score below this value will be skipped (0–100, default: 70)</div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="settings-section-title">Auto-Generation</div>
+                <div class="toggle-row">
+                    <div class="toggle-label">
+                        <span class="toggle-label-title">Auto-tailor CV</span>
+                        <span class="toggle-label-desc">Generate a tailored LaTeX CV for each matching job</span>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" class="toggle-input" data-toggle-key="autopilot_tailor_cv" {% if autopilot_tailor_cv == "1" %}checked{% endif %} />
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-row">
+                    <div class="toggle-label">
+                        <span class="toggle-label-title">Auto-generate Cover Letter</span>
+                        <span class="toggle-label-desc">Generate a cover letter for each matching job</span>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" class="toggle-input" data-toggle-key="autopilot_cover_letter" {% if autopilot_cover_letter == "1" %}checked{% endif %} />
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-row">
+                    <div class="toggle-label">
+                        <span class="toggle-label-title">Use Cover Letter Template</span>
+                        <span class="toggle-label-desc">Use the template file when generating cover letters</span>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" class="toggle-input" data-toggle-key="autopilot_use_template" {% if autopilot_use_template == "1" %}checked{% endif %} />
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
             </div>
         </div>
     </div>

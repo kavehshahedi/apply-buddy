@@ -1,0 +1,138 @@
+{% extends "base.html" %} {% block title %} — Auto-Pilot Queue{% endblock %} {% block subnav_title %}Review Queue{% endblock %} {% block subnav_actions %}
+<button id="autopilot-reset-btn" class="btn btn-sm btn-danger">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10" /><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10" /></svg>
+    Reset All &amp; Re-run
+</button>
+<a href="/jobs/" class="btn btn-sm btn-dark-utility">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
+    Back to Jobs
+</a>
+{% endblock %} {% block content %} {% set
+ns = namespace(score_sum=0, scored_count=0, high_match=0, has_cv=0, has_cl=0) %} {% for j in jobs %}
+{% if j.fit_score is not none %} {% set ns.scored_count = ns.scored_count + 1 %} {% set ns.score_sum
+= ns.score_sum + j.fit_score %} {% if j.fit_score >= 70 %}{% set ns.high_match = ns.high_match + 1
+%}{% endif %} {% endif %} {% if j.tailored_cv_path %}{% set ns.has_cv = ns.has_cv + 1 %}{% endif %}
+{% if j.cover_letter_path %}{% set ns.has_cl = ns.has_cl + 1 %}{% endif %} {% endfor %} {% set
+avg_score = (ns.score_sum / ns.scored_count)|round|int if ns.scored_count > 0 else none %}
+
+<div class="stats-bar">
+    <div class="stat-item">
+        <span class="stat-value" style="color: var(--success)">{{ jobs|length }}</span>
+        <span class="stat-label">Ready to Apply</span>
+    </div>
+    <div class="stat-item">
+        <span class="stat-value">{% if avg_score is not none %}{{ avg_score }}{% else %}—{% endif %}</span>
+        <span class="stat-label">Avg Fit Score</span>
+    </div>
+    <div class="stat-item">
+        <span class="stat-value" style="color: var(--primary)">{{ ns.high_match }}</span>
+        <span class="stat-label">High Match (≥70)</span>
+    </div>
+    <div class="stat-item">
+        <span class="stat-value" style="color: var(--status-cv)">{{ ns.has_cv }}</span>
+        <span class="stat-label">CV Tailored</span>
+    </div>
+    <div class="stat-item">
+        <span class="stat-value" style="color: var(--status-cl)">{{ ns.has_cl }}</span>
+        <span class="stat-label">Cover Letter Ready</span>
+    </div>
+</div>
+
+{% if jobs %}
+<div class="table-wrap" role="table" aria-label="Auto-Pilot queue table">
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 48px"></th>
+                <th>Job</th>
+                <th style="width: 100px">Fit</th>
+                <th style="width: 100px">Files</th>
+                <th style="text-align: right">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for job in jobs %}
+            <tr>
+                <td>
+                    {% if job.company_logo %}
+                    <div class="company-avatar" style="background: var(--canvas); border: 1px solid var(--hairline)">
+                        <img src="{{ job.company_logo }}" alt="{{ job.company }} logo" loading="lazy" />
+                    </div>
+                    {% else %} {% set initial = job.company[:1]|upper if job.company else '?' %}
+                    {% set colors = ['#4F46E5','#0891B2','#059669','#D97706','#DC2626','#7C3AED','#DB2777','#2563EB'] %}
+                    {% set color_idx = loop.index0 % 8 %}
+                    <div class="company-avatar" style="background:{{ colors[color_idx] }};" aria-hidden="true">{{ initial }}</div>
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="job-row-main">
+                        <div class="job-row-info">
+                            <a href="/jobs/{{ job.id }}" class="job-row-title">{{ job.title }}</a>
+                            <div class="job-row-meta">
+                                <span>{{ job.company }}</span>
+                                {% if job.location %}
+                                <span>{{ job.location }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    {% if job.fit_score is not none %}
+                    <div class="fit-bar">
+                        <div class="fit-bar-track">
+                            <div class="fit-bar-fill {% if job.fit_score >= 70 %}high{% elif job.fit_score >= 40 %}medium{% else %}low{% endif %}" style="width:{{ job.fit_score }}%"></div>
+                        </div>
+                        <span class="fit-bar-score {% if job.fit_score >= 70 %}high{% elif job.fit_score >= 40 %}medium{% else %}low{% endif %}">{{ job.fit_score }}</span>
+                    </div>
+                    {% else %}
+                    <span class="fit-bar-score none">—</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="file-indicators">
+                        {% if job.tailored_cv_path or job.tailored_cv_pdf_path %}
+                        <span class="file-indicator" title="CV tailored">CV</span>
+                        {% endif %}
+                        {% if job.cover_letter_path or job.cover_letter_docx_path or job.cover_letter_pdf_path %}
+                        <span class="file-indicator" title="Cover letter ready">CL</span>
+                        {% endif %}
+                        {% if not job.tailored_cv_path and not job.cover_letter_path %}
+                        <span class="file-indicator file-indicator-missing">—</span>
+                        {% endif %}
+                    </div>
+                </td>
+                <td style="text-align: right">
+                    <div class="queue-actions">
+                        {% if job.link %}
+                        <a href="{{ job.link }}" target="_blank" class="btn btn-sm btn-dark-utility" title="Open job posting">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></svg>
+                        </a>
+                        {% endif %}
+                        <a href="/jobs/{{ job.id }}" class="btn btn-sm btn-secondary-pill">Details</a>
+                        <button class="btn btn-sm btn-primary" onclick="quickStatus({{ job.id }}, 'interested')">Interested</button>
+                        <button class="btn btn-sm btn-success" onclick="quickStatus({{ job.id }}, 'applied')">Applied</button>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="empty-state">
+    <div class="empty-state-icon">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.25" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg>
+    </div>
+    <div class="empty-state-title">No jobs ready yet</div>
+    <div class="empty-state-desc">Run <strong>Auto-Pilot</strong> from the Job Listings page to scrape, score, and prepare jobs for you.</div>
+    <div class="empty-state-actions">
+        <a href="/jobs/" class="btn btn-sm btn-primary">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+            Go to Job Listings
+        </a>
+        <a href="/settings/" class="btn btn-sm btn-secondary-pill">Configure Auto-Pilot</a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

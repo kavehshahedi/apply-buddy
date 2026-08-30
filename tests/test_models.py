@@ -16,6 +16,7 @@ class TestJobStatus:
         assert JobStatus.offer.value == "offer"
         assert JobStatus.accepted.value == "accepted"
         assert JobStatus.archived.value == "archived"
+        assert JobStatus.ready.value == "ready"
 
     def test_enum_order(self):
         values = [s.value for s in JobStatus]
@@ -28,6 +29,7 @@ class TestJobStatus:
             "offer",
             "accepted",
             "archived",
+            "ready",
         ]
 
 
@@ -63,6 +65,7 @@ class TestJobModel:
         assert job.cover_letter_docx_path is None
         assert job.cover_letter_pdf_path is None
         assert job.applied_at is None
+        assert job.autopilot_processed_at is None
         assert job.date_scraped is not None
         assert job.updated_at is not None
 
@@ -266,3 +269,64 @@ class TestSettingModel:
         pk_columns = Setting.__table__.primary_key.columns.keys()
         assert "key" in pk_columns
         assert len(pk_columns) == 1
+
+
+class TestAutoPilotRunModel:
+    def test_create_with_defaults(self, db_session):
+        from app.models import AutoPilotRun
+
+        run = AutoPilotRun()
+        db_session.add(run)
+        db_session.commit()
+        db_session.refresh(run)
+
+        assert run.id is not None
+        assert run.status == "running"
+        assert run.started_at is not None
+        assert run.completed_at is None
+        assert run.jobs_scraped == 0
+        assert run.jobs_scored == 0
+        assert run.jobs_tailored == 0
+        assert run.jobs_cover_letter == 0
+        assert run.errors == 0
+        assert run.message == ""
+
+    def test_create_with_custom_values(self, db_session):
+        from app.models import AutoPilotRun
+
+        run = AutoPilotRun(
+            status="completed",
+            jobs_scraped=10,
+            jobs_scored=8,
+            jobs_tailored=5,
+            jobs_cover_letter=3,
+            errors=1,
+            message="All done",
+        )
+        db_session.add(run)
+        db_session.commit()
+        db_session.refresh(run)
+
+        assert run.status == "completed"
+        assert run.jobs_scraped == 10
+        assert run.jobs_scored == 8
+        assert run.jobs_tailored == 5
+        assert run.jobs_cover_letter == 3
+        assert run.errors == 1
+        assert run.message == "All done"
+
+    def test_status_transitions(self, db_session):
+        from app.models import AutoPilotRun
+
+        run = AutoPilotRun(status="running", message="Starting...")
+        db_session.add(run)
+        db_session.commit()
+        db_session.refresh(run)
+        assert run.status == "running"
+
+        run.status = "completed"
+        run.message = "Finished"
+        db_session.commit()
+        db_session.refresh(run)
+        assert run.status == "completed"
+        assert run.message == "Finished"

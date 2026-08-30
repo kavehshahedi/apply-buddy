@@ -3,6 +3,7 @@ from pathlib import Path
 from sqlmodel import Session, SQLModel, create_engine
 
 from app.config import settings
+from app.models import AutoPilotRun  # noqa: F401 — ensure table is registered in SQLModel.metadata
 
 db_path = Path(settings.database_url.replace("sqlite:///", "")).resolve()
 db_path.parent.mkdir(parents=True, exist_ok=True)
@@ -39,6 +40,11 @@ def _migrate_schema():
             with engine.connect() as conn:
                 conn.execute(text(sql))
                 conn.commit()
+
+    if "autopilot_processed_at" not in jobs_columns:
+        with engine.connect() as conn:
+            conn.execute(text("ALTER TABLE jobs ADD COLUMN autopilot_processed_at VARCHAR"))
+            conn.commit()
 
     try:
         queries_columns = [c["name"] for c in inspector.get_columns("search_queries")]

@@ -269,6 +269,96 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    // Auto-Pilot
+    function setupAutopilot(btnId, progressId, textId) {
+        const btn = document.getElementById(btnId);
+        const progressDiv = document.getElementById(progressId);
+        const progressText = document.getElementById(textId);
+        if (!btn) return;
+        btn.addEventListener("click", async function () {
+            btn.disabled = true;
+            btn.textContent = "Starting...";
+            if (progressDiv) {
+                progressDiv.classList.remove("hidden");
+                if (progressText) progressText.textContent = "Starting Auto-Pilot...";
+            }
+            const resp = await fetch("/autopilot/run", { method: "POST" });
+            if (!resp.ok) {
+                const err = await resp.json();
+                if (progressText)
+                    progressText.textContent = err.error || "Failed to start Auto-Pilot.";
+                btn.disabled = false;
+                btn.textContent = "Run";
+                return;
+            }
+            const poll = setInterval(async () => {
+                const p = await (await fetch("/autopilot/progress")).json();
+                const phase = p.phase || "";
+                const label =
+                    phase === "scraping"
+                        ? "Scraping"
+                        : phase === "scoring"
+                          ? "Scoring"
+                          : phase === "processing"
+                            ? "Processing"
+                            : "Running";
+                if (progressText) {
+                    progressText.textContent = p.message
+                        ? `[${label}] ${p.message}`
+                        : `${label}...`;
+                }
+                if (!p.running) {
+                    clearInterval(poll);
+                    btn.disabled = false;
+                    btn.textContent = "Run";
+                    if (p.errors > 0)
+                        showToast(`Auto-Pilot finished with ${p.errors} errors`, "error");
+                    else showToast("Auto-Pilot complete!", "");
+                    location.reload();
+                }
+            }, 1000);
+        });
+    }
+
+    setupAutopilot("autopilot-btn", "autopilot-progress", "autopilot-progress-text");
+
+    // Queue page: reset all jobs and re-run
+    const resetBtn = document.getElementById("autopilot-reset-btn");
+    if (resetBtn) {
+        resetBtn.addEventListener("click", async function () {
+            if (!confirm("Reset all ready jobs to 'new' so Auto-Pilot can re-process them?"))
+                return;
+            resetBtn.disabled = true;
+            resetBtn.textContent = "Resetting...";
+            const resp = await fetch("/autopilot/reset", { method: "POST" });
+            if (resp.ok) {
+                const data = await resp.json();
+                showToast(`Reset ${data.reset_count} jobs. Redirecting to Job Listings...`, "");
+                setTimeout(() => {
+                    window.location.href = "/jobs/";
+                }, 800);
+            } else {
+                showToast("Failed to reset jobs", "error");
+                resetBtn.disabled = false;
+                resetBtn.textContent = "Reset All & Re-run";
+            }
+        });
+    }
+
+    // Queue page: quick status change
+    window.quickStatus = async function (jobId, status) {
+        const form = document.createElement("form");
+        form.method = "POST";
+        form.action = `/jobs/${jobId}/status`;
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = "status";
+        input.value = status;
+        form.appendChild(input);
+        document.body.appendChild(form);
+        form.submit();
+    };
+
     // Score Fit
     const scoreBtn = document.getElementById("score-fit-btn");
     const scoreProgress = document.getElementById("score-progress");

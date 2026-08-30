@@ -14,6 +14,22 @@ class JobStatus(enum.StrEnum):
     offer = "offer"
     accepted = "accepted"
     archived = "archived"
+    ready = "ready"
+
+
+class AutoPilotRun(SQLModel, table=True):
+    __tablename__ = "autopilot_runs"
+
+    id: int | None = Field(default=None, primary_key=True)
+    started_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    completed_at: datetime | None = None
+    status: str = "running"
+    jobs_scraped: int = 0
+    jobs_scored: int = 0
+    jobs_tailored: int = 0
+    jobs_cover_letter: int = 0
+    errors: int = 0
+    message: str = ""
 
 
 class Job(SQLModel, table=True):
@@ -47,6 +63,7 @@ class Job(SQLModel, table=True):
     cover_letter_docx_path: str | None = None
     cover_letter_pdf_path: str | None = None
 
+    autopilot_processed_at: datetime | None = None
     applied_at: datetime | None = None
     notes: str = ""
     updated_at: datetime = Field(

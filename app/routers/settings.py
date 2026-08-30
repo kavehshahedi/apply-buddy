@@ -62,6 +62,10 @@ async def settings_page(request: Request, session: Session = Depends(get_session
             "llm_temperature": db_settings.get("llm_temperature", str(settings.llm_temperature)),
             "li_rm_cookie": db_settings.get("li_rm_cookie", ""),
             "li_bcookie": db_settings.get("li_bcookie", ""),
+            "autopilot_min_score": db_settings.get("autopilot_min_score", "70"),
+            "autopilot_tailor_cv": db_settings.get("autopilot_tailor_cv", "1"),
+            "autopilot_cover_letter": db_settings.get("autopilot_cover_letter", "1"),
+            "autopilot_use_template": db_settings.get("autopilot_use_template", "1"),
         },
     )
 

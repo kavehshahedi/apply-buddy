@@ -61,6 +61,17 @@ ns.scored_count + 1 %} {% set ns.score_sum = ns.score_sum + j.fit_score %} {% if
         </button>
     </div>
     <div class="action-bar-group">
+        <span class="action-bar-label">Auto-Pilot</span>
+        <button id="autopilot-btn" class="btn btn-sm btn-success" style="background: var(--success); border-color: var(--success); color: #fff;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg>
+            Run
+        </button>
+        <a href="/autopilot/queue" class="btn btn-sm btn-pearl-capsule">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg>
+            Queue
+        </a>
+    </div>
+    <div class="action-bar-group">
         <span class="action-bar-label">AI</span>
         <button id="score-fit-btn" class="btn btn-sm btn-success">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg>
@@ -81,6 +92,10 @@ ns.scored_count + 1 %} {% set ns.score_sum = ns.score_sum + j.fit_score %} {% if
 <div id="score-progress" class="progress-card hidden" role="status" aria-live="polite">
     <div class="progress-spinner"></div>
     <span class="progress-text" id="score-progress-text">Starting scoring...</span>
+</div>
+<div id="autopilot-progress" class="progress-card hidden" role="status" aria-live="polite">
+    <div class="progress-spinner"></div>
+    <span class="progress-text" id="autopilot-progress-text">Starting Auto-Pilot...</span>
 </div>
 
 <div id="manual-fetch-overlay" class="modal-overlay hidden">
