@@ -9,7 +9,7 @@ from sqlmodel import Session, select
 
 from app.config import settings
 from app.db import engine
-from app.models import Job, SearchQuery
+from app.models import Job, SearchQuery, Setting
 
 logger = logging.getLogger("apply-buddy.scraper")
 
@@ -84,7 +84,21 @@ def _extract_linkedin_job_id(url: str) -> str | None:
     return None
 
 
+def _inject_linkedin_cookies():
+    from app.db import engine as _engine
+
+    try:
+        with Session(_engine) as _session:
+            for key in ("LI_RM_COOKIE", "LI_BCOOKIE"):
+                setting = _session.get(Setting, key.lower())
+                if setting and setting.value:
+                    os.environ[key] = setting.value
+    except Exception:
+        pass
+
+
 def scrape_single_job(url: str, state: dict[str, Any]) -> None:
+    _inject_linkedin_cookies()
     from linkedin_jobs_scraper import LinkedinScraper
     from linkedin_jobs_scraper.events import EventData, EventNotFound, Events
 
@@ -199,6 +213,7 @@ def scrape_single_job(url: str, state: dict[str, Any]) -> None:
 
 
 def scrape_jobs(queries: list[SearchQuery], state: dict[str, Any]) -> None:
+    _inject_linkedin_cookies()
     from linkedin_jobs_scraper import LinkedinScraper
     from linkedin_jobs_scraper.events import EventData, Events
     from linkedin_jobs_scraper.filters import (

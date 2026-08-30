@@ -31,12 +31,6 @@ async def settings_page(request: Request, session: Session = Depends(get_session
         {
             "queries": queries,
             "queries_json": json.dumps([q.model_dump() for q in queries], default=str),
-            "cv_path": db_settings.get("cv_tex_path", settings.cv_tex_path),
-            "match_keywords": db_settings.get("match_keywords", settings.match_keywords),
-            "min_fit_score": db_settings.get("min_fit_score", str(settings.min_fit_score)),
-            "min_keyword_score": db_settings.get(
-                "min_keyword_score", str(settings.min_keyword_score)
-            ),
             "llm_max_concurrency": db_settings.get(
                 "llm_max_concurrency", str(settings.llm_max_concurrency)
             ),
@@ -59,10 +53,15 @@ async def settings_page(request: Request, session: Session = Depends(get_session
             "prompt_cover_letter_template_model": db_settings.get(
                 "prompt_cover_letter_template_model", ""
             ),
-            "default_model": settings.llm_model,
             "convert_cv_pdf": db_settings.get("convert_cv_pdf", "1"),
             "convert_cl_pdf": db_settings.get("convert_cl_pdf", "1"),
             "convert_cl_docx": db_settings.get("convert_cl_docx", "1"),
+            "llm_provider": db_settings.get("llm_provider", settings.llm_provider),
+            "llm_base_url": db_settings.get("llm_base_url", settings.llm_base_url),
+            "llm_api_key": db_settings.get("llm_api_key", settings.llm_api_key),
+            "llm_temperature": db_settings.get("llm_temperature", str(settings.llm_temperature)),
+            "li_rm_cookie": db_settings.get("li_rm_cookie", ""),
+            "li_bcookie": db_settings.get("li_bcookie", ""),
         },
     )
 

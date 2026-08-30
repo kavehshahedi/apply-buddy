@@ -130,7 +130,7 @@ def test_chat_completion_with_json_response_format(mock_httpx):
 
 
 def test_chat_completion_with_reasoning_model(monkeypatch, mock_httpx):
-    monkeypatch.setattr("app.services.llm.settings.llm_model", "o1")
+    monkeypatch.setattr("app.services.llm._load_available_models", lambda: ["o1", "llama3.2"])
     messages = [{"role": "user", "content": "Hello"}]
     result = chat_completion(messages)
     data = json.loads(result)

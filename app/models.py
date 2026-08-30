@@ -1,5 +1,6 @@
 import enum
 from datetime import UTC, datetime
+from typing import Any
 
 from sqlmodel import JSON, Field, SQLModel
 
@@ -59,17 +60,17 @@ class SearchQuery(SQLModel, table=True):
 
     id: int | None = Field(default=None, primary_key=True)
     keywords: str = ""
-    locations: str = Field(default="[]", sa_type=JSON)
+    locations: Any = Field(default="[]", sa_type=JSON)
     time_filter: str = "any"
     relevance: str = "recent"
     job_type: str | None = None
     experience: str | None = None
     on_site_or_remote: str | None = None
-    industry: str = Field(default="[]", sa_type=JSON)
+    industry: Any = Field(default="[]", sa_type=JSON)
     base_salary: str | None = None
-    job_function: str = Field(default="[]", sa_type=JSON)
-    benefits: str = Field(default="[]", sa_type=JSON)
-    commitments: str = Field(default="[]", sa_type=JSON)
+    job_function: Any = Field(default="[]", sa_type=JSON)
+    benefits: Any = Field(default="[]", sa_type=JSON)
+    commitments: Any = Field(default="[]", sa_type=JSON)
     easy_apply: bool = False
     under_10_applicants: bool = False
     limit: int = 25

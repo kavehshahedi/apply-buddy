@@ -992,6 +992,10 @@ select.form-control {
     border: 1px solid var(--border-light);
     padding: 18px;
 }
+
+.prompt-block + .prompt-block {
+    margin-top: 16px;
+}
 .prompt-block-header {
     display: flex;
     justify-content: space-between;
@@ -2108,9 +2112,9 @@ select.form-control {
 
 /* ─── Settings section ────────────────────────────────────── */
 .settings-section + .settings-section {
-    padding-top: 18px;
     border-top: 1px solid var(--border-light);
-    margin-top: 18px;
+    padding-top: 18px;
+    margin-top: 0;
 }
 .settings-section-title {
     font-size: 12px;
