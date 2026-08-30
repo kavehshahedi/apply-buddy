@@ -9,7 +9,21 @@ document.addEventListener("DOMContentLoaded", function () {
         setTimeout(() => toast.classList.add("hidden"), 4000);
     }
 
-    // Sort / Filter controls — persist to localStorage
+    // Hamburger menu toggle
+    const hamburgerBtn = document.getElementById("hamburger-btn");
+    const mobileNav = document.getElementById("mobile-nav");
+    if (hamburgerBtn && mobileNav) {
+        hamburgerBtn.addEventListener("click", function () {
+            const isOpen = mobileNav.classList.toggle("open");
+            hamburgerBtn.setAttribute("aria-expanded", isOpen);
+        });
+        document.addEventListener("click", function (e) {
+            if (!e.target.closest("#hamburger-btn") && !e.target.closest("#mobile-nav")) {
+                mobileNav.classList.remove("open");
+                hamburgerBtn.setAttribute("aria-expanded", "false");
+            }
+        });
+    }
     const filterForm = document.getElementById("filter-form");
 
     function getFilterKeys() {
@@ -100,6 +114,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     setupFetchJobs("fetch-jobs-btn", "scrape-progress", "scrape-progress-text");
     setupFetchJobs("fetch-jobs-btn-empty", "scrape-progress", "scrape-progress-text");
+    setupFetchJobs("fetch-jobs-subnav", "scrape-progress", "scrape-progress-text");
 
     // Manual fetch by URL
     const manualFetchBtn = document.getElementById("manual-fetch-btn");
@@ -132,6 +147,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const manualFetchBtnEmpty = document.getElementById("manual-fetch-btn-empty");
     if (manualFetchBtnEmpty) {
         manualFetchBtnEmpty.addEventListener("click", openManualFetchModal);
+    }
+    const manualFetchSubnav = document.getElementById("manual-fetch-subnav");
+    if (manualFetchSubnav) {
+        manualFetchSubnav.addEventListener("click", openManualFetchModal);
     }
     if (manualFetchClose) {
         manualFetchClose.addEventListener("click", closeManualFetchModal);
@@ -227,6 +246,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const manualJobBtnEmpty = document.getElementById("manual-job-btn-empty");
     if (manualJobBtnEmpty) {
         manualJobBtnEmpty.addEventListener("click", openManualJobModal);
+    }
+    const manualJobSubnav = document.getElementById("manual-job-subnav");
+    if (manualJobSubnav) {
+        manualJobSubnav.addEventListener("click", openManualJobModal);
     }
     if (manualJobClose) {
         manualJobClose.addEventListener("click", closeManualJobModal);

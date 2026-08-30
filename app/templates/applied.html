@@ -1,4 +1,6 @@
-{% extends "base.html" %} {% block title %} — Applied Board{% endblock %} {% block content %} {% set
+{% extends "base.html" %} {% block title %} — Applied Board{% endblock %} {% block subnav_title %}Applied Board{% endblock %} {% block subnav_actions %}
+  <a href="/jobs/" class="btn btn-sm btn-dark-utility">Back to Job Listings</a>
+{% endblock %} {% block content %} {% set
 ns = namespace(applied=0, interview=0, offer=0, accepted=0, rejected=0) %} {% for j in jobs %} {% if
 j.status == 'applied' %}{% set ns.applied = ns.applied + 1 %}{% endif %} {% if j.status ==
 'interview' %}{% set ns.interview = ns.interview + 1 %}{% endif %} {% if j.status == 'offer' %}{%
@@ -8,19 +10,9 @@ ns.accepted + 1 %}{% endif %} {% if j.status == 'rejected' %}{% set ns.rejected 
 ns.accepted) / total * 100)|round|int if total > 0 else 0 %} {% set seg_total = [ns.applied,
 ns.interview, ns.offer, ns.accepted, ns.rejected]|sum %}
 
-<div class="page-header">
-    <div>
-        <h1 class="page-title">Applied Board</h1>
-        <p class="page-title-sub">
-            {{ total }} applications · {{ ns.offer + ns.accepted }} offers · {{ success_rate }}%
-            success rate
-        </p>
-    </div>
-</div>
-
-<div class="stats-grid">
+<div class="stats-bar">
     <div class="stat-item">
-        <span class="stat-value" style="color: #3b82f6">{{ ns.applied }}</span>
+        <span class="stat-value" style="color: var(--status-applied)">{{ ns.applied }}</span>
         <span class="stat-label">Applied</span>
     </div>
     <div class="stat-item">
@@ -41,7 +33,7 @@ ns.interview, ns.offer, ns.accepted, ns.rejected]|sum %}
 <div class="pipeline-total">
     <div
         class="pipeline-total-seg"
-        style="width:{{ (ns.applied / seg_total * 100)|round }}%;background:#3B82F6;"
+        style="width:{{ (ns.applied / seg_total * 100)|round }}%;background:var(--status-applied);"
         title="{{ ns.applied }} applied"
     ></div>
     <div
@@ -56,7 +48,7 @@ ns.interview, ns.offer, ns.accepted, ns.rejected]|sum %}
     ></div>
     <div
         class="pipeline-total-seg"
-        style="width:{{ (ns.accepted / seg_total * 100)|round }}%;background:#059669;"
+        style="width:{{ (ns.accepted / seg_total * 100)|round }}%;background:var(--status-accepted);"
         title="{{ ns.accepted }} accepted"
     ></div>
     <div
@@ -66,82 +58,88 @@ ns.interview, ns.offer, ns.accepted, ns.rejected]|sum %}
     ></div>
 </div>
 {% endif %} {% if jobs %}
-<div class="card" style="padding: 0">
-    <div class="table-wrap">
-        <table id="applied-table">
-            <thead>
-                <tr>
-                    <th style="width: 48px"></th>
-                    <th>Job</th>
-                    <th>Company</th>
-                    <th>Status</th>
-                    <th>When Applied</th>
-                    <th>Notes</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for job in jobs %}
-                <tr data-status="{{ job.status }}">
-                    <td>
-                        {% if job.company_logo %}
-                        <div
-                            class="company-avatar"
-                            style="background: var(--card); border: 1px solid var(--border)"
-                        >
-                            <img
-                                src="{{ job.company_logo }}"
-                                alt="{{ job.company }} logo"
-                                loading="lazy"
-                            />
-                        </div>
-                        {% else %} {% set initial = job.company[:1]|upper if job.company else '?' %}
-                        {% set colors =
-                        ['#4F46E5','#0891B2','#059669','#D97706','#DC2626','#7C3AED','#DB2777','#2563EB']
-                        %}
-                        <div
-                            class="company-avatar"
-                            style="background:{{ colors[loop.index0 % 8] }};"
-                            aria-hidden="true"
-                        >
-                            {{ initial }}
-                        </div>
-                        {% endif %}
-                    </td>
-                    <td>
-                        <a href="/jobs/{{ job.id }}" class="td-title">{{ job.title }}</a>
-                        <div class="td-desc">{{ job.location }}</div>
-                    </td>
-                    <td style="font-weight: 500">{{ job.company }}</td>
-                    <td>
-                        <span class="badge badge-{{ job.status }}"> {{ job.status.value }} </span>
-                    </td>
-                    <td>
-                        {% if job.applied_at %}
-                        <span class="days-since"> {{ job.applied_at.strftime('%b %d') }} </span>
-                        {% else %}
-                        <span class="days-since">—</span>
-                        {% endif %}
-                    </td>
-                    <td
-                        style="
-                            color: var(--text-muted);
-                            font-size: 12px;
-                            max-width: 180px;
-                            overflow: hidden;
-                            text-overflow: ellipsis;
-                            white-space: nowrap;
-                        "
+<div class="status-tabs">
+    <button class="status-tab active" onclick="filterByStatus('all', this)">All <span class="status-tab-count">{{ jobs|length }}</span></button>
+    <button class="status-tab" onclick="filterByStatus('applied', this)">Applied <span class="status-tab-count">{{ ns.applied }}</span></button>
+    <button class="status-tab" onclick="filterByStatus('interview', this)">Interview <span class="status-tab-count">{{ ns.interview }}</span></button>
+    <button class="status-tab" onclick="filterByStatus('offer', this)">Offer <span class="status-tab-count">{{ ns.offer }}</span></button>
+    <button class="status-tab" onclick="filterByStatus('accepted', this)">Accepted <span class="status-tab-count">{{ ns.accepted }}</span></button>
+    <button class="status-tab" onclick="filterByStatus('rejected', this)">Rejected <span class="status-tab-count">{{ ns.rejected }}</span></button>
+</div>
+<div class="table-wrap">
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 48px"></th>
+                <th>Job</th>
+                <th>Company</th>
+                <th>Status</th>
+                <th>When Applied</th>
+                <th>Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for job in jobs %}
+            <tr data-status="{{ job.status }}">
+                <td>
+                    {% if job.company_logo %}
+                    <div
+                        class="company-avatar"
+                        style="background: var(--canvas); border: 1px solid var(--hairline)"
                     >
-                        {{ job.notes or '—' }}
-                    </td>
-                    <td style="text-align: right">
-                        <a href="/jobs/{{ job.id }}" class="btn btn-secondary btn-xs">Details</a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+                        <img
+                            src="{{ job.company_logo }}"
+                            alt="{{ job.company }} logo"
+                            loading="lazy"
+                        />
+                    </div>
+                    {% else %} {% set initial = job.company[:1]|upper if job.company else '?' %}
+                    {% set colors =
+                    ['#4F46E5','#0891B2','#059669','#D97706','#DC2626','#7C3AED','#DB2777','#2563EB']
+                    %}
+                    <div
+                        class="company-avatar"
+                        style="background:{{ colors[loop.index0 % 8] }};"
+                        aria-hidden="true"
+                    >
+                        {{ initial }}
+                    </div>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="/jobs/{{ job.id }}" class="td-title">{{ job.title }}</a>
+                    <div class="td-desc">{{ job.location }}</div>
+                </td>
+                <td style="font-weight: 600">{{ job.company }}</td>
+                <td>
+                    <span class="badge badge-{{ job.status }}"> {{ job.status.value }} </span>
+                </td>
+                <td>
+                    {% if job.applied_at %}
+                    <span class="days-since"> {{ job.applied_at.strftime('%b %d') }} </span>
+                    {% else %}
+                    <span class="days-since">—</span>
+                    {% endif %}
+                </td>
+                <td
+                    style="
+                        color: var(--ink-muted-48);
+                        font-size: 12px;
+                        max-width: 180px;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        white-space: nowrap;
+                    "
+                >
+                    {{ job.notes or '—' }}
+                </td>
+                <td style="text-align: right">
+                    <a href="/jobs/{{ job.id }}" class="btn btn-sm btn-pearl-capsule">Details</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 {% else %}
 <div class="empty-state">
@@ -164,7 +162,7 @@ ns.interview, ns.offer, ns.accepted, ns.rejected]|sum %}
     <div class="empty-state-desc">
         Mark jobs as <strong>Applied</strong> from the Job Listings page.
     </div>
-    <div style="margin-top: 18px">
+    <div class="empty-state-actions">
         <a href="/jobs/" class="btn btn-primary btn-sm">Go to Job Listings</a>
     </div>
 </div>

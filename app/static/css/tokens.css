@@ -1,20 +1,23 @@
 :root {
-    --bg: #f2f4f8;
-    --card: #ffffff;
-    --card-hover: #fafbfc;
-
-    --text: #0f172a;
-    --text-muted: #64748b;
-    --text-light: #94a3b8;
-
-    --border: #e8ecf0;
-    --border-light: #f1f5f9;
-
-    --accent: #4f46e5;
-    --accent-dark: #4338ca;
-    --accent-soft: #eef2ff;
-    --accent-glow: rgba(79, 70, 229, 0.16);
-
+    --primary: #0066cc;
+    --primary-focus: #0071e3;
+    --primary-on-dark: #2997ff;
+    --canvas: #ffffff;
+    --canvas-parchment: #f5f5f7;
+    --surface-pearl: #fafafc;
+    --surface-tile-1: #272729;
+    --surface-tile-2: #2a2a2c;
+    --surface-tile-3: #252527;
+    --surface-black: #000000;
+    --surface-chip-translucent: rgba(210, 210, 215, 0.64);
+    --ink: #1d1d1f;
+    --body: #1d1d1f;
+    --body-on-dark: #ffffff;
+    --body-muted: #cccccc;
+    --ink-muted-80: #333333;
+    --ink-muted-48: #7a7a7a;
+    --divider-soft: #f0f0f0;
+    --hairline: #e0e0e0;
     --success: #10b981;
     --success-soft: #ecfdf5;
     --danger: #ef4444;
@@ -23,22 +26,66 @@
     --warning-soft: #fffbeb;
     --purple: #8b5cf6;
     --purple-soft: #f5f3ff;
+    --focus-ring: 0 0 0 2px var(--primary-focus);
 
-    --sidebar-w: 240px;
-    --topbar-h: 64px;
+    --status-applied: #3b82f6;
+    --status-accepted: #059669;
+    --badge-interested-bg: #eef2ff;
+    --badge-interested-text: var(--primary);
+    --badge-applied-bg: #dbeafe;
+    --badge-applied-text: #1e40af;
+    --badge-interview-text: #6d28d9;
+    --badge-accepted-bg: #d1fae5;
+    --badge-rejected-text: #991b1b;
+    --badge-warning-text: #92400e;
+    --days-recent-bg: #dbeafe;
+    --days-recent-text: #1e40af;
+    --days-old-bg: var(--danger-soft);
+    --days-old-text: #991b1b;
+    --chip-hover-bg: #eef2ff;
 
-    --radius-xl: 20px;
-    --radius-lg: 14px;
-    --radius-md: 10px;
-    --radius-sm: 7px;
-    --radius-xs: 5px;
-
-    --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
-    --shadow-sm: 0 1px 4px rgba(15, 23, 42, 0.06), 0 2px 8px rgba(15, 23, 42, 0.04);
-    --shadow-md: 0 4px 16px rgba(15, 23, 42, 0.08), 0 1px 4px rgba(15, 23, 42, 0.06);
-    --shadow-lg: 0 8px 32px rgba(15, 23, 42, 0.12), 0 2px 8px rgba(15, 23, 42, 0.06);
-    --shadow-xl: 0 20px 60px rgba(15, 23, 42, 0.16), 0 4px 16px rgba(15, 23, 42, 0.08);
-
-    --font: "Inter", system-ui, -apple-system, sans-serif;
+    --font-display: "SF Pro Display", "SF Pro Text", system-ui, -apple-system, BlinkMacSystemFont,
+        "Inter", sans-serif;
+    --font-body: "SF Pro Text", "SF Pro Display", system-ui, -apple-system, BlinkMacSystemFont,
+        "Inter", sans-serif;
     --font-mono: "JetBrains Mono", "Fira Code", monospace;
+
+    --hero-display: 56px;
+    --display-lg: 40px;
+    --display-md: 34px;
+    --lead: 28px;
+    --lead-airy: 24px;
+    --tagline: 21px;
+    --body-strong: 17px;
+    --body: 17px;
+    --dense-link: 17px;
+    --caption: 14px;
+    --caption-strong: 14px;
+    --button-large: 18px;
+    --button-utility: 14px;
+    --fine-print: 12px;
+    --micro-legal: 10px;
+    --nav-link: 12px;
+
+    --spacing-xxs: 4px;
+    --spacing-xs: 8px;
+    --spacing-sm: 12px;
+    --spacing-md: 17px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    --spacing-xxl: 48px;
+    --spacing-section: 80px;
+
+    --radius-none: 0;
+    --radius-xs: 5px;
+    --radius-sm: 8px;
+    --radius-md: 11px;
+    --radius-lg: 18px;
+    --radius-pill: 9999px;
+    --radius-full: 9999px;
+
+    --shadow-product: rgba(0, 0, 0, 0.22) 3px 5px 30px 0;
+
+    --nav-height: 44px;
+    --sub-nav-height: 52px;
 }

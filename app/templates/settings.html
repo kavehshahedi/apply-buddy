@@ -1,13 +1,4 @@
-{% extends "base.html" %} {% block title %} — Settings{% endblock %} {% block content %}
-
-<div class="page-header">
-    <div>
-        <h1 class="page-title">Settings</h1>
-        <p class="page-title-sub">
-            Manage search queries, application configuration, and LLM prompts
-        </p>
-    </div>
-</div>
+{% extends "base.html" %} {% block title %} — Settings{% endblock %} {% block subnav_title %}Settings{% endblock %} {% block subnav_actions %}{% endblock %} {% block content %}
 
 <div class="settings-tabs">
     <button class="settings-tab active" data-tab="queries">
@@ -68,7 +59,7 @@ LLM Settings
     <div class="card">
         <div class="card-header" style="margin-bottom: 18px">
             <div class="card-title">Search Queries</div>
-            <span style="font-size: 12px; color: var(--text-muted)"
+            <span style="font-size: 12px; color: var(--ink-muted-48)"
                 >{{ queries|length }} queries</span
             >
         </div>
@@ -119,10 +110,10 @@ LLM Settings
                     {% else %}
                     <span class="query-card-disabled">Disabled</span>
                     {% endif %}
-                    <button class="edit-query btn btn-secondary btn-xs" data-query-id="{{ q.id }}">
+                    <button class="edit-query btn btn-sm btn-secondary-pill" data-query-id="{{ q.id }}">
                         Edit
                     </button>
-                    <button class="delete-query btn btn-danger btn-xs" data-query-id="{{ q.id }}">
+                    <button class="delete-query btn btn-sm btn-danger" data-query-id="{{ q.id }}">
                         Delete
                     </button>
                 </div>
@@ -132,7 +123,7 @@ LLM Settings
                 style="
                     text-align: center;
                     padding: 24px 12px;
-                    color: var(--text-muted);
+                    color: var(--ink-muted-48);
                     font-size: 13px;
                 "
             >
@@ -145,7 +136,7 @@ LLM Settings
 
         <button
             id="add-query-btn"
-            class="btn btn-secondary btn-sm"
+            class="btn btn-sm btn-pearl-capsule"
             style="margin-top: 14px; width: 100%; justify-content: center"
         >
             <svg
@@ -166,11 +157,10 @@ LLM Settings
 
         <div
             id="add-query-form"
-            class="hidden"
             style="
                 margin-top: 16px;
                 padding-top: 16px;
-                border-top: 1px solid var(--border-light);
+                border-top: 1px solid var(--divider-soft);
                 display: none;
             "
         >
@@ -358,7 +348,7 @@ LLM Settings
 
             <div style="display: flex; gap: 8px; margin-top: 4px">
                 <button id="save-query-btn" class="btn btn-primary btn-sm">Save Query</button>
-                <button id="cancel-edit-btn" class="btn btn-secondary btn-sm" style="display: none">Cancel</button>
+                <button id="cancel-edit-btn" class="btn btn-sm btn-secondary-pill" style="display: none">Cancel</button>
             </div>
         </div>
     </div>
@@ -426,7 +416,7 @@ LLM Settings
                 </div>
             </div>
 
-            <div style="padding-top: 8px; border-top: 1px solid var(--border-light)">
+            <div style="padding-top: 8px; border-top: 1px solid var(--divider-soft)">
                 <div class="card-title" style="margin-bottom: 12px">Tool Status</div>
                 <ul class="tool-status-list" id="tool-status">
                     <li class="tool-status-item">
@@ -451,7 +441,7 @@ LLM Settings
     <div class="card">
         <div class="card-header" style="margin-bottom: 18px">
             <div class="card-title">LLM Settings</div>
-            <span style="font-size: 12px; color: var(--text-muted)"
+            <span style="font-size: 12px; color: var(--ink-muted-48)"
                 >Configure LLM connection, parameters, and prompts</span
             >
         </div>
@@ -623,7 +613,7 @@ LLM Settings
                         <span
                             style="
                                 font-size: 11px;
-                                color: var(--text-muted);
+                                color: var(--ink-muted-48);
                                 font-family: var(--font-mono);
                             "
                             >Variables: <code>{cv_plain}</code> <code>{job_title}</code>
@@ -675,7 +665,7 @@ LLM Settings
                                 Save Prompt
                             </button>
                             <button
-                                class="btn btn-secondary btn-sm reset-prompt"
+                                class="btn btn-sm btn-secondary-pill reset-prompt"
                                 data-setting-key="prompt_score_fit"
                                 data-input-id="prompt-score-fit"
                                 data-default="{{ DEFAULT_SCORE_FIT_PROMPT }}"
@@ -692,7 +682,7 @@ LLM Settings
                         <span
                             style="
                                 font-size: 11px;
-                                color: var(--text-muted);
+                                color: var(--ink-muted-48);
                                 font-family: var(--font-mono);
                             "
                             >Variables: <code>{title}</code> <code>{company}</code>
@@ -744,7 +734,7 @@ LLM Settings
                                 Save Prompt
                             </button>
                             <button
-                                class="btn btn-secondary btn-sm reset-prompt"
+                                class="btn btn-sm btn-secondary-pill reset-prompt"
                                 data-setting-key="prompt_tailor_cv"
                                 data-input-id="prompt-tailor-cv"
                                 data-default="{{ DEFAULT_TAILOR_CV_PROMPT }}"
@@ -761,7 +751,7 @@ LLM Settings
                         <span
                             style="
                                 font-size: 11px;
-                                color: var(--text-muted);
+                                color: var(--ink-muted-48);
                                 font-family: var(--font-mono);
                             "
                             >Variables: <code>{title}</code> <code>{company}</code>
@@ -813,7 +803,7 @@ LLM Settings
                                 Save Prompt
                             </button>
                             <button
-                                class="btn btn-secondary btn-sm reset-prompt"
+                                class="btn btn-sm btn-secondary-pill reset-prompt"
                                 data-setting-key="prompt_cover_letter"
                                 data-input-id="prompt-cover-letter"
                                 data-default="{{ DEFAULT_COVER_LETTER_PROMPT }}"
@@ -830,7 +820,7 @@ LLM Settings
                         <span
                             style="
                                 font-size: 11px;
-                                color: var(--text-muted);
+                                color: var(--ink-muted-48);
                                 font-family: var(--font-mono);
                             "
                             >Variables: <code>{title}</code> <code>{company}</code>
@@ -883,7 +873,7 @@ LLM Settings
                                 Save Prompt
                             </button>
                             <button
-                                class="btn btn-secondary btn-sm reset-prompt"
+                                class="btn btn-sm btn-secondary-pill reset-prompt"
                                 data-setting-key="prompt_cover_letter_template"
                                 data-input-id="prompt-cover-letter-template"
                                 data-default="{{ DEFAULT_COVER_LETTER_TEMPLATE_PROMPT }}"
