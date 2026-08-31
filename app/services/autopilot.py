@@ -1,10 +1,12 @@
 import logging
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import UTC, datetime
 from typing import Any
 
 from sqlmodel import Session, select
 
+from app.config import settings
 from app.db import engine
 from app.models import AutoPilotRun, Job, JobStatus, SearchQuery, Setting
 
@@ -38,9 +40,12 @@ def run_autopilot(state: dict[str, Any]) -> None:
         use_template = _load_autopilot_setting("autopilot_use_template", "1") == "1"
 
         # Phase 1: Scrape
-        state["phase"] = "scraping"
-        state["message"] = "Starting scrape..."
-        _run_scrape_phase(state)
+        if state.get("skip_fetch"):
+            state["message"] = "Skipping fetch, using existing jobs"
+        else:
+            state["phase"] = "scraping"
+            state["message"] = "Starting scrape..."
+            _run_scrape_phase(state)
 
         # Phase 2: Score
         state["phase"] = "scoring"
@@ -89,6 +94,8 @@ def run_autopilot(state: dict[str, Any]) -> None:
 
 
 def _run_scrape_phase(state: dict[str, Any]) -> None:
+    import threading
+
     from app.services.scraper import scrape_jobs
 
     with Session(engine) as session:
@@ -100,30 +107,38 @@ def _run_scrape_phase(state: dict[str, Any]) -> None:
         return
 
     scrape_state = {"running": True, "total": 0, "current": 0, "errors": 0, "message": ""}
-    scrape_jobs(queries, scrape_state)
+    t = threading.Thread(target=scrape_jobs, args=(queries, scrape_state), daemon=True)
+    t.start()
     while scrape_state.get("running"):
-        state["message"] = f"Scraping: {scrape_state.get('message', '')}"
+        state["message"] = scrape_state.get("message", "")
         state["current"] = scrape_state.get("current", 0)
         state["total"] = scrape_state.get("total", 0)
         state["errors"] = scrape_state.get("errors", 0)
         time.sleep(0.5)
+    t.join()
 
     state["scraped_count"] = scrape_state.get("current", 0)
     state["errors"] = (state.get("errors", 0) or 0) + (scrape_state.get("errors", 0) or 0)
-    state["message"] = f"Scrape finished: {state['scraped_count']} jobs"
+    state["message"] = f"Scraped {state['scraped_count']} job listings"
 
 
 def _run_score_phase(state: dict[str, Any]) -> None:
+    import threading
+
     from app.services.matcher import score_all_new_jobs
 
     score_state = {"running": True, "total": 0, "current": 0, "errors": 0, "message": ""}
-    score_all_new_jobs(score_state, force_rescore=False)
+    t = threading.Thread(
+        target=score_all_new_jobs, args=(score_state,), kwargs={"force_rescore": False}, daemon=True
+    )
+    t.start()
     while score_state.get("running"):
-        state["message"] = f"Scoring: {score_state.get('message', '')}"
+        state["message"] = score_state.get("message", "")
         state["current"] = score_state.get("current", 0)
         state["total"] = score_state.get("total", 0)
         state["errors"] = (state.get("errors", 0) or 0) + (score_state.get("errors", 0) or 0)
         time.sleep(0.5)
+    t.join()
 
     state["scored_count"] = score_state.get("current", 0)
     state["errors"] = (state.get("errors", 0) or 0) + (score_state.get("errors", 0) or 0)
@@ -158,13 +173,13 @@ def _run_process_phase(
 
     state["total"] = len(jobs)
     state["current"] = 0
-    tailored_count = 0
-    cl_count = 0
-    errors = 0
+    state["tailored_count"] = 0
+    state["cl_count"] = 0
 
-    for job in jobs:
+    def _process_one_job(job: Job) -> tuple[int, bool, bool]:
         cv_ok = False
         cl_ok = False
+        job_errors = 0
         if tailor_cv:
             sub_state = {"running": True, "message": ""}
             try:
@@ -172,12 +187,11 @@ def _run_process_phase(
                 msg = sub_state.get("message", "")
                 if msg and "error" not in msg.lower():
                     cv_ok = True
-                    tailored_count += 1
                 else:
-                    errors += 1
+                    job_errors += 1
             except Exception as e:
                 logger.error("CV tailoring failed for job %s: %s", job.id, e)
-                errors += 1
+                job_errors += 1
 
         if cover_letter:
             sub_state = {"running": True, "message": ""}
@@ -186,12 +200,11 @@ def _run_process_phase(
                 msg = sub_state.get("message", "")
                 if msg and "error" not in msg.lower():
                     cl_ok = True
-                    cl_count += 1
                 else:
-                    errors += 1
+                    job_errors += 1
             except Exception as e:
                 logger.error("Cover letter failed for job %s: %s", job.id, e)
-                errors += 1
+                job_errors += 1
 
         with Session(engine) as session:
             db_job = session.get(Job, job.id)
@@ -202,14 +215,29 @@ def _run_process_phase(
                 session.add(db_job)
                 session.commit()
 
-        state["current"] += 1
-        state["message"] = (
-            f"Processed {state['current']}/{state['total']}: {job.title} at {job.company}"
-        )
+        return job_errors, cv_ok, cl_ok
 
-    state["tailored_count"] = tailored_count
-    state["cl_count"] = cl_count
-    state["errors"] = (state.get("errors", 0) or 0) + errors
+    max_conc = settings.llm_max_concurrency
+    with ThreadPoolExecutor(max_workers=max_conc) as executor:
+        future_to_job = {executor.submit(_process_one_job, job): job for job in jobs}
+        for future in as_completed(future_to_job):
+            job = future_to_job[future]
+            try:
+                job_errors, cv_ok, cl_ok = future.result()
+                if cv_ok:
+                    state["tailored_count"] += 1
+                if cl_ok:
+                    state["cl_count"] += 1
+                state["current"] += 1
+                state["errors"] = (state.get("errors", 0) or 0) + job_errors
+                state["message"] = (
+                    f"Processed {state['current']}/{state['total']}: {job.title} at {job.company}"
+                )
+            except Exception as e:
+                logger.error("Process failed for job %s: %s", job.id, e)
+                state["current"] += 1
+                state["errors"] = (state.get("errors", 0) or 0) + 1
+
     state["message"] = (
-        f"Processed {len(jobs)} jobs: {tailored_count} CVs tailored, {cl_count} cover letters generated"
+        f"Processed {len(jobs)} jobs: {state['tailored_count']} CVs tailored, {state['cl_count']} cover letters generated"
     )

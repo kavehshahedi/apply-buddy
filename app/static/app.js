@@ -9,6 +9,13 @@ document.addEventListener("DOMContentLoaded", function () {
         setTimeout(() => toast.classList.add("hidden"), 4000);
     }
 
+    const pending = sessionStorage.getItem("autopilot_toast");
+    if (pending) {
+        sessionStorage.removeItem("autopilot_toast");
+        const [msg, type] = pending.split("||");
+        showToast(msg, type || "");
+    }
+
     // Hamburger menu toggle
     const hamburgerBtn = document.getElementById("hamburger-btn");
     const mobileNav = document.getElementById("mobile-nav");
@@ -282,7 +289,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 progressDiv.classList.remove("hidden");
                 if (progressText) progressText.textContent = "Starting Auto-Pilot...";
             }
-            const resp = await fetch("/autopilot/run", { method: "POST" });
+            const skipFetch = document.getElementById("autopilot-skip-fetch")?.checked || false;
+            const resp = await fetch("/autopilot/run", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ skip_fetch: skipFetch }),
+            });
             if (!resp.ok) {
                 const err = await resp.json();
                 if (progressText)
@@ -293,27 +305,38 @@ document.addEventListener("DOMContentLoaded", function () {
             }
             const poll = setInterval(async () => {
                 const p = await (await fetch("/autopilot/progress")).json();
-                const phase = p.phase || "";
-                const label =
-                    phase === "scraping"
-                        ? "Scraping"
-                        : phase === "scoring"
-                          ? "Scoring"
-                          : phase === "processing"
-                            ? "Processing"
-                            : "Running";
                 if (progressText) {
-                    progressText.textContent = p.message
-                        ? `[${label}] ${p.message}`
-                        : `${label}...`;
+                    progressText.textContent = p.message || "Working...";
                 }
                 if (!p.running) {
                     clearInterval(poll);
                     btn.disabled = false;
                     btn.textContent = "Run";
-                    if (p.errors > 0)
-                        showToast(`Auto-Pilot finished with ${p.errors} errors`, "error");
-                    else showToast("Auto-Pilot complete!", "");
+                    let msg, type;
+                    if (p.phase === "error") {
+                        msg = p.message || "Auto-Pilot encountered an error";
+                        type = "error";
+                    } else if (p.errors > 0) {
+                        msg = `Auto-Pilot finished with ${p.errors} error${
+                            p.errors > 1 ? "s" : ""
+                        }`;
+                        type = "error";
+                    } else {
+                        const parts = [];
+                        if (p.scraped_count > 0) parts.push(`scraped ${p.scraped_count}`);
+                        if (p.scored_count > 0) parts.push(`scored ${p.scored_count}`);
+                        if (p.tailored_count > 0) parts.push(`tailored ${p.tailored_count} CVs`);
+                        if (p.cl_count > 0)
+                            parts.push(
+                                `generated ${p.cl_count} cover letter${p.cl_count > 1 ? "s" : ""}`
+                            );
+                        msg =
+                            parts.length > 0
+                                ? `Auto-Pilot complete: ${parts.join(", ")}`
+                                : "Auto-Pilot complete";
+                        type = "success";
+                    }
+                    sessionStorage.setItem("autopilot_toast", `${msg}||${type}`);
                     location.reload();
                 }
             }, 1000);

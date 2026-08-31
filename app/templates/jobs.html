@@ -66,6 +66,11 @@ ns.scored_count + 1 %} {% set ns.score_sum = ns.score_sum + j.fit_score %} {% if
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg>
             Run
         </button>
+        <label class="toggle-switch toggle-switch-sm">
+            <input type="checkbox" id="autopilot-skip-fetch" class="toggle-input" />
+            <span class="toggle-slider"></span>
+        </label>
+        <span class="action-bar-label" style="font-size: 12px; font-weight: 400; margin-left: 0">Skip fetch</span>
         <a href="/autopilot/queue" class="btn btn-sm btn-pearl-capsule">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg>
             Queue

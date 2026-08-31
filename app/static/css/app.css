@@ -765,6 +765,11 @@ tbody td {
     font-size: var(--fine-print);
     color: var(--ink-muted-48);
     margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    display: block;
 }
 
 /* ─── Job Row ─────────────────────────────────────────────── */

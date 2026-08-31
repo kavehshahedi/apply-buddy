@@ -23,15 +23,22 @@ _autopilot_state: dict[str, Any] = {
 
 
 @router.post("/run")
-async def run_autopilot(background_tasks: BackgroundTasks, session: Session = Depends(get_session)):
+async def run_autopilot(
+    background_tasks: BackgroundTasks,
+    session: Session = Depends(get_session),
+    data: dict[str, Any] | None = None,
+):
     if _autopilot_state["running"]:
         return JSONResponse({"error": "Auto-Pilot already running"}, status_code=409)
 
-    from app.models import SearchQuery
+    skip_fetch = (data or {}).get("skip_fetch", False)
 
-    queries_exist = session.exec(select(SearchQuery).where(SearchQuery.enabled)).first()
-    if not queries_exist:
-        return JSONResponse({"error": "No enabled search queries"}, status_code=400)
+    if not skip_fetch:
+        from app.models import SearchQuery
+
+        queries_exist = session.exec(select(SearchQuery).where(SearchQuery.enabled)).first()
+        if not queries_exist:
+            return JSONResponse({"error": "No enabled search queries"}, status_code=400)
 
     run = AutoPilotRun(
         started_at=datetime.now(UTC),
@@ -49,6 +56,7 @@ async def run_autopilot(background_tasks: BackgroundTasks, session: Session = De
     _autopilot_state["errors"] = 0
     _autopilot_state["message"] = "Starting Auto-Pilot..."
     _autopilot_state["run_id"] = run.id
+    _autopilot_state["skip_fetch"] = skip_fetch
 
     background_tasks.add_task(_run_autopilot_impl)
     return JSONResponse({"ok": True})
