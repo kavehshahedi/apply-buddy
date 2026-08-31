@@ -7,7 +7,6 @@ from typing import Any
 
 from sqlmodel import Session, select
 
-from app.config import settings
 from app.db import engine
 from app.models import Job, SearchQuery, Setting
 
@@ -130,7 +129,6 @@ def scrape_single_job(url: str, state: dict[str, Any]) -> None:
         max_workers=1,
         slow_mo=1.0,
         adaptive_slow_mo=True,
-        chrome_user_data_dir=str(settings.chrome_profile_path.resolve()),
     )
 
     scraper.on(Events.DATA, on_data)
@@ -238,7 +236,6 @@ def scrape_jobs(queries: list[SearchQuery], state: dict[str, Any]) -> None:
         max_workers=1,
         slow_mo=1.0,
         adaptive_slow_mo=True,
-        chrome_user_data_dir=str(settings.chrome_profile_path.resolve()),
     )
 
     def on_data(data: EventData):

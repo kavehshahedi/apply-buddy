@@ -30,7 +30,7 @@ ENV VIRTUAL_ENV=/app/.venv \
 
 COPY . .
 
-RUN mkdir -p /app/data/cv /app/data/output /app/chrome-profile
+RUN mkdir -p /app/data/cv /app/data/output
 
 EXPOSE 8000
 

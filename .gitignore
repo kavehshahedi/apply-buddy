@@ -7,9 +7,6 @@ __pycache__/
 data/
 !data/.gitkeep
 
-# Chrome profile
-chrome-profile/
-
 # Environment
 .env
 

@@ -12,9 +12,6 @@ cover_letter_template_path: data/cover-letter/cover_letter.md
 # Output directory for generated files (tailored CVs, cover letters)
 output_dir: data/output
 
-# Chrome profile directory for the LinkedIn scraper session
-chrome_profile_dir: chrome-profile
-
 # Minimum fit score threshold (0–100) used in KPI filtering
 min_fit_score: 30
 

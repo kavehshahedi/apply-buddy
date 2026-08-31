@@ -43,7 +43,7 @@ poetry install
 poetry run python -m linkedin_jobs_scraper login --chrome-user-data-dir ./chrome-profile
 ```
 
-Log in with your LinkedIn credentials and **tick "Keep me logged in"**. After that, the scraper reuses this profile.
+Log in with your LinkedIn credentials and **tick "Keep me logged in"**. The scraper uses LinkedIn session cookies (`LI_RM_COOKIE` and `LI_BCOOKIE`). Set these in the Settings UI from the output of the above command.
 
 ### Run
 

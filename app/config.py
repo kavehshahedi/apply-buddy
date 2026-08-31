@@ -33,7 +33,6 @@ class Settings(BaseSettings):
     cv_tex_path: str = "data/cv/cv.tex"
     cover_letter_template_path: str = "data/cover-letter/cover_letter.md"
     output_dir: str = "data/output"
-    chrome_profile_dir: str = "chrome-profile"
     min_fit_score: int = 30
     match_keywords: str = "{}"
     min_keyword_score: int = 0
@@ -49,10 +48,6 @@ class Settings(BaseSettings):
     @property
     def cv_tex_path_resolved(self) -> Path:
         return Path(self.cv_tex_path)
-
-    @property
-    def chrome_profile_path(self) -> Path:
-        return Path(self.chrome_profile_dir)
 
     @property
     def cover_letter_template_path_resolved(self) -> Path:

@@ -28,7 +28,6 @@ class TestSettingsDefaults:
         assert settings.cv_tex_path == "data/cv/cv.tex"
         assert settings.cover_letter_template_path == "data/cover-letter/cover_letter.md"
         assert settings.output_dir == "data/output"
-        assert settings.chrome_profile_dir == "chrome-profile"
         assert settings.min_fit_score == 30
         assert settings.match_keywords == "{}"
         assert settings.min_keyword_score == 0
@@ -39,13 +38,11 @@ class TestSettingsDefaults:
         monkeypatch.setenv("OUTPUT_DIR", "data/output")
         monkeypatch.setenv("CV_TEX_PATH", "data/cv/cv.tex")
         monkeypatch.setenv("COVER_LETTER_TEMPLATE_PATH", "data/cover-letter/cover_letter.md")
-        monkeypatch.setenv("CHROME_PROFILE_DIR", "chrome-profile")
 
         settings = Settings()
         assert isinstance(settings.output_path, Path)
         assert settings.output_path == Path("data/output")
         assert settings.cv_tex_path_resolved == Path("data/cv/cv.tex")
-        assert settings.chrome_profile_path == Path("chrome-profile")
         assert settings.cover_letter_template_path_resolved == Path(
             "data/cover-letter/cover_letter.md"
         )
@@ -76,13 +73,11 @@ class TestSettingsEnvOverrides:
         monkeypatch.setenv("OUTPUT_DIR", "custom/output")
         monkeypatch.setenv("CV_TEX_PATH", "custom/cv.tex")
         monkeypatch.setenv("COVER_LETTER_TEMPLATE_PATH", "custom/cl.md")
-        monkeypatch.setenv("CHROME_PROFILE_DIR", "custom-chrome")
 
         settings = Settings()
         assert settings.output_path == Path("custom/output")
         assert settings.cv_tex_path_resolved == Path("custom/cv.tex")
         assert settings.cover_letter_template_path_resolved == Path("custom/cl.md")
-        assert settings.chrome_profile_path == Path("custom-chrome")
 
 
 class TestYamlConfig:
