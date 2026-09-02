@@ -183,8 +183,8 @@ def _llm_cover_letter(
         prompt = prompt_template.format(
             title=title,
             company=company,
-            description=description[:4000],
-            cv_text=cv_text[:4000],
+            description=description,
+            cv_text=cv_text,
             template=template_text,
         )
         model = _load_cover_letter_template_model()
@@ -193,8 +193,8 @@ def _llm_cover_letter(
         prompt = prompt_template.format(
             title=title,
             company=company,
-            description=description[:4000],
-            cv_text=cv_text[:4000],
+            description=description,
+            cv_text=cv_text,
         )
         model = _load_cover_letter_model()
 

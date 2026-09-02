@@ -134,7 +134,7 @@ def _llm_tailor_cv(master_tex: str, title: str, company: str, description: str) 
     prompt = prompt_template.format(
         title=title,
         company=company,
-        description=description[:4000],
+        description=description,
         master_tex=master_tex,
     )
 

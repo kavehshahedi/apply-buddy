@@ -291,10 +291,10 @@ def score_single_job(
 def _llm_score_job(job: Job, cv_plain: str) -> dict:
     prompt_template = _load_score_fit_prompt()
     prompt = prompt_template.format(
-        cv_plain=cv_plain[:8000],
+        cv_plain=cv_plain,
         job_title=job.title,
         company=job.company,
-        description=job.description[:4000],
+        description=job.description,
     )
 
     messages = [

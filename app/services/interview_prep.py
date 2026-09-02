@@ -109,10 +109,10 @@ def generate_prep_pack(job_id: int, state: dict):
 
             prompt_template = _load_questions_prompt()
             prompt = prompt_template.format(
-                cv_plain=_escape_format(cv_plain[:8000] if cv_plain else ""),
+                cv_plain=_escape_format(cv_plain if cv_plain else ""),
                 job_title=_escape_format(job.title),
                 company=_escape_format(job.company),
-                description=_escape_format(job.description[:4000]),
+                description=_escape_format(job.description),
             )
 
             messages = [
@@ -227,8 +227,8 @@ def submit_answer(session_id: int, answer_text: str, db_session: Session | None 
         prompt = prompt_template.format(
             job_title=_escape_format(job.title),
             company=_escape_format(job.company),
-            description=_escape_format(job.description[:4000]),
-            cv_plain=_escape_format(cv_plain[:8000] if cv_plain else ""),
+            description=_escape_format(job.description),
+            cv_plain=_escape_format(cv_plain if cv_plain else ""),
             question=_escape_format(current_question),
             user_answer=_escape_format(answer_text),
         )
