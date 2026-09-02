@@ -29,6 +29,7 @@ def _migrate_schema():
     for col, col_type, default in [
         ("cover_letter_docx_path", "VARCHAR", None),
         ("cover_letter_pdf_path", "VARCHAR", None),
+        ("tailored_cv_diff_pdf_path", "VARCHAR", None),
         ("company_logo", "VARCHAR", None),
         ("date_posted_dt", "VARCHAR", None),
         ("viewed", "BOOLEAN", "1"),

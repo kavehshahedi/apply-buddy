@@ -1,5 +1,6 @@
 import logging
 import re
+from pathlib import Path
 
 from sqlmodel import Session
 
@@ -7,6 +8,7 @@ from app.config import settings
 from app.db import engine
 from app.models import Job, Setting
 from app.services.compile import compile_latex_to_pdf, latex_available
+from app.services.cv_diff import generate_cv_diff
 from app.services.llm import LLMError, _load_prompt, _load_prompt_model, chat_completion
 
 logger = logging.getLogger("apply-buddy.cv_tailor")
@@ -61,6 +63,7 @@ def tailor_cv_for_job(job_id: int, state: dict = None) -> None:
     if convert_pdf and latex_available():
         state["message"] = "Compiling CV to PDF..."
         success, msg = compile_latex_to_pdf(tex_path, output_dir)
+        _cleanup_latex_aux(output_dir, "cv")
         if success:
             pdf_path = output_dir / "cv.pdf"
             with Session(engine) as session:
@@ -79,6 +82,30 @@ def tailor_cv_for_job(job_id: int, state: dict = None) -> None:
         else:
             state["message"] = "CV .tex saved (LaTeX not available for PDF)"
         logger.info("CV .tex saved without PDF compilation")
+
+    convert_diff = True
+    with Session(engine) as session:
+        setting = session.get(Setting, "convert_cv_diff")
+        if setting:
+            convert_diff = setting.value == "1"
+
+    if convert_diff:
+        state["message"] = "Generating CV diff..."
+        diff_pdf = generate_cv_diff(cv_path, tex_path, output_dir)
+        _cleanup_latex_aux(output_dir, "cv_diff")
+        if diff_pdf:
+            with Session(engine) as session:
+                job = session.get(Job, job_id)
+                job.tailored_cv_diff_pdf_path = str(diff_pdf)
+                session.add(job)
+                session.commit()
+            logger.info("CV diff PDF generated for job %s", job_id)
+            state["message"] = "CV tailored successfully (with diff PDF)"
+        else:
+            logger.info("CV diff not generated for job %s (identical or error)", job_id)
+            state["message"] = "CV tailored successfully"
+    else:
+        state["message"] = "CV tailored successfully"
 
 
 DEFAULT_TAILOR_CV_PROMPT = """You are editing a LaTeX CV. Return ONLY a complete, compilable .tex document — no commentary, no markdown fences.
@@ -131,3 +158,9 @@ def _llm_tailor_cv(master_tex: str, title: str, company: str, description: str) 
         result = result[doc_start : doc_end + len(r"\end{document}")]
 
     return result
+
+
+def _cleanup_latex_aux(output_dir: Path, stem: str) -> None:
+    for ext in [".aux", ".log", ".out", ".fls"]:
+        p = output_dir / f"{stem}{ext}"
+        p.unlink(missing_ok=True)

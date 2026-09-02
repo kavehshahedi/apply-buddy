@@ -132,7 +132,7 @@ steps.index(job.status) if job.status in steps else -1 %} {% set status_labels =
             </div>
         </div>
 
-        {% if job.tailored_cv_path or job.tailored_cv_pdf_path or job.cover_letter_path or
+        {% if job.tailored_cv_path or job.tailored_cv_pdf_path or job.tailored_cv_diff_pdf_path or job.cover_letter_path or
         job.cover_letter_docx_path or job.cover_letter_pdf_path %}
         <div class="detail-card">
             <div class="detail-card-title">Generated Files</div>
@@ -147,6 +147,12 @@ steps.index(job.status) if job.status in steps else -1 %} {% set status_labels =
                 <a href="/actions/download/{{ job.id }}/cv.pdf" class="file-item">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
                     Tailored CV
+                    <span class="file-item-type">.pdf</span>
+                </a>
+                {% endif %} {% if job.tailored_cv_diff_pdf_path %}
+                <a href="/actions/download/{{ job.id }}/cv_diff.pdf" class="file-item">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
+                    CV Diff
                     <span class="file-item-type">.pdf</span>
                 </a>
                 {% endif %} {% if job.cover_letter_path %}

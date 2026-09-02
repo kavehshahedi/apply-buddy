@@ -54,6 +54,7 @@ async def settings_page(request: Request, session: Session = Depends(get_session
                 "prompt_cover_letter_template_model", ""
             ),
             "convert_cv_pdf": db_settings.get("convert_cv_pdf", "1"),
+            "convert_cv_diff": db_settings.get("convert_cv_diff", "1"),
             "convert_cl_pdf": db_settings.get("convert_cl_pdf", "1"),
             "convert_cl_docx": db_settings.get("convert_cl_docx", "1"),
             "llm_provider": db_settings.get("llm_provider", settings.llm_provider),

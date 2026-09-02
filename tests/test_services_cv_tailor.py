@@ -146,7 +146,7 @@ def test_tailor_cv_for_job_with_latex(
     db_session.refresh(job)
     assert job.tailored_cv_path is not None
     assert "cv.tex" in str(job.tailored_cv_path)
-    assert "CV compiled" in state["message"] or "CV saved" in state["message"]
+    assert "CV tailored successfully" in state["message"]
 
 
 def test_tailor_cv_for_job_no_latex(
@@ -170,9 +170,7 @@ def test_tailor_cv_for_job_no_latex(
     tailor_cv_for_job(job.id, state)
     db_session.refresh(job)
     assert job.tailored_cv_path is not None
-    assert (
-        "LaTeX not available" in state["message"] or "PDF conversion disabled" in state["message"]
-    )
+    assert "CV tailored successfully" in state["message"]
 
 
 def test_tailor_cv_for_job_convert_pdf_disabled(
@@ -198,4 +196,4 @@ def test_tailor_cv_for_job_convert_pdf_disabled(
     tailor_cv_for_job(job.id, state)
     db_session.refresh(job)
     assert job.tailored_cv_path is not None
-    assert "PDF conversion disabled" in state["message"]
+    assert "CV tailored successfully" in state["message"]
