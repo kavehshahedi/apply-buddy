@@ -89,3 +89,11 @@ class ScrapeProgress(BaseModel):
     current: int = 0
     errors: int = 0
     message: str = ""
+
+
+class InterviewSessionCreate(BaseModel):
+    total_questions: int = 5
+
+
+class InterviewAnswerSubmit(BaseModel):
+    answer: str

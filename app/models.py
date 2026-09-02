@@ -101,3 +101,20 @@ class Setting(SQLModel, table=True):
 
     key: str = Field(primary_key=True)
     value: str = ""
+
+
+class InterviewSession(SQLModel, table=True):
+    __tablename__ = "interview_sessions"
+
+    id: int | None = Field(default=None, primary_key=True)
+    job_id: int = Field(foreign_key="jobs.id", index=True)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    status: str = "pending"
+    total_questions: int = 5
+    current_question: int = 0
+    questions: str = ""
+    user_answers: str = ""
+    feedback: str = ""
+    overall_summary: str = ""
+    prep_questions: str = ""
+    prep_skills_gap: str = ""

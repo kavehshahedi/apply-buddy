@@ -14,6 +14,10 @@ from app.services.cover_letter import (
     DEFAULT_COVER_LETTER_TEMPLATE_PROMPT,
 )
 from app.services.cv_tailor import DEFAULT_TAILOR_CV_PROMPT
+from app.services.interview_prep import (
+    DEFAULT_INTERVIEW_QUESTIONS_PROMPT,
+    DEFAULT_MOCK_INTERVIEW_FEEDBACK_PROMPT,
+)
 from app.services.llm import _load_available_models
 from app.services.matcher import DEFAULT_SCORE_FIT_PROMPT
 
@@ -53,6 +57,18 @@ async def settings_page(request: Request, session: Session = Depends(get_session
             "prompt_cover_letter_template_model": db_settings.get(
                 "prompt_cover_letter_template_model", ""
             ),
+            "prompt_interview_questions": db_settings.get(
+                "prompt_interview_questions", DEFAULT_INTERVIEW_QUESTIONS_PROMPT
+            ),
+            "prompt_mock_feedback": db_settings.get(
+                "prompt_mock_feedback", DEFAULT_MOCK_INTERVIEW_FEEDBACK_PROMPT
+            ),
+            "DEFAULT_INTERVIEW_QUESTIONS_PROMPT": DEFAULT_INTERVIEW_QUESTIONS_PROMPT,
+            "DEFAULT_MOCK_INTERVIEW_FEEDBACK_PROMPT": DEFAULT_MOCK_INTERVIEW_FEEDBACK_PROMPT,
+            "prompt_interview_questions_model": db_settings.get(
+                "prompt_interview_questions_model", ""
+            ),
+            "prompt_mock_feedback_model": db_settings.get("prompt_mock_feedback_model", ""),
             "convert_cv_pdf": db_settings.get("convert_cv_pdf", "1"),
             "convert_cv_diff": db_settings.get("convert_cv_diff", "1"),
             "convert_cl_pdf": db_settings.get("convert_cl_pdf", "1"),

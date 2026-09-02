@@ -132,6 +132,16 @@ steps.index(job.status) if job.status in steps else -1 %} {% set status_labels =
             </div>
         </div>
 
+        <div class="detail-card">
+            <div class="detail-card-title">Interview Prep</div>
+            <div class="action-panel">
+                <a href="/interview/{{ job.id }}" class="btn btn-sm btn-primary" style="width: 100%; justify-content: center;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" /><path d="M19 10v2a7 7 0 01-14 0v-2" /><line x1="12" y1="19" x2="12" y2="23" /><line x1="8" y1="23" x2="16" y2="23" /></svg>
+                    Interview Prep
+                </a>
+            </div>
+        </div>
+
         {% if job.tailored_cv_path or job.tailored_cv_pdf_path or job.tailored_cv_diff_pdf_path or job.cover_letter_path or
         job.cover_letter_docx_path or job.cover_letter_pdf_path %}
         <div class="detail-card">

@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+{% block title %} — Interview Prep: {{ job.title }}{% endblock %}
+{% block subnav_title %}Interview Prep{% endblock %}
+{% block subnav_actions %}
+<a href="/jobs/{{ job.id }}" class="btn btn-sm btn-dark-utility">Back to Job</a>
+{% endblock %}
+{% block content %}
+
+<div class="interview-layout">
+    <div class="product-tile product-tile-light" style="padding: var(--spacing-lg) 28px; border-radius: var(--radius-lg); margin-bottom: 28px;">
+        <div class="product-tile-inner" style="flex-direction: row; gap: 16px; text-align: left; align-items: flex-start;">
+            <div style="flex: 1;">
+                <h1 style="font-size: var(--display-md); font-weight: 600; color: var(--ink); line-height: 1.2; letter-spacing: -0.374px; margin-bottom: 6px;">{{ job.title }}</h1>
+                <div style="font-size: var(--body); color: var(--ink-muted-48); display: flex; gap: 16px; flex-wrap: wrap;">
+                    <span>{{ job.company }}</span>
+                    {% if job.location %}
+                    <span>{{ job.location }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% if job.fit_score is not none %}
+            <div style="text-align: center; flex-shrink: 0;">
+                <div class="fit-card-score {% if job.fit_score >= 70 %}high{% elif job.fit_score >= 40 %}medium{% else %}low{% endif %}" style="font-size: 36px; line-height: 1;">{{ job.fit_score }}</div>
+                <div class="fit-card-label" style="font-size: 11px; margin-top: 4px;">Fit Score</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if not prep_questions %}
+    <div id="prep-generation" class="detail-card" style="margin-bottom: 28px; text-align: center;">
+        <div class="detail-card-title" style="text-align: center;">Interview Prep Pack</div>
+        <p style="font-size: var(--caption); color: var(--ink-muted-48); margin-bottom: 16px; line-height: 1.5; max-width: 500px; margin-left: auto; margin-right: auto;">
+            Generate a set of likely interview questions and a skills gap analysis tailored to this job and your CV.
+        </p>
+        <button id="generate-prep-btn" data-job-id="{{ job.id }}" class="btn btn-primary" style="justify-content: center; margin: 0 auto;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></svg>
+            Generate Interview Prep Pack
+        </button>
+        <div id="prep-progress" class="progress-card hidden" style="margin-top: 14px; margin-bottom: 0; justify-content: center;">
+            <div class="progress-spinner"></div>
+            <span id="prep-progress-text" class="progress-text">Starting generation...</span>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if prep_questions or active_session %}
+    <div class="prep-tabs" style="margin-bottom: 28px;">
+        <button class="prep-tab active" data-panel="questions">Likely Questions</button>
+        <button class="prep-tab" data-panel="skills-gap">Skills Gap Analysis</button>
+        <button class="prep-tab" data-panel="mock">Mock Interview</button>
+    </div>
+
+    <div class="prep-panel active" id="panel-questions">
+        <div class="detail-card">
+            <div class="detail-card-title">Likely Interview Questions</div>
+            <div class="questions-list">
+                {% for q in prep_questions %}
+                <div class="question-card">
+                    <div class="question-number">{{ loop.index }}</div>
+                    <div class="question-text">{{ q }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="prep-panel" id="panel-skills-gap">
+        <div class="detail-card">
+            <div class="detail-card-title">Skills Gap Analysis</div>
+            <div class="gaps-list">
+                {% for gap in prep_skills_gap %}
+                <div class="gap-item">
+                    <div class="gap-item-header">
+                        <span class="gap-item-skill">{{ gap.skill }}</span>
+                        <span class="gap-severity gap-severity-{{ gap.gap_severity }}">{{ gap.gap_severity | title }}</span>
+                    </div>
+                    <div class="gap-item-detail">
+                        <span>Required: <strong>{{ gap.required_level }}</strong></span>
+                        <span>Your level: <strong>{{ gap.candidate_level }}</strong></span>
+                    </div>
+                    <div class="gap-item-recommendation">{{ gap.recommendation }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="prep-panel" id="panel-mock">
+        <div class="detail-card" id="mock-setup">
+            <div class="detail-card-title">Mock Interview</div>
+            <p style="font-size: var(--caption); color: var(--ink-muted-48); margin-bottom: 16px; line-height: 1.5;">
+                Practice answering {{ prep_questions | length }} likely interview questions with AI-powered feedback.
+                Choose how many questions you'd like to answer:
+            </p>
+            <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 16px;">
+                <select id="mock-question-count" class="form-control" style="width: 100px;">
+                    {% set counts = [3, 5, 10] %}
+                    {% for c in counts %}
+                    <option value="{{ c }}" {% if c <= prep_questions | length %}{% else %}disabled{% endif %}>{{ c }}</option>
+                    {% endfor %}
+                    <option value="{{ prep_questions | length }}" selected>All ({{ prep_questions | length }})</option>
+                </select>
+                <button id="start-mock-btn" data-job-id="{{ job.id }}" class="btn btn-primary btn-sm">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3" /></svg>
+                    Start Mock Interview
+                </button>
+            </div>
+        </div>
+
+        <div id="mock-simulator" class="detail-card" style="display: none;"{% if active_session %} data-active-session='{{ {"session_id": active_session.id, "job_id": active_session.job_id, "total_questions": active_session.total_questions, "current_question": active_session.current_question, "questions": active_session.questions, "user_answers": active_session.user_answers, "feedback": active_session.feedback} | tojson }}'{% endif %}>
+            <div class="simulator-progress">
+                <div class="simulator-progress-text">Question <span id="mock-current-q">1</span> / <span id="mock-total-q">5</span></div>
+                <div class="simulator-progress-track">
+                    <div class="simulator-progress-fill" id="mock-progress-fill" style="width: 0%;"></div>
+                </div>
+            </div>
+
+            <div class="simulator-question" id="mock-question-display">
+                <div class="simulator-question-badge" id="mock-question-badge">1</div>
+                <div class="simulator-question-content">
+                    <div class="simulator-question-label">Question</div>
+                    <div class="simulator-question-text" id="mock-question-text"></div>
+                </div>
+            </div>
+
+            <div class="simulator-answer" id="mock-answer-area">
+                <div class="simulator-answer-header">
+                    <div class="simulator-answer-header-left">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" /></svg>
+                        <span>Your Answer</span>
+                    </div>
+                    <span class="simulator-answer-char-count" id="mock-char-count">0</span>
+                </div>
+                <textarea id="mock-answer-input" class="simulator-answer-input" rows="4" placeholder="Type your answer here…"></textarea>
+                <div class="simulator-answer-footer">
+                    <div class="simulator-answer-tools">
+                        <button id="mock-voice-btn" class="voice-btn" title="Record voice answer" type="button">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" /><path d="M19 10v2a7 7 0 01-14 0v-2" /><line x1="12" y1="19" x2="12" y2="23" /><line x1="8" y1="23" x2="16" y2="23" /></svg>
+                        </button>
+                        <button id="mock-clear-btn" class="simulator-answer-clear" title="Clear answer" type="button">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                        </button>
+                    </div>
+                    <button id="mock-submit-btn" class="btn btn-primary btn-sm">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>
+                        Submit Answer
+                    </button>
+                </div>
+            </div>
+
+            <div class="simulator-feedback" id="mock-feedback-area" style="display: none;">
+                <div class="simulator-feedback-header">
+                    <span class="simulator-feedback-title">Feedback</span>
+                    <span class="simulator-feedback-score" id="mock-feedback-score">0/100</span>
+                </div>
+                <div class="simulator-feedback-body" id="mock-feedback-text"></div>
+                <div class="simulator-feedback-model" id="mock-model-answer-area">
+                    <div class="simulator-feedback-subtitle">Model Answer</div>
+                    <div class="simulator-feedback-model-text" id="mock-model-answer"></div>
+                </div>
+                <div class="simulator-feedback-lists">
+                    <div class="simulator-feedback-col">
+                        <div class="simulator-feedback-subtitle" style="color: var(--success);">Key Strengths</div>
+                        <ul class="simulator-feedback-ul" id="mock-strengths"></ul>
+                    </div>
+                    <div class="simulator-feedback-col">
+                        <div class="simulator-feedback-subtitle" style="color: var(--warning);">Areas for Improvement</div>
+                        <ul class="simulator-feedback-ul" id="mock-improvements"></ul>
+                    </div>
+                </div>
+                <button id="mock-next-btn" class="btn btn-primary btn-sm" style="margin-top: 16px;">
+                    Next Question
+                </button>
+            </div>
+
+            <div class="simulator-summary" id="mock-summary-area" style="display: none;">
+                <div class="simulator-summary-header">Session Complete</div>
+                <div class="simulator-summary-score">
+                    <span class="simulator-summary-score-value" id="mock-summary-score">0</span>
+                    <span class="simulator-summary-score-label">/100</span>
+                </div>
+                <div class="simulator-summary-sections" id="mock-summary-content"></div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button id="mock-new-session-btn" class="btn btn-primary btn-sm">New Session</button>
+                    <a href="/jobs/{{ job.id }}" class="btn btn-secondary-pill btn-sm">Back to Job</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

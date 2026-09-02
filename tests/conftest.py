@@ -45,16 +45,26 @@ def _patch_engine_and_state(test_engine):
     import app.db as db_mod
     import app.routers.actions as actions_router
     import app.routers.autopilot as autopilot_router
+    import app.routers.interview as interview_router
     import app.routers.manual_fetch as manual_fetch_router
     import app.routers.scrape as scrape_router
     import app.services.autopilot as autopilot_mod
     import app.services.cover_letter as cl_mod
     import app.services.cv_tailor as cv_mod
+    import app.services.interview_prep as interview_prep_mod
     import app.services.matcher as matcher_mod
     import app.services.scraper as scraper_mod
 
     originals = {}
-    for mod in [db_mod, autopilot_mod, matcher_mod, cv_mod, cl_mod, scraper_mod]:
+    for mod in [
+        db_mod,
+        autopilot_mod,
+        matcher_mod,
+        cv_mod,
+        cl_mod,
+        scraper_mod,
+        interview_prep_mod,
+    ]:
         originals[mod] = mod.engine
         mod.engine = test_engine
 
@@ -85,6 +95,8 @@ def _patch_engine_and_state(test_engine):
     autopilot_router._autopilot_state["errors"] = 0
     autopilot_router._autopilot_state["message"] = ""
     autopilot_router._autopilot_state["run_id"] = None
+
+    interview_router._interview_generation_state.clear()
 
     with Session(test_engine) as session:
         for table in reversed(SQLModel.metadata.sorted_tables):

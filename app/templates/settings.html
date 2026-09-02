@@ -973,6 +973,63 @@ LLM Settings
                         </div>
                     </div>
                 </div>
+
+                <div class="prompt-block">
+                    <div class="prompt-block-header">
+                        <div class="prompt-block-title">Interview Questions Generator</div>
+                        <span style="font-size: 11px; color: var(--ink-muted-48); font-family: var(--font-mono);">
+                            Variables: <code>{cv_plain}</code> <code>{job_title}</code>
+                            <code>{company}</code> <code>{description}</code>
+                        </span>
+                    </div>
+                    <div class="prompt-block-model">
+                        <label class="form-label" style="margin-bottom: 0; font-size: 11px;">Model</label>
+                        <div style="display: flex; gap: 6px; align-items: center;">
+                            <select class="form-control prompt-model-select" data-setting-key="prompt_interview_questions_model" data-input-id="prompt-interview-questions-model">
+                                {% for m in available_models %}
+                                <option value="{{ m }}" {% if prompt_interview_questions_model == m %}selected{% endif %}>{{ m }}</option>
+                                {% endfor %}
+                            </select>
+                            <button class="btn btn-primary btn-xs save-setting" data-setting-key="prompt_interview_questions_model" data-input-id="prompt-interview-questions-model">Save</button>
+                        </div>
+                    </div>
+                    <div class="prompt-block-textarea">
+                        <textarea id="prompt-interview-questions" class="form-control prompt-textarea" rows="7" spellcheck="false">{{ prompt_interview_questions }}</textarea>
+                        <div style="display: flex; gap: 6px; margin-top: 6px;">
+                            <button data-setting-key="prompt_interview_questions" data-input-id="prompt-interview-questions" class="save-setting btn btn-primary btn-sm">Save Prompt</button>
+                            <button class="btn btn-sm btn-secondary-pill reset-prompt" data-setting-key="prompt_interview_questions" data-input-id="prompt-interview-questions" data-default="{{ DEFAULT_INTERVIEW_QUESTIONS_PROMPT }}">Reset to Default</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="prompt-block">
+                    <div class="prompt-block-header">
+                        <div class="prompt-block-title">Mock Interview Feedback</div>
+                        <span style="font-size: 11px; color: var(--ink-muted-48); font-family: var(--font-mono);">
+                            Variables: <code>{question}</code> <code>{user_answer}</code>
+                            <code>{job_title}</code> <code>{company}</code>
+                            <code>{description}</code> <code>{cv_plain}</code>
+                        </span>
+                    </div>
+                    <div class="prompt-block-model">
+                        <label class="form-label" style="margin-bottom: 0; font-size: 11px;">Model</label>
+                        <div style="display: flex; gap: 6px; align-items: center;">
+                            <select class="form-control prompt-model-select" data-setting-key="prompt_mock_feedback_model" data-input-id="prompt-mock-feedback-model">
+                                {% for m in available_models %}
+                                <option value="{{ m }}" {% if prompt_mock_feedback_model == m %}selected{% endif %}>{{ m }}</option>
+                                {% endfor %}
+                            </select>
+                            <button class="btn btn-primary btn-xs save-setting" data-setting-key="prompt_mock_feedback_model" data-input-id="prompt-mock-feedback-model">Save</button>
+                        </div>
+                    </div>
+                    <div class="prompt-block-textarea">
+                        <textarea id="prompt-mock-feedback" class="form-control prompt-textarea" rows="7" spellcheck="false">{{ prompt_mock_feedback }}</textarea>
+                        <div style="display: flex; gap: 6px; margin-top: 6px;">
+                            <button data-setting-key="prompt_mock_feedback" data-input-id="prompt-mock-feedback" class="save-setting btn btn-primary btn-sm">Save Prompt</button>
+                            <button class="btn btn-sm btn-secondary-pill reset-prompt" data-setting-key="prompt_mock_feedback" data-input-id="prompt-mock-feedback" data-default="{{ DEFAULT_MOCK_INTERVIEW_FEEDBACK_PROMPT }}">Reset to Default</button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
