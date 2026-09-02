@@ -774,6 +774,16 @@ document.addEventListener("DOMContentLoaded", function () {
         form.submit();
     };
 
+    // Delete job with confirmation
+    window.deleteJob = async function (jobId) {
+        if (!confirm("Delete this job permanently? This cannot be undone.")) return;
+        const form = document.createElement("form");
+        form.method = "POST";
+        form.action = `/jobs/${jobId}/delete`;
+        document.body.appendChild(form);
+        form.submit();
+    };
+
     // Close dropdowns on click outside
     document.addEventListener("click", function (e) {
         if (!e.target.closest(".status-dropdown-wrap")) {

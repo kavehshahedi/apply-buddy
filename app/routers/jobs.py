@@ -21,8 +21,17 @@ async def job_list(
     min_score: int = 0,
     source: str = "all",
     viewed: str = "all",
+    status: str = "active",
 ):
-    query = select(Job).where(Job.status.in_([JobStatus.new, JobStatus.interested]))
+    active_count = len(
+        session.exec(select(Job).where(Job.status.in_([JobStatus.new, JobStatus.interested]))).all()
+    )
+    if status == "archived":
+        query = select(Job).where(Job.status == JobStatus.archived)
+    elif status == "all":
+        query = select(Job)
+    else:
+        query = select(Job).where(Job.status.in_([JobStatus.new, JobStatus.interested]))
     if min_score > 0:
         query = query.where(Job.fit_score >= min_score)
     if source == "linkedin":
@@ -52,6 +61,8 @@ async def job_list(
             "min_score": min_score,
             "source": source,
             "viewed": viewed,
+            "list_status": status,
+            "active_count": active_count,
         },
     )
 

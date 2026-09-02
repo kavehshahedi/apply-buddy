@@ -167,6 +167,27 @@ def test_update_job_status_returns_404(client, db_session):
     assert response.status_code == 404
 
 
+def test_job_list_filters_archived(client, db_session, sample_job_data):
+    job1 = Job(**{**sample_job_data, "linkedin_job_id": "test_1", "status": JobStatus.archived})
+    job2 = Job(**{**sample_job_data, "linkedin_job_id": "test_2", "status": JobStatus.new})
+    db_session.add_all([job1, job2])
+    db_session.commit()
+
+    response = client.get("/jobs/?status=archived")
+    assert response.status_code == 200
+    assert "test_1" in response.text or "Software Engineer" in response.text
+
+
+def test_job_list_filters_all(client, db_session, sample_job_data):
+    job1 = Job(**{**sample_job_data, "linkedin_job_id": "test_1", "status": JobStatus.archived})
+    job2 = Job(**{**sample_job_data, "linkedin_job_id": "test_2", "status": JobStatus.new})
+    db_session.add_all([job1, job2])
+    db_session.commit()
+
+    response = client.get("/jobs/?status=all")
+    assert response.status_code == 200
+
+
 def test_delete_job(client, db_session, sample_job):
     response = client.post(
         f"/jobs/{sample_job.id}/delete",

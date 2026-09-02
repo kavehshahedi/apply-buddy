@@ -481,6 +481,7 @@ img {
     font-size: var(--caption);
     border-radius: var(--radius-pill);
     padding: 6px 14px;
+    line-height: 1;
 }
 .btn-success:hover {
     background: var(--primary-focus);
@@ -948,6 +949,27 @@ tbody tr.unviewed {
 }
 .status-dropdown-opt:hover {
     background: var(--canvas-parchment);
+}
+
+.status-dropdown-divider {
+    height: 1px;
+    background: var(--hairline);
+    margin: 4px 0;
+}
+
+.status-dropdown-opt-danger {
+    color: var(--danger);
+}
+
+.status-dropdown-opt-danger:hover {
+    background: var(--danger);
+    color: #fff;
+}
+
+.status-dropdown-opt-danger svg {
+    width: 13px;
+    height: 13px;
+    margin-right: 8px;
 }
 
 /* ─── Status Dot ──────────────────────────────────────────── */

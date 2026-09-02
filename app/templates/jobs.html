@@ -227,8 +227,13 @@ ns.scored_count + 1 %} {% set ns.score_sum = ns.score_sum + j.fit_score %} {% if
     </div>
 </form>
 
+<div class="status-tabs" style="margin-bottom: var(--space-md)">
+    <a href="/jobs/?status=active" class="status-tab {% if list_status == 'active' or not list_status %}active{% endif %}">Active <span class="status-tab-count">{{ active_count }}</span></a>
+    <a href="/jobs/?status=archived" class="status-tab {% if list_status == 'archived' %}active{% endif %}">Archived</a>
+    <a href="/jobs/?status=all" class="status-tab {% if list_status == 'all' %}active{% endif %}">All Jobs</a>
+</div>
+
 {% if jobs %}
-<div class="table-wrap" role="table" aria-label="Job listings table">
     <table>
         <thead>
             <tr>
@@ -300,6 +305,11 @@ ns.scored_count + 1 %} {% set ns.score_sum = ns.score_sum + j.fit_score %} {% if
                                 {{ opt }}
                             </button>
                             {% endfor %}
+                            <div class="status-dropdown-divider"></div>
+                            <button class="status-dropdown-opt status-dropdown-opt-danger" onclick="deleteJob({{ job.id }})" role="menuitem">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" /></svg>
+                                Delete
+                            </button>
                         </div>
                     </div>
                 </td>
