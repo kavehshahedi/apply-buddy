@@ -110,6 +110,16 @@ def scrape_single_job(url: str, state: dict[str, Any]) -> None:
         state["errors"] += 1
         return
 
+    with Session(engine) as session:
+        existing = session.exec(select(Job).where(Job.linkedin_job_id == job_id)).first()
+
+    if existing:
+        state["message"] = f"Job already exists: {existing.title} at {existing.company} (skipped)"
+        state["current"] = 1
+        state["total"] = 1
+        state["running"] = False
+        return
+
     scraped_data = {"data": None, "error": None, "not_found": None}
 
     def on_data(data: EventData):
@@ -163,39 +173,20 @@ def scrape_single_job(url: str, state: dict[str, Any]) -> None:
         date_dt = _parse_relative_date(data.date_text)
 
         with Session(engine) as session:
-            existing = session.exec(select(Job).where(Job.linkedin_job_id == data.job_id)).first()
-
-            if existing:
-                existing.title = data.title or existing.title
-                existing.company = data.company or existing.company
-                existing.company_logo = company_logo or existing.company_logo
-                existing.location = data.place or existing.location
-                existing.link = data.link or url
-                if data.apply_link:
-                    existing.apply_link = data.apply_link
-                if data.description:
-                    existing.description = data.description
-                if data.date_text:
-                    existing.date_posted = data.date_text
-                    existing.date_posted_dt = date_dt
-                existing.updated_at = datetime.now(UTC)
-                session.add(existing)
-                state["message"] = f"Updated existing job: {data.title} at {data.company}"
-            else:
-                job = Job(
-                    linkedin_job_id=data.job_id,
-                    title=data.title or "",
-                    company=data.company or "",
-                    company_logo=company_logo,
-                    location=data.place or "",
-                    link=data.link or url,
-                    apply_link=data.apply_link,
-                    description=data.description or "",
-                    date_posted=data.date_text,
-                    date_posted_dt=date_dt,
-                )
-                session.add(job)
-                state["message"] = f"Added job: {data.title} at {data.company}"
+            job = Job(
+                linkedin_job_id=data.job_id,
+                title=data.title or "",
+                company=data.company or "",
+                company_logo=company_logo,
+                location=data.place or "",
+                link=data.link or url,
+                apply_link=data.apply_link,
+                description=data.description or "",
+                date_posted=data.date_text,
+                date_posted_dt=date_dt,
+            )
+            session.add(job)
+            state["message"] = f"Added job: {data.title} at {data.company}"
 
             session.commit()
 
