@@ -116,7 +116,7 @@ ns.interview, ns.offer, ns.accepted, ns.rejected]|sum %}
                 </td>
                 <td>
                     {% if job.applied_at %}
-                    <span class="days-since"> {{ job.applied_at.strftime('%b %d') }} </span>
+                    <span class="days-since"> {{ job.applied_at | to_eastern | strftime('%b %d') }} </span>
                     {% else %}
                     <span class="days-since">—</span>
                     {% endif %}

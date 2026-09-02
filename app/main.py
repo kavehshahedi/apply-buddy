@@ -2,6 +2,7 @@ import contextlib
 import re
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
@@ -56,6 +57,26 @@ def _timeago(dt: datetime) -> str:
 
 
 templates.env.filters["timeago"] = _timeago
+
+
+def _to_eastern(dt: datetime) -> datetime:
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=UTC)
+    return dt.astimezone(ZoneInfo("America/New_York"))
+
+
+templates.env.filters["to_eastern"] = _to_eastern
+
+
+def _strftime(dt: datetime, fmt: str) -> str:
+    if dt is None:
+        return ""
+    return dt.strftime(fmt)
+
+
+templates.env.filters["strftime"] = _strftime
 
 
 def _beautify_description(text: str) -> str:
