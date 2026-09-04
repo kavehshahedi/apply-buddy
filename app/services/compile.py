@@ -61,22 +61,21 @@ def compile_latex_to_pdf(tex_path: Path, output_dir: Path) -> tuple[bool, str]:
                 text=True,
                 timeout=120,
             )
-            if result.returncode == 0:
-                subprocess.run(
-                    [
-                        pdflatex,
-                        "-interaction=nonstopmode",
-                        "-output-directory",
-                        str(output_dir),
-                        str(tex_path),
-                    ],
-                    capture_output=True,
-                    text=True,
-                    timeout=120,
-                )
-                pdf_path = output_dir / f"{tex_path.stem}.pdf"
-                if pdf_path.exists():
-                    return True, "Compiled successfully (pdflatex x2)"
+            subprocess.run(
+                [
+                    pdflatex,
+                    "-interaction=nonstopmode",
+                    "-output-directory",
+                    str(output_dir),
+                    str(tex_path),
+                ],
+                capture_output=True,
+                text=True,
+                timeout=120,
+            )
+            pdf_path = output_dir / f"{tex_path.stem}.pdf"
+            if pdf_path.exists():
+                return True, "Compiled successfully (pdflatex x2)"
             return False, result.stdout + result.stderr
         latexmk = _find_exe("latexmk")
         if latexmk:

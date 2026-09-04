@@ -16,6 +16,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     texlive-fonts-recommended \
     texlive-fonts-extra \
     texlive-latex-recommended \
+    texlive-plain-generic \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
