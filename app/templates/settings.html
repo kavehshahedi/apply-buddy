@@ -716,6 +716,7 @@ LLM Settings
                         >
                         <div style="display: flex; gap: 6px; align-items: center">
                             <select
+                                id="prompt-score-fit-model"
                                 class="form-control prompt-model-select"
                                 data-setting-key="prompt_score_fit_model"
                                 data-input-id="prompt-score-fit-model"
@@ -785,6 +786,7 @@ LLM Settings
                         >
                         <div style="display: flex; gap: 6px; align-items: center">
                             <select
+                                id="prompt-tailor-cv-model"
                                 class="form-control prompt-model-select"
                                 data-setting-key="prompt_tailor_cv_model"
                                 data-input-id="prompt-tailor-cv-model"
@@ -854,6 +856,7 @@ LLM Settings
                         >
                         <div style="display: flex; gap: 6px; align-items: center">
                             <select
+                                id="prompt-cover-letter-model"
                                 class="form-control prompt-model-select"
                                 data-setting-key="prompt_cover_letter_model"
                                 data-input-id="prompt-cover-letter-model"
@@ -924,6 +927,7 @@ LLM Settings
                         >
                         <div style="display: flex; gap: 6px; align-items: center">
                             <select
+                                id="prompt-cover-letter-template-model"
                                 class="form-control prompt-model-select"
                                 data-setting-key="prompt_cover_letter_template_model"
                                 data-input-id="prompt-cover-letter-template-model"
@@ -985,7 +989,7 @@ LLM Settings
                     <div class="prompt-block-model">
                         <label class="form-label" style="margin-bottom: 0; font-size: 11px;">Model</label>
                         <div style="display: flex; gap: 6px; align-items: center;">
-                            <select class="form-control prompt-model-select" data-setting-key="prompt_interview_questions_model" data-input-id="prompt-interview-questions-model">
+                            <select id="prompt-interview-questions-model" class="form-control prompt-model-select" data-setting-key="prompt_interview_questions_model" data-input-id="prompt-interview-questions-model">
                                 {% for m in available_models %}
                                 <option value="{{ m }}" {% if prompt_interview_questions_model == m %}selected{% endif %}>{{ m }}</option>
                                 {% endfor %}
@@ -1014,7 +1018,7 @@ LLM Settings
                     <div class="prompt-block-model">
                         <label class="form-label" style="margin-bottom: 0; font-size: 11px;">Model</label>
                         <div style="display: flex; gap: 6px; align-items: center;">
-                            <select class="form-control prompt-model-select" data-setting-key="prompt_mock_feedback_model" data-input-id="prompt-mock-feedback-model">
+                            <select id="prompt-mock-feedback-model" class="form-control prompt-model-select" data-setting-key="prompt_mock_feedback_model" data-input-id="prompt-mock-feedback-model">
                                 {% for m in available_models %}
                                 <option value="{{ m }}" {% if prompt_mock_feedback_model == m %}selected{% endif %}>{{ m }}</option>
                                 {% endfor %}
