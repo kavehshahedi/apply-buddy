@@ -92,7 +92,8 @@ def tailor_cv_for_job(job_id: int, state: dict = None) -> None:
     if convert_diff:
         state["message"] = "Generating CV diff..."
         diff_pdf = generate_cv_diff(cv_path, tex_path, output_dir)
-        _cleanup_latex_aux(output_dir, "cv_diff")
+        if diff_pdf:
+            _cleanup_latex_aux(output_dir, "cv_diff")
         if diff_pdf:
             with Session(engine) as session:
                 job = session.get(Job, job_id)

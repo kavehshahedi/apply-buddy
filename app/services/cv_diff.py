@@ -369,7 +369,7 @@ def generate_cv_diff(
         logger.warning("cv_diff.pdf not found after compilation")
         return None
 
-    logger.warning("CV diff compilation failed: %s", msg[:200])
+    logger.warning("CV diff compilation failed: %s", msg)
     return None
 
 
