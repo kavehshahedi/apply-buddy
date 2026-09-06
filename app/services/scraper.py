@@ -93,7 +93,7 @@ def _inject_linkedin_cookies():
                 if setting and setting.value:
                     os.environ[key] = setting.value
     except Exception:
-        pass
+        logger.exception("Failed to inject LinkedIn cookies")
 
 
 def scrape_single_job(url: str, state: dict[str, Any]) -> None:

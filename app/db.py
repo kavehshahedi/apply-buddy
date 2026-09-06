@@ -1,9 +1,12 @@
+import logging
 from pathlib import Path
 
 from sqlmodel import Session, SQLModel, create_engine
 
 from app.config import settings
 from app.models import AutoPilotRun  # noqa: F401 — ensure table is registered in SQLModel.metadata
+
+logger = logging.getLogger("apply-buddy.db")
 
 db_path = Path(settings.database_url.replace("sqlite:///", "")).resolve()
 db_path.parent.mkdir(parents=True, exist_ok=True)
@@ -65,7 +68,7 @@ def _migrate_schema():
                     conn.execute(text(f"ALTER TABLE search_queries ADD COLUMN {col} {col_type}"))
                     conn.commit()
     except Exception:
-        pass
+        logger.exception("Failed to migrate search_queries schema")
 
 
 def get_session():

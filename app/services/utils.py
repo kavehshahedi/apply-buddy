@@ -2,6 +2,7 @@ import logging
 import re
 from typing import Any
 
+from sqlalchemy.exc import DatabaseError, OperationalError
 from sqlmodel import Session
 
 from app.config import settings
@@ -17,7 +18,7 @@ def load_setting(key: str, default: str) -> str:
             setting = session.get(Setting, key)
             if setting and setting.value:
                 return setting.value
-    except Exception:
+    except (DatabaseError, OperationalError):
         logger.exception(f"Failed to load setting '{key}', falling back to default")
     return default
 
@@ -32,7 +33,7 @@ def load_prompt_model(key: str) -> str | None:
             setting = session.get(Setting, key)
             if setting and setting.value:
                 return setting.value
-    except Exception:
+    except (DatabaseError, OperationalError):
         logger.exception(f"Failed to load prompt model '{key}'")
     return None
 
@@ -64,7 +65,7 @@ def read_cv_text() -> str | None:
         return None
     try:
         return cv_path.read_text(encoding="utf-8")
-    except Exception as e:
+    except (OSError, UnicodeDecodeError) as e:
         logger.error(f"Failed to read CV: {e}")
         return None
 
