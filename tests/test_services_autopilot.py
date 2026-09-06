@@ -2,38 +2,38 @@ from unittest.mock import MagicMock
 
 from app.models import Job, JobStatus, Setting
 from app.services.autopilot import (
-    _load_autopilot_setting,
     _run_process_phase,
     _run_score_phase,
     _run_scrape_phase,
     run_autopilot,
 )
+from app.services.utils import load_setting
 
 
-def test_load_autopilot_setting_default(db_session):
-    result = _load_autopilot_setting("autopilot_nonexistent", "default_val")
+def testload_setting_default(db_session):
+    result = load_setting("autopilot_nonexistent", "default_val")
     assert result == "default_val"
 
 
-def test_load_autopilot_setting_from_db(db_session):
+def testload_setting_from_db(db_session):
     existing = db_session.get(Setting, "autopilot_min_score")
     if existing:
         existing.value = "80"
     else:
         db_session.add(Setting(key="autopilot_min_score", value="80"))
     db_session.commit()
-    result = _load_autopilot_setting("autopilot_min_score", "70")
+    result = load_setting("autopilot_min_score", "70")
     assert result == "80"
 
 
-def test_load_autopilot_setting_empty_db_value_falls_back(db_session):
+def testload_setting_empty_db_value_falls_back(db_session):
     existing = db_session.get(Setting, "autopilot_min_score")
     if existing:
         existing.value = ""
     else:
         db_session.add(Setting(key="autopilot_min_score", value=""))
     db_session.commit()
-    result = _load_autopilot_setting("autopilot_min_score", "70")
+    result = load_setting("autopilot_min_score", "70")
     assert result == "70"
 
 

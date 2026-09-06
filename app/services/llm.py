@@ -4,10 +4,9 @@ import time
 from typing import Any
 
 import httpx
-from sqlmodel import Session
 
 from app.config import settings
-from app.models import Setting
+from app.services.utils import load_setting
 
 logger = logging.getLogger("apply-buddy.llm")
 
@@ -16,46 +15,20 @@ class LLMError(Exception):
     pass
 
 
-def _load_prompt(key: str, default: str) -> str:
-    from app.db import engine
-
-    try:
-        with Session(engine) as session:
-            setting = session.get(Setting, key)
-            if setting and setting.value:
-                return setting.value
-    except Exception:
-        pass
-    return default
-
-
-def _load_llm_setting(key: str, default: str) -> str:
-    from app.db import engine
-
-    try:
-        with Session(engine) as session:
-            setting = session.get(Setting, key)
-            if setting and setting.value:
-                return setting.value
-    except Exception:
-        pass
-    return default
-
-
 def _load_llm_provider() -> str:
-    return _load_llm_setting("llm_provider", settings.llm_provider)
+    return load_setting("llm_provider", settings.llm_provider)
 
 
 def _load_llm_base_url() -> str:
-    return _load_llm_setting("llm_base_url", settings.llm_base_url)
+    return load_setting("llm_base_url", settings.llm_base_url)
 
 
 def _load_llm_api_key() -> str:
-    return _load_llm_setting("llm_api_key", settings.llm_api_key)
+    return load_setting("llm_api_key", settings.llm_api_key)
 
 
 def _load_llm_model() -> str:
-    raw = _load_llm_setting("llm_model", "")
+    raw = load_setting("llm_model", "")
     if raw:
         return raw
     models = _load_available_models()
@@ -63,7 +36,7 @@ def _load_llm_model() -> str:
 
 
 def _load_llm_temperature() -> float:
-    raw = _load_llm_setting("llm_temperature", str(settings.llm_temperature))
+    raw = load_setting("llm_temperature", str(settings.llm_temperature))
     try:
         return float(raw)
     except (ValueError, TypeError):
@@ -77,19 +50,6 @@ def _load_available_models() -> list[str]:
         return models if isinstance(models, list) else []
     except (json.JSONDecodeError, TypeError):
         return []
-
-
-def _load_prompt_model(key: str) -> str | None:
-    from app.db import engine
-
-    try:
-        with Session(engine) as session:
-            setting = session.get(Setting, key)
-            if setting and setting.value:
-                return setting.value
-    except Exception:
-        pass
-    return None
 
 
 def _is_reasoning_model(model_name: str) -> bool:

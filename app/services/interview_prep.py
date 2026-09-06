@@ -7,8 +7,8 @@ from sqlmodel import Session
 
 from app.db import engine
 from app.models import InterviewSession, Job
-from app.services.llm import _load_prompt, _load_prompt_model, chat_completion
-from app.services.matcher import _read_cv_text, _strip_tex_to_plain
+from app.services.llm import chat_completion
+from app.services.utils import load_prompt, load_prompt_model, read_cv_text, strip_tex_to_plain
 
 logger = logging.getLogger("apply-buddy.interview_prep")
 
@@ -80,19 +80,19 @@ def _escape_format(s: str) -> str:
 
 
 def _load_questions_prompt() -> str:
-    return _load_prompt("prompt_interview_questions", DEFAULT_INTERVIEW_QUESTIONS_PROMPT)
+    return load_prompt("prompt_interview_questions", DEFAULT_INTERVIEW_QUESTIONS_PROMPT)
 
 
 def _load_questions_model() -> str | None:
-    return _load_prompt_model("prompt_interview_questions_model")
+    return load_prompt_model("prompt_interview_questions_model")
 
 
 def _load_feedback_prompt() -> str:
-    return _load_prompt("prompt_mock_feedback", DEFAULT_MOCK_INTERVIEW_FEEDBACK_PROMPT)
+    return load_prompt("prompt_mock_feedback", DEFAULT_MOCK_INTERVIEW_FEEDBACK_PROMPT)
 
 
 def _load_feedback_model() -> str | None:
-    return _load_prompt_model("prompt_mock_feedback_model")
+    return load_prompt_model("prompt_mock_feedback_model")
 
 
 def generate_prep_pack(job_id: int, state: dict):
@@ -104,8 +104,8 @@ def generate_prep_pack(job_id: int, state: dict):
                 state["running"] = False
                 return
 
-            cv_text = _read_cv_text()
-            cv_plain = _strip_tex_to_plain(cv_text) if cv_text else ""
+            cv_text = read_cv_text()
+            cv_plain = strip_tex_to_plain(cv_text) if cv_text else ""
 
             prompt_template = _load_questions_prompt()
             prompt = prompt_template.format(
@@ -220,8 +220,8 @@ def submit_answer(session_id: int, answer_text: str, db_session: Session | None 
         if not job:
             raise ValueError("Job not found")
 
-        cv_text = _read_cv_text()
-        cv_plain = _strip_tex_to_plain(cv_text) if cv_text else ""
+        cv_text = read_cv_text()
+        cv_plain = strip_tex_to_plain(cv_text) if cv_text else ""
 
         prompt_template = _load_feedback_prompt()
         prompt = prompt_template.format(

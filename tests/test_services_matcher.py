@@ -8,12 +8,11 @@ from app.services.matcher import (
     _load_keywords,
     _load_min_keyword_score,
     _load_min_score,
-    _read_cv_text,
     _read_cv_text_with_fallback,
-    _strip_tex_to_plain,
     score_all_new_jobs,
     score_single_job,
 )
+from app.services.utils import read_cv_text, strip_tex_to_plain
 
 
 def test_load_keywords_empty(db_session):
@@ -131,39 +130,39 @@ def test_keyword_score_case_insensitive():
 
 def test_strip_tex_to_plain_basic():
     tex = r"\documentclass{article}\begin{document}Hello World\end{document}"
-    result = _strip_tex_to_plain(tex)
+    result = strip_tex_to_plain(tex)
     assert "Hello World" in result
 
 
 def test_strip_tex_to_plain_removes_comments():
     tex = r"\begin{document}Hello % this is a comment\nWorld\end{document}"
-    result = _strip_tex_to_plain(tex)
+    result = strip_tex_to_plain(tex)
     assert "%" not in result
 
 
 def test_strip_tex_to_plain_removes_commands():
     tex = r"\begin{document}\textbf{Bold} \textit{Italic}\end{document}"
-    result = _strip_tex_to_plain(tex)
+    result = strip_tex_to_plain(tex)
     assert "Bold" in result
     assert "Italic" in result
 
 
 def test_strip_tex_to_plain_handles_braces():
     tex = r"\begin{document}Hello {World}\end{document}"
-    result = _strip_tex_to_plain(tex)
+    result = strip_tex_to_plain(tex)
     assert "Hello" in result
     assert "World" in result
 
 
 def test_strip_tex_to_plain_no_document_env():
     tex = r"Just plain text with \textbf{formatting}"
-    result = _strip_tex_to_plain(tex)
+    result = strip_tex_to_plain(tex)
     assert "plain text" in result
 
 
 def test_read_cv_text_returns_none_when_not_found(monkeypatch):
     monkeypatch.setattr("app.services.matcher.settings.cv_tex_path", "/nonexistent/path/cv.tex")
-    result = _read_cv_text()
+    result = read_cv_text()
     assert result is None
 
 
@@ -172,7 +171,7 @@ def test_read_cv_text_with_fallback_valid_path(monkeypatch, tmp_path):
     cv_path.write_text(
         "\\documentclass{article}\\begin{document}Test CV\\end{document}", encoding="utf-8"
     )
-    monkeypatch.setattr("app.services.matcher._read_cv_text", lambda: None)
+    monkeypatch.setattr("app.services.matcher.read_cv_text", lambda: None)
     result = _read_cv_text_with_fallback(str(cv_path))
     assert result is not None
     assert "Test CV" in result
@@ -184,7 +183,7 @@ def test_read_cv_text_with_fallback_invalid_path(monkeypatch, tmp_path):
         "\\documentclass{article}\\begin{document}Test CV\\end{document}", encoding="utf-8"
     )
     monkeypatch.setattr(
-        "app.services.matcher._read_cv_text", lambda: cv_path.read_text(encoding="utf-8")
+        "app.services.matcher.read_cv_text", lambda: cv_path.read_text(encoding="utf-8")
     )
     result = _read_cv_text_with_fallback("/nonexistent/path/cv.tex")
     assert result is not None
@@ -197,7 +196,7 @@ def test_read_cv_text_with_fallback_no_path(monkeypatch, tmp_path):
         "\\documentclass{article}\\begin{document}Test CV\\end{document}", encoding="utf-8"
     )
     monkeypatch.setattr(
-        "app.services.matcher._read_cv_text", lambda: cv_path.read_text(encoding="utf-8")
+        "app.services.matcher.read_cv_text", lambda: cv_path.read_text(encoding="utf-8")
     )
     result = _read_cv_text_with_fallback()
     assert result is not None
@@ -247,7 +246,7 @@ def test_llm_score_job_strips_markdown_fences(monkeypatch):
 def test_score_all_new_jobs_no_jobs(monkeypatch, db_session):
     db_session.exec(__import__("sqlmodel").delete(Job))
     db_session.commit()
-    monkeypatch.setattr("app.services.matcher._read_cv_text", lambda: None)
+    monkeypatch.setattr("app.services.matcher.read_cv_text", lambda: None)
     state = {"errors": 0}
     score_all_new_jobs(state)
     assert state["message"] == "No new jobs to score"
@@ -261,7 +260,7 @@ def test_score_all_new_jobs_below_keyword_threshold(db_session, monkeypatch):
         "app.services.matcher._load_keywords",
         lambda: {"python": 10.0, "docker": 10.0},
     )
-    monkeypatch.setattr("app.services.matcher._read_cv_text", lambda: None)
+    monkeypatch.setattr("app.services.matcher.read_cv_text", lambda: None)
     job = Job(
         linkedin_job_id="test_kw",
         title="Junior Developer",
@@ -281,7 +280,7 @@ def test_score_all_new_jobs_full_llm_scoring(mock_httpx, db_session, monkeypatch
     db_session.exec(__import__("sqlmodel").delete(Job))
     db_session.commit()
     monkeypatch.setattr(
-        "app.services.matcher._read_cv_text",
+        "app.services.matcher.read_cv_text",
         lambda: "\\documentclass{article}\\begin{document}Test CV\\end{document}",
     )
     job = Job(
@@ -301,7 +300,7 @@ def test_score_all_new_jobs_full_llm_scoring(mock_httpx, db_session, monkeypatch
 
 def test_score_single_job_with_mock_httpx(mock_httpx, db_session, monkeypatch):
     monkeypatch.setattr(
-        "app.services.matcher._read_cv_text",
+        "app.services.matcher.read_cv_text",
         lambda: "\\documentclass{article}\\begin{document}Test CV\\end{document}",
     )
     monkeypatch.setattr(
@@ -353,7 +352,7 @@ def test_score_single_job_below_keyword_threshold(db_session, monkeypatch):
 def test_score_all_new_jobs_skips_scored_jobs(mock_httpx, db_session, monkeypatch):
     db_session.exec(__import__("sqlmodel").delete(Job))
     db_session.commit()
-    monkeypatch.setattr("app.services.matcher._read_cv_text", lambda: None)
+    monkeypatch.setattr("app.services.matcher.read_cv_text", lambda: None)
     job = Job(
         linkedin_job_id="test_already_scored",
         title="Engineer",
@@ -373,7 +372,7 @@ def test_score_all_new_jobs_force_rescore(mock_httpx, db_session, monkeypatch):
     db_session.exec(__import__("sqlmodel").delete(Job))
     db_session.commit()
     monkeypatch.setattr(
-        "app.services.matcher._read_cv_text",
+        "app.services.matcher.read_cv_text",
         lambda: "\\documentclass{article}\\begin{document}Test CV\\end{document}",
     )
     job = Job(

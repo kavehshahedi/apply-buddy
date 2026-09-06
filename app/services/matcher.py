@@ -11,7 +11,8 @@ from sqlmodel import Session, select
 from app.config import settings
 from app.db import engine
 from app.models import Job, JobStatus, Setting
-from app.services.llm import LLMError, _load_prompt, _load_prompt_model, chat_completion
+from app.services.llm import LLMError, chat_completion
+from app.services.utils import load_prompt, load_prompt_model, read_cv_text, strip_tex_to_plain
 
 logger = logging.getLogger("apply-buddy.matcher")
 
@@ -70,11 +71,11 @@ Return JSON with keys:
 
 
 def _load_score_fit_prompt() -> str:
-    return _load_prompt("prompt_score_fit", DEFAULT_SCORE_FIT_PROMPT)
+    return load_prompt("prompt_score_fit", DEFAULT_SCORE_FIT_PROMPT)
 
 
 def _load_score_fit_model() -> str | None:
-    return _load_prompt_model("prompt_score_fit_model")
+    return load_prompt_model("prompt_score_fit_model")
 
 
 def _keyword_score(
@@ -92,45 +93,6 @@ def _keyword_score(
     return score, matched
 
 
-def _read_cv_text() -> str | None:
-    cv_path = settings.cv_tex_path_resolved
-    if not cv_path.exists():
-        logger.warning(f"CV not found at {cv_path}")
-        return None
-    try:
-        return cv_path.read_text(encoding="utf-8")
-    except Exception as e:
-        logger.error(f"Failed to read CV: {e}")
-        return None
-
-
-def _strip_tex_to_plain(tex: str) -> str:
-    body = tex
-    doc_start = body.find(r"\begin{document}")
-    doc_end = body.find(r"\end{document}")
-    if doc_start != -1 and doc_end != -1:
-        body = body[doc_start + len(r"\begin{document}") : doc_end]
-
-    body = re.sub(r"(?<!\\)%.*", "", body)
-    body = re.sub(r"\\(?:begin|end)\{[^}]*\}", "", body)
-    body = re.sub(r"\[[^\[\]]*\]", "", body)
-
-    body = body.replace(r"\\", " ")
-    body = body.replace(r"\~", " ")
-    body = body.replace(r"\%", "%")
-    body = body.replace(r"\&", "&")
-    body = body.replace(r"\_", "_")
-    body = body.replace(r"\#", "#")
-    body = body.replace(r"\$", "$")
-    body = body.replace(r"\{", "{")
-    body = body.replace(r"\}", "}")
-
-    body = re.sub(r"\\[a-zA-Z]+", "", body)
-    body = body.replace("{", " ").replace("}", " ")
-    body = re.sub(r"\s+", " ", body).strip()
-    return body
-
-
 def score_all_new_jobs(state: dict[str, Any] | None = None, force_rescore: bool = False) -> None:
     if state is None:
         state = {}
@@ -138,8 +100,8 @@ def score_all_new_jobs(state: dict[str, Any] | None = None, force_rescore: bool 
     try:
         keywords = _load_keywords()
         min_kw_score = _load_min_keyword_score()
-        cv_text = _read_cv_text()
-        cv_plain = _strip_tex_to_plain(cv_text) if cv_text else ""
+        cv_text = read_cv_text()
+        cv_plain = strip_tex_to_plain(cv_text) if cv_text else ""
 
         with Session(engine) as session:
             query = select(Job).where(Job.status == JobStatus.new)
@@ -227,13 +189,13 @@ def _read_cv_text_with_fallback(cv_path: str | None = None) -> str | None:
         path = Path(cv_path)
         if not path.exists():
             logger.warning(f"CV not found at {path}, falling back to default")
-            return _read_cv_text()
+            return read_cv_text()
         try:
             return path.read_text(encoding="utf-8")
         except Exception as e:
             logger.error(f"Failed to read CV at {path}: {e}, falling back to default")
-            return _read_cv_text()
-    return _read_cv_text()
+            return read_cv_text()
+    return read_cv_text()
 
 
 def score_single_job(
@@ -245,7 +207,7 @@ def score_single_job(
         keywords = _load_keywords()
         min_kw_score = _load_min_keyword_score()
         cv_text = _read_cv_text_with_fallback(cv_path)
-        cv_plain = _strip_tex_to_plain(cv_text) if cv_text else ""
+        cv_plain = strip_tex_to_plain(cv_text) if cv_text else ""
 
         with Session(engine) as session:
             job = session.get(Job, job_id)

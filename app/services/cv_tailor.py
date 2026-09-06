@@ -9,7 +9,8 @@ from app.db import engine
 from app.models import Job, Setting
 from app.services.compile import compile_latex_to_pdf, latex_available
 from app.services.cv_diff import generate_cv_diff
-from app.services.llm import LLMError, _load_prompt, _load_prompt_model, chat_completion
+from app.services.llm import LLMError, chat_completion
+from app.services.utils import load_prompt, load_prompt_model
 
 logger = logging.getLogger("apply-buddy.cv_tailor")
 
@@ -123,11 +124,11 @@ Tailor this CV to highlight experience relevant to the job. Keep the same docume
 
 
 def _load_tailor_cv_prompt() -> str:
-    return _load_prompt("prompt_tailor_cv", DEFAULT_TAILOR_CV_PROMPT)
+    return load_prompt("prompt_tailor_cv", DEFAULT_TAILOR_CV_PROMPT)
 
 
 def _load_tailor_cv_model() -> str | None:
-    return _load_prompt_model("prompt_tailor_cv_model")
+    return load_prompt_model("prompt_tailor_cv_model")
 
 
 def _llm_tailor_cv(master_tex: str, title: str, company: str, description: str) -> str:

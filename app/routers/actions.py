@@ -7,6 +7,7 @@ from sqlmodel import Session
 from app.config import settings
 from app.db import get_session
 from app.models import Job
+from app.services.utils import run_background_task
 
 router = APIRouter(prefix="/actions", tags=["actions"])
 
@@ -51,30 +52,25 @@ async def score_fit_single(
     if cv_source == "tailored" and job.tailored_cv_path:
         cv_path = str(Path(job.tailored_cv_path).resolve())
 
+    from app.services.matcher import score_single_job
+
     _action_state[str(job_id)] = {
         "running": True,
         "message": "Starting scoring...",
         "action": "score-fit",
         "cv_source": cv_source,
     }
-    background_tasks.add_task(_run_score_fit, job_id, cv_path)
-    return JSONResponse({"ok": True})
-
-
-def _run_score_fit(job_id: int, cv_path: str | None = None):
-    from app.services.matcher import score_single_job
-
     state = _action_state.get(str(job_id))
-    try:
-        score_single_job(job_id, state, cv_path)
-        if state:
-            state["message"] = "Scoring complete"
-    except Exception as e:
-        if state:
-            state["message"] = f"Error: {e}"
-    finally:
-        if state:
-            state["running"] = False
+    background_tasks.add_task(
+        run_background_task,
+        state,
+        score_single_job,
+        job_id,
+        state,
+        cv_path,
+        success_message="Scoring complete",
+    )
+    return JSONResponse({"ok": True})
 
 
 @router.post("/tailor-cv/{job_id}")
@@ -93,24 +89,18 @@ async def tailor_cv(
         "message": "Starting CV tailoring...",
         "action": "tailor-cv",
     }
-    background_tasks.add_task(_run_tailor_cv, job_id)
-    return JSONResponse({"ok": True})
-
-
-def _run_tailor_cv(job_id: int):
+    state = _action_state.get(str(job_id))
     from app.services.cv_tailor import tailor_cv_for_job
 
-    state = _action_state.get(str(job_id))
-    try:
-        tailor_cv_for_job(job_id, state) if state else tailor_cv_for_job(job_id)
-        if state:
-            state["message"] = "CV tailored successfully"
-    except Exception as e:
-        if state:
-            state["message"] = f"Error: {e}"
-    finally:
-        if state:
-            state["running"] = False
+    background_tasks.add_task(
+        run_background_task,
+        state,
+        tailor_cv_for_job,
+        job_id,
+        state,
+        success_message="CV tailored successfully",
+    )
+    return JSONResponse({"ok": True})
 
 
 @router.post("/cover-letter/{job_id}")
@@ -131,25 +121,19 @@ async def cover_letter(
         "action": "cover-letter",
         "use_template": use_template,
     }
-    background_tasks.add_task(_run_cover_letter, job_id, use_template)
-    return JSONResponse({"ok": True})
-
-
-def _run_cover_letter(job_id: int, use_template: bool = True):
+    state = _action_state.get(str(job_id))
     from app.services.cover_letter import generate_cover_letter
 
-    state = _action_state.get(str(job_id))
-    try:
-        if state:
-            generate_cover_letter(job_id, state, use_template=use_template)
-        else:
-            generate_cover_letter(job_id, use_template=use_template)
-    except Exception as e:
-        if state:
-            state["message"] = f"Error: {e}"
-    finally:
-        if state:
-            state["running"] = False
+    background_tasks.add_task(
+        run_background_task,
+        state,
+        generate_cover_letter,
+        job_id,
+        state,
+        success_message="Cover letter generated successfully",
+        use_template=use_template,
+    )
+    return JSONResponse({"ok": True})
 
 
 @router.get("/action-progress/{job_id}")

@@ -7,12 +7,11 @@ from app.services.interview_prep import (
     DEFAULT_INTERVIEW_QUESTIONS_PROMPT,
     DEFAULT_MOCK_INTERVIEW_FEEDBACK_PROMPT,
     _llm_call_with_retry,
-    _read_cv_text,
-    _strip_tex_to_plain,
     generate_prep_pack,
     start_session,
     submit_answer,
 )
+from app.services.utils import read_cv_text, strip_tex_to_plain
 
 
 def test_llm_call_with_retry_success(monkeypatch):
@@ -75,20 +74,20 @@ def test_llm_call_with_retry_all_fail(monkeypatch):
 
 def test_strip_tex_to_plain_basic():
     tex = r"\documentclass{article}\begin{document}Hello World\end{document}"
-    result = _strip_tex_to_plain(tex)
+    result = strip_tex_to_plain(tex)
     assert "Hello World" in result
 
 
 def test_strip_tex_to_plain_removes_commands():
     tex = r"\begin{document}\textbf{Bold} \textit{Italic}\end{document}"
-    result = _strip_tex_to_plain(tex)
+    result = strip_tex_to_plain(tex)
     assert "Bold" in result
     assert "Italic" in result
 
 
 def test_read_cv_text_returns_none_when_not_found(monkeypatch):
     monkeypatch.setattr("app.services.matcher.settings.cv_tex_path", "/nonexistent/path/cv.tex")
-    result = _read_cv_text()
+    result = read_cv_text()
     assert result is None
 
 
@@ -98,7 +97,7 @@ def test_read_cv_text_with_file(monkeypatch, tmp_path):
         "\\documentclass{article}\\begin{document}Test CV\\end{document}", encoding="utf-8"
     )
     monkeypatch.setattr("app.services.matcher.settings.cv_tex_path", str(cv_path))
-    result = _read_cv_text()
+    result = read_cv_text()
     assert result is not None
     assert "Test CV" in result
 
@@ -129,7 +128,7 @@ def test_generate_prep_pack_success(db_session, monkeypatch):
     }
     monkeypatch.setattr("httpx.post", MagicMock(return_value=mock_response))
     monkeypatch.setattr(
-        "app.services.interview_prep._read_cv_text",
+        "app.services.utils.read_cv_text",
         lambda: "\\documentclass{article}\\begin{document}Test CV\\end{document}",
     )
 
@@ -172,7 +171,7 @@ def test_generate_prep_pack_retry_then_success(db_session, monkeypatch):
 
     monkeypatch.setattr("httpx.post", mock_post)
     monkeypatch.setattr(
-        "app.services.interview_prep._read_cv_text",
+        "app.services.utils.read_cv_text",
         lambda: "\\documentclass{article}\\begin{document}Test CV\\end{document}",
     )
 
@@ -197,7 +196,7 @@ def test_generate_prep_pack_all_retries_fail(db_session, monkeypatch):
     mock_response.json.return_value = {"choices": [{"message": {"content": "bad json"}}]}
     monkeypatch.setattr("httpx.post", MagicMock(return_value=mock_response))
     monkeypatch.setattr(
-        "app.services.interview_prep._read_cv_text",
+        "app.services.utils.read_cv_text",
         lambda: "\\documentclass{article}\\begin{document}Test CV\\end{document}",
     )
 
@@ -301,7 +300,7 @@ def test_submit_answer_success(db_session, monkeypatch):
     }
     monkeypatch.setattr("httpx.post", MagicMock(return_value=mock_response))
     monkeypatch.setattr(
-        "app.services.interview_prep._read_cv_text",
+        "app.services.utils.read_cv_text",
         lambda: "\\documentclass{article}\\begin{document}Test CV\\end{document}",
     )
 
@@ -353,7 +352,7 @@ def test_submit_answer_last_question_completes_session(db_session, monkeypatch):
     }
     monkeypatch.setattr("httpx.post", MagicMock(return_value=mock_response))
     monkeypatch.setattr(
-        "app.services.interview_prep._read_cv_text",
+        "app.services.utils.read_cv_text",
         lambda: "\\documentclass{article}\\begin{document}Test CV\\end{document}",
     )
 
@@ -416,7 +415,7 @@ def test_submit_answer_retry_then_success(db_session, monkeypatch):
 
     monkeypatch.setattr("httpx.post", mock_post)
     monkeypatch.setattr(
-        "app.services.interview_prep._read_cv_text",
+        "app.services.utils.read_cv_text",
         lambda: "\\documentclass{article}\\begin{document}Test CV\\end{document}",
     )
 

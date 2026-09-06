@@ -54,6 +54,7 @@ def _patch_engine_and_state(test_engine):
     import app.services.interview_prep as interview_prep_mod
     import app.services.matcher as matcher_mod
     import app.services.scraper as scraper_mod
+    import app.services.utils as utils_mod
 
     originals = {}
     for mod in [
@@ -64,6 +65,7 @@ def _patch_engine_and_state(test_engine):
         cl_mod,
         scraper_mod,
         interview_prep_mod,
+        utils_mod,
     ]:
         originals[mod] = mod.engine
         mod.engine = test_engine

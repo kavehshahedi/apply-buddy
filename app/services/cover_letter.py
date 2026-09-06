@@ -12,7 +12,8 @@ from app.services.compile import (
     latex_available,
     pandoc_available,
 )
-from app.services.llm import LLMError, _load_prompt, _load_prompt_model, chat_completion
+from app.services.llm import LLMError, chat_completion
+from app.services.utils import load_prompt, load_prompt_model
 
 logger = logging.getLogger("apply-buddy.cover_letter")
 
@@ -160,19 +161,19 @@ Return ONLY the markdown cover letter."""
 
 
 def _load_cover_letter_prompt() -> str:
-    return _load_prompt("prompt_cover_letter", DEFAULT_COVER_LETTER_PROMPT)
+    return load_prompt("prompt_cover_letter", DEFAULT_COVER_LETTER_PROMPT)
 
 
 def _load_cover_letter_template_prompt() -> str:
-    return _load_prompt("prompt_cover_letter_template", DEFAULT_COVER_LETTER_TEMPLATE_PROMPT)
+    return load_prompt("prompt_cover_letter_template", DEFAULT_COVER_LETTER_TEMPLATE_PROMPT)
 
 
 def _load_cover_letter_model() -> str | None:
-    return _load_prompt_model("prompt_cover_letter_model")
+    return load_prompt_model("prompt_cover_letter_model")
 
 
 def _load_cover_letter_template_model() -> str | None:
-    return _load_prompt_model("prompt_cover_letter_template_model")
+    return load_prompt_model("prompt_cover_letter_template_model")
 
 
 def _llm_cover_letter(

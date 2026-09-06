@@ -10,10 +10,9 @@ from app.services.llm import (
     _build_url,
     _is_reasoning_model,
     _load_available_models,
-    _load_prompt,
-    _load_prompt_model,
     chat_completion,
 )
+from app.services.utils import load_prompt, load_prompt_model
 
 
 def test_llm_error_is_exception():
@@ -21,21 +20,21 @@ def test_llm_error_is_exception():
 
 
 def test_load_prompt_default(db_session):
-    result = _load_prompt("nonexistent_key", "default_value")
+    result = load_prompt("nonexistent_key", "default_value")
     assert result == "default_value"
 
 
 def test_load_prompt_from_db(db_session):
     db_session.add(Setting(key="prompt_test", value="from_db"))
     db_session.commit()
-    result = _load_prompt("prompt_test", "fallback")
+    result = load_prompt("prompt_test", "fallback")
     assert result == "from_db"
 
 
 def test_load_prompt_returns_default_on_empty_value(db_session):
     db_session.add(Setting(key="prompt_test_empty", value=""))
     db_session.commit()
-    result = _load_prompt("prompt_test_empty", "fallback")
+    result = load_prompt("prompt_test_empty", "fallback")
     assert result == "fallback"
 
 
@@ -61,20 +60,20 @@ def test_load_available_models_not_a_list(monkeypatch):
 
 
 def test_load_prompt_model_default():
-    assert _load_prompt_model("nonexistent") is None
+    assert load_prompt_model("nonexistent") is None
 
 
 def test_load_prompt_model_from_db(db_session):
     db_session.add(Setting(key="model_test", value="gpt-4o"))
     db_session.commit()
-    result = _load_prompt_model("model_test")
+    result = load_prompt_model("model_test")
     assert result == "gpt-4o"
 
 
 def test_load_prompt_model_empty_value(db_session):
     db_session.add(Setting(key="model_test_empty", value=""))
     db_session.commit()
-    assert _load_prompt_model("model_test_empty") is None
+    assert load_prompt_model("model_test_empty") is None
 
 
 def test_is_reasoning_model_gpt5():

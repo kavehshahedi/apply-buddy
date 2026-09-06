@@ -8,7 +8,8 @@ from sqlmodel import Session, select
 
 from app.config import settings
 from app.db import engine
-from app.models import AutoPilotRun, Job, JobStatus, SearchQuery, Setting
+from app.models import AutoPilotRun, Job, JobStatus, SearchQuery
+from app.services.utils import load_setting
 
 logger = logging.getLogger("apply-buddy.autopilot")
 
@@ -20,24 +21,13 @@ AUTOPILOT_SETTINGS = {
 }
 
 
-def _load_autopilot_setting(key: str, default: str) -> str:
-    try:
-        with Session(engine) as session:
-            setting = session.get(Setting, key)
-            if setting and setting.value:
-                return setting.value
-    except Exception:
-        pass
-    return default
-
-
 def run_autopilot(state: dict[str, Any]) -> None:
     run_id = state.get("run_id")
     try:
-        min_score = int(_load_autopilot_setting("autopilot_min_score", "70"))
-        tailor_cv = _load_autopilot_setting("autopilot_tailor_cv", "1") == "1"
-        cover_letter = _load_autopilot_setting("autopilot_cover_letter", "1") == "1"
-        use_template = _load_autopilot_setting("autopilot_use_template", "1") == "1"
+        min_score = int(load_setting("autopilot_min_score", "70"))
+        tailor_cv = load_setting("autopilot_tailor_cv", "1") == "1"
+        cover_letter = load_setting("autopilot_cover_letter", "1") == "1"
+        use_template = load_setting("autopilot_use_template", "1") == "1"
 
         # Phase 1: Scrape
         if state.get("skip_fetch"):
