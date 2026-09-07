@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from fastapi import APIRouter, BackgroundTasks, Depends
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from fastapi.responses import FileResponse, JSONResponse
 from sqlmodel import Session
 
@@ -20,7 +20,7 @@ async def score_fit(background_tasks: BackgroundTasks, force: bool = False):
     from app.services.matcher import score_all_new_jobs
 
     if _score_state["running"]:
-        return JSONResponse({"error": "Scoring already running"}, status_code=409)
+        raise HTTPException(status_code=409, detail="Scoring already running")
     _score_state["running"] = True
     _score_state["total"] = 0
     _score_state["current"] = 0
@@ -44,9 +44,9 @@ async def score_fit_single(
 ):
     job = session.get(Job, job_id)
     if not job:
-        return JSONResponse({"error": "Job not found"}, status_code=404)
+        raise HTTPException(status_code=404, detail="Job not found")
     if str(job_id) in _action_state and _action_state[str(job_id)].get("running"):
-        return JSONResponse({"error": "Scoring already running for this job"}, status_code=409)
+        raise HTTPException(status_code=409, detail="Scoring already running for this job")
 
     cv_path = None
     if cv_source == "tailored" and job.tailored_cv_path:
@@ -81,9 +81,9 @@ async def tailor_cv(
 ):
     job = session.get(Job, job_id)
     if not job:
-        return JSONResponse({"error": "Job not found"}, status_code=404)
+        raise HTTPException(status_code=404, detail="Job not found")
     if str(job_id) in _action_state and _action_state[str(job_id)].get("running"):
-        return JSONResponse({"error": "Action already running for this job"}, status_code=409)
+        raise HTTPException(status_code=409, detail="Action already running for this job")
     _action_state[str(job_id)] = {
         "running": True,
         "message": "Starting CV tailoring...",
@@ -112,9 +112,9 @@ async def cover_letter(
 ):
     job = session.get(Job, job_id)
     if not job:
-        return JSONResponse({"error": "Job not found"}, status_code=404)
+        raise HTTPException(status_code=404, detail="Job not found")
     if str(job_id) in _action_state and _action_state[str(job_id)].get("running"):
-        return JSONResponse({"error": "Action already running for this job"}, status_code=409)
+        raise HTTPException(status_code=409, detail="Action already running for this job")
     _action_state[str(job_id)] = {
         "running": True,
         "message": "Starting cover letter...",
@@ -146,5 +146,5 @@ async def action_progress(job_id: int):
 async def download_file(job_id: int, filename: str):
     file_path = settings.output_path / str(job_id) / filename
     if not file_path.exists():
-        return JSONResponse({"error": "File not found"}, status_code=404)
+        raise HTTPException(status_code=404, detail="File not found")
     return FileResponse(str(file_path))

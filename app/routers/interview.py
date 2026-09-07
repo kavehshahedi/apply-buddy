@@ -1,5 +1,6 @@
 import asyncio
 import json
+import logging
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -8,6 +9,8 @@ from sqlmodel import Session, select
 from app.db import get_session
 from app.models import InterviewSession, Job
 from app.schemas import InterviewAnswerSubmit, InterviewSessionCreate
+
+logger = logging.getLogger("apply-buddy.interview")
 
 _SEVERITY_ORDER = {"high": 0, "medium": 1, "low": 2}
 
@@ -64,13 +67,13 @@ async def generate_prep(
 ):
     job = session.get(Job, job_id)
     if not job:
-        return JSONResponse({"error": "Job not found"}, status_code=404)
+        raise HTTPException(status_code=404, detail="Job not found")
 
     key = str(job_id)
     lock = _gen_locks.setdefault(key, asyncio.Lock())
     async with lock:
         if key in _interview_generation_state and _interview_generation_state[key].get("running"):
-            return JSONResponse({"error": "Generation already running"}, status_code=409)
+            raise HTTPException(status_code=409, detail="Generation already running")
 
         _interview_generation_state[key] = {"running": True, "message": "Starting generation..."}
         background_tasks.add_task(_run_generate_prep, job_id)
@@ -105,7 +108,7 @@ def start_session(
 ):
     job = session.get(Job, job_id)
     if not job:
-        return JSONResponse({"error": "Job not found"}, status_code=404)
+        raise HTTPException(status_code=404, detail="Job not found")
 
     from app.services.interview_prep import start_session as _start_session
 
@@ -120,7 +123,7 @@ def start_session(
             }
         )
     except ValueError as e:
-        return JSONResponse({"error": str(e)}, status_code=400)
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.post("/{job_id}/session/{session_id}/answer")
@@ -132,13 +135,13 @@ def submit_answer(
 ):
     job = db_session.get(Job, job_id)
     if not job:
-        return JSONResponse({"error": "Job not found"}, status_code=404)
+        raise HTTPException(status_code=404, detail="Job not found")
 
     session_obj = db_session.get(InterviewSession, session_id)
     if not session_obj:
-        return JSONResponse({"error": "Session not found"}, status_code=404)
+        raise HTTPException(status_code=404, detail="Session not found")
     if session_obj.job_id != job_id:
-        return JSONResponse({"error": "Session does not belong to this job"}, status_code=403)
+        raise HTTPException(status_code=403, detail="Session does not belong to this job")
 
     from app.services.interview_prep import submit_answer as _submit_answer
 
@@ -146,9 +149,10 @@ def submit_answer(
         result = _submit_answer(session_id, data.answer, db_session=db_session)
         return JSONResponse(result)
     except ValueError as e:
-        return JSONResponse({"error": str(e)}, status_code=400)
-    except Exception as e:
-        return JSONResponse({"error": str(e)}, status_code=500)
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    except Exception:
+        logger.exception("Failed to submit answer")
+        raise HTTPException(status_code=500, detail="Internal server error") from None
 
 
 @router.get("/{job_id}/session/{session_id}")
@@ -159,13 +163,13 @@ def get_session_state(
 ):
     job = session.get(Job, job_id)
     if not job:
-        return JSONResponse({"error": "Job not found"}, status_code=404)
+        raise HTTPException(status_code=404, detail="Job not found")
 
     session_obj = session.get(InterviewSession, session_id)
     if not session_obj:
-        return JSONResponse({"error": "Session not found"}, status_code=404)
+        raise HTTPException(status_code=404, detail="Session not found")
     if session_obj.job_id != job_id:
-        return JSONResponse({"error": "Session does not belong to this job"}, status_code=403)
+        raise HTTPException(status_code=403, detail="Session does not belong to this job")
 
     return JSONResponse(
         {

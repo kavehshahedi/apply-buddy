@@ -1,16 +1,19 @@
 import contextlib
+import logging
 import re
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from fastapi import FastAPI
-from fastapi.responses import RedirectResponse
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 
 from app.config import settings
 from app.db import init_db
+
+logger = logging.getLogger("apply-buddy")
 
 
 @contextlib.asynccontextmanager
@@ -23,6 +26,31 @@ app = FastAPI(title="Apply-Buddy", lifespan=lifespan)
 
 templates_dir = Path(__file__).parent / "templates"
 templates = Jinja2Templates(directory=str(templates_dir))
+
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request, exc: HTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"error": exc.detail},
+    )
+
+
+@app.exception_handler(ValueError)
+async def value_error_handler(request, exc: ValueError):
+    return JSONResponse(
+        status_code=400,
+        content={"error": str(exc)},
+    )
+
+
+@app.exception_handler(Exception)
+async def generic_exception_handler(request, exc: Exception):
+    logger.exception("Unhandled exception: %s", exc)
+    return JSONResponse(
+        status_code=500,
+        content={"error": "Internal server error"},
+    )
 
 
 def _timeago(dt: datetime) -> str:

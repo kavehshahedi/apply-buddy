@@ -219,4 +219,4 @@ def test_submit_answer_returns_500_on_llm_error(client, db_session, sample_job, 
         json={"answer": "test"},
     )
     assert response.status_code == 500
-    assert "error" in response.json()
+    assert response.json() == {"error": "Internal server error"}

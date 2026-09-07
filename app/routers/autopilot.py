@@ -2,7 +2,7 @@ import contextlib
 from datetime import UTC, datetime
 from typing import Any
 
-from fastapi import APIRouter, BackgroundTasks, Depends, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from sqlmodel import Session, select
 
@@ -29,7 +29,7 @@ async def run_autopilot(
     data: dict[str, Any] | None = None,
 ):
     if _autopilot_state["running"]:
-        return JSONResponse({"error": "Auto-Pilot already running"}, status_code=409)
+        raise HTTPException(status_code=409, detail="Auto-Pilot already running")
 
     skip_fetch = (data or {}).get("skip_fetch", False)
 
@@ -38,7 +38,7 @@ async def run_autopilot(
 
         queries_exist = session.exec(select(SearchQuery).where(SearchQuery.enabled)).first()
         if not queries_exist:
-            return JSONResponse({"error": "No enabled search queries"}, status_code=400)
+            raise HTTPException(status_code=400, detail="No enabled search queries")
 
     run = AutoPilotRun(
         started_at=datetime.now(UTC),
