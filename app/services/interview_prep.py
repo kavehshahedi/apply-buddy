@@ -2,6 +2,7 @@ import json
 import logging
 import re
 import time
+from typing import Any
 
 from sqlmodel import Session
 
@@ -95,7 +96,7 @@ def _load_feedback_model() -> str | None:
     return load_prompt_model("prompt_mock_feedback_model")
 
 
-def generate_prep_pack(job_id: int, state: dict):
+def generate_prep_pack(job_id: int, state: dict[str, Any]) -> None:
     try:
         with Session(engine) as session:
             job = session.get(Job, job_id)

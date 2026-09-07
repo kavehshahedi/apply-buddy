@@ -1,6 +1,7 @@
 import logging
 import re
 from pathlib import Path
+from typing import Any
 
 from sqlmodel import Session
 
@@ -15,7 +16,7 @@ from app.services.utils import load_prompt, load_prompt_model
 logger = logging.getLogger("apply-buddy.cv_tailor")
 
 
-def tailor_cv_for_job(job_id: int, state: dict = None) -> None:
+def tailor_cv_for_job(job_id: int, state: dict[str, Any] | None = None) -> None:
     if state is None:
         state = {}
     with Session(engine) as session:

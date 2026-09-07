@@ -1,5 +1,6 @@
 import logging
 import re
+from typing import Any
 
 from sqlmodel import Session
 
@@ -18,7 +19,9 @@ from app.services.utils import load_prompt, load_prompt_model
 logger = logging.getLogger("apply-buddy.cover_letter")
 
 
-def generate_cover_letter(job_id: int, state: dict = None, use_template: bool = True) -> None:
+def generate_cover_letter(
+    job_id: int, state: dict[str, Any] | None = None, use_template: bool = True
+) -> None:
     if state is None:
         state = {}
     with Session(engine) as session:
