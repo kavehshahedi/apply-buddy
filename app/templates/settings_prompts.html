@@ -1,0 +1,214 @@
+<div class="settings-panel" id="panel-prompts">
+    <div class="card">
+        <div class="card-header" style="margin-bottom: 18px">
+            <div class="card-title">LLM Settings</div>
+            <span style="font-size: 12px; color: var(--ink-muted-48)"
+                >Configure LLM connection, parameters, and prompts</span
+            >
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 28px">
+            <div class="settings-section">
+                <div class="settings-section-title">Connection</div>
+                <div class="form-group">
+                    <label class="form-label">Provider</label>
+                    <div style="display: flex; gap: 8px; align-items: center">
+                        <select id="llm-provider" class="form-control" style="width: 160px">
+                            <option value="openai" {% if llm_provider == "openai" %}selected{% endif %}>OpenAI</option>
+                            <option value="databricks" {% if llm_provider == "databricks" %}selected{% endif %}>Databricks</option>
+                        </select>
+                        <button
+                            data-setting-key="llm_provider"
+                            data-input-id="llm-provider"
+                            class="save-setting btn btn-primary btn-sm"
+                        >
+                            Save
+                        </button>
+                    </div>
+                    <div class="form-hint">OpenAI-compatible API or Databricks serving endpoint</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Base URL</label>
+                    <div style="display: flex; gap: 8px">
+                        <input
+                            id="llm-base-url"
+                            value="{{ llm_base_url }}"
+                            class="form-control"
+                            style="font-size: 12px; font-family: var(--font-mono)"
+                        />
+                        <button
+                            data-setting-key="llm_base_url"
+                            data-input-id="llm-base-url"
+                            class="save-setting btn btn-primary btn-sm"
+                            style="flex-shrink: 0"
+                        >
+                            Save
+                        </button>
+                    </div>
+                    <div class="form-hint">e.g. http://localhost:11434/v1</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">API Key</label>
+                    <div style="display: flex; gap: 8px">
+                        <input
+                            id="llm-api-key"
+                            type="password"
+                            value="{{ llm_api_key }}"
+                            class="form-control"
+                            style="font-size: 12px; font-family: var(--font-mono)"
+                        />
+                        <button
+                            data-setting-key="llm_api_key"
+                            data-input-id="llm-api-key"
+                            class="save-setting btn btn-primary btn-sm"
+                            style="flex-shrink: 0"
+                        >
+                            Save
+                        </button>
+                    </div>
+                    <div class="form-hint">Stored in the database (password field)</div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="settings-section-title">Parameters</div>
+                <div class="form-group">
+                    <label class="form-label">Temperature</label>
+                    <div style="display: flex; gap: 8px; align-items: center">
+                        <input
+                            id="llm-temperature"
+                            type="number"
+                            value="{{ llm_temperature }}"
+                            class="form-control"
+                            style="width: 100px"
+                            min="0"
+                            max="2"
+                            step="0.1"
+                        />
+                        <button
+                            data-setting-key="llm_temperature"
+                            data-input-id="llm-temperature"
+                            class="save-setting btn btn-primary btn-sm"
+                        >
+                            Save
+                        </button>
+                    </div>
+                    <div class="form-hint">LLM sampling temperature (0–2, default: 0.3)</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Max Concurrency</label>
+                    <div style="display: flex; gap: 8px; align-items: center">
+                        <input
+                            id="llm-max-concurrency"
+                            type="number"
+                            value="{{ llm_max_concurrency }}"
+                            class="form-control"
+                            style="width: 100px"
+                            min="1"
+                            max="50"
+                        />
+                        <button
+                            data-setting-key="llm_max_concurrency"
+                            data-input-id="llm-max-concurrency"
+                            class="save-setting btn btn-primary btn-sm"
+                        >
+                            Save
+                        </button>
+                    </div>
+                    <div class="form-hint">Parallel LLM calls (1–50)</div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="settings-section-title">LinkedIn Session</div>
+                <div class="form-group">
+                    <label class="form-label">LI_RM Cookie</label>
+                    <div style="display: flex; gap: 8px">
+                        <input
+                            id="li-rm-cookie"
+                            type="password"
+                            value="{{ li_rm_cookie }}"
+                            class="form-control"
+                            style="font-size: 12px; font-family: var(--font-mono)"
+                        />
+                        <button
+                            data-setting-key="li_rm_cookie"
+                            data-input-id="li-rm-cookie"
+                            class="save-setting btn btn-primary btn-sm"
+                            style="flex-shrink: 0"
+                        >
+                            Save
+                        </button>
+                    </div>
+                    <div class="form-hint">LinkedIn remember-me cookie — required for headless/Docker scraping</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">LI_B Cookie</label>
+                    <div style="display: flex; gap: 8px">
+                        <input
+                            id="li-bcookie"
+                            type="password"
+                            value="{{ li_bcookie }}"
+                            class="form-control"
+                            style="font-size: 12px; font-family: var(--font-mono)"
+                        />
+                        <button
+                            data-setting-key="li_bcookie"
+                            data-input-id="li-bcookie"
+                            class="save-setting btn btn-primary btn-sm"
+                            style="flex-shrink: 0"
+                        >
+                            Save
+                        </button>
+                    </div>
+                    <div class="form-hint">Browser ID cookie — must be paired with LI_RM cookie</div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="settings-section-title">Prompts</div>
+
+                {% macro prompt_block(name, id, model_key, prompt_key, variables, prompt_value, default_value) %}
+                <div class="prompt-block">
+                    <div class="prompt-block-header">
+                        <div class="prompt-block-title">{{ name }}</div>
+                        <span style="font-size: 11px; color: var(--ink-muted-48); font-family: var(--font-mono);">
+                            Variables: {% for var in variables %}<code>{{ var }}</code> {% endfor %}
+                        </span>
+                    </div>
+                    <div class="prompt-block-model">
+                        <label class="form-label" style="margin-bottom: 0; font-size: 11px;">Model</label>
+                        <div style="display: flex; gap: 6px; align-items: center;">
+                            <select id="{{ id }}-model" class="form-control prompt-model-select" data-setting-key="{{ model_key }}" data-input-id="{{ id }}-model">
+                                {% for m in available_models %}
+                                <option value="{{ m }}" {% if prompt_value == m %}selected{% endif %}>{{ m }}</option>
+                                {% endfor %}
+                            </select>
+                            <button class="btn btn-primary btn-xs save-setting" data-setting-key="{{ model_key }}" data-input-id="{{ id }}-model">Save</button>
+                        </div>
+                    </div>
+                    <div class="prompt-block-textarea">
+                        <textarea id="{{ id }}" class="form-control prompt-textarea" rows="7" spellcheck="false">{{ prompt_value }}</textarea>
+                        <div style="display: flex; gap: 6px; margin-top: 6px;">
+                            <button data-setting-key="{{ prompt_key }}" data-input-id="{{ id }}" class="save-setting btn btn-primary btn-sm">Save Prompt</button>
+                            <button class="btn btn-sm btn-secondary-pill reset-prompt" data-setting-key="{{ prompt_key }}" data-input-id="{{ id }}" data-default="{{ default_value }}">Reset to Default</button>
+                        </div>
+                    </div>
+                </div>
+                {% endmacro %}
+
+                {{ prompt_block("Score Fit", "prompt-score-fit", "prompt_score_fit_model", "prompt_score_fit", ["{cv_plain}", "{job_title}", "{company}", "{description}"], prompt_score_fit_model, DEFAULT_SCORE_FIT_PROMPT) }}
+
+                {{ prompt_block("CV Tailor", "prompt-tailor-cv", "prompt_tailor_cv_model", "prompt_tailor_cv", ["{title}", "{company}", "{description}", "{master_tex}"], prompt_tailor_cv_model, DEFAULT_TAILOR_CV_PROMPT) }}
+
+                {{ prompt_block("Cover Letter", "prompt-cover-letter", "prompt_cover_letter_model", "prompt_cover_letter", ["{title}", "{company}", "{description}", "{cv_text}"], prompt_cover_letter_model, DEFAULT_COVER_LETTER_PROMPT) }}
+
+                {{ prompt_block("Cover Letter (with Template)", "prompt-cover-letter-template", "prompt_cover_letter_template_model", "prompt_cover_letter_template", ["{title}", "{company}", "{description}", "{cv_text}", "{template}"], prompt_cover_letter_template_model, DEFAULT_COVER_LETTER_TEMPLATE_PROMPT) }}
+
+                {{ prompt_block("Interview Questions Generator", "prompt-interview-questions", "prompt_interview_questions_model", "prompt_interview_questions", ["{cv_plain}", "{job_title}", "{company}", "{description}"], prompt_interview_questions_model, DEFAULT_INTERVIEW_QUESTIONS_PROMPT) }}
+
+                {{ prompt_block("Mock Interview Feedback", "prompt-mock-feedback", "prompt_mock_feedback_model", "prompt_mock_feedback", ["{question}", "{user_answer}", "{job_title}", "{company}", "{description}", "{cv_plain}"], prompt_mock_feedback_model, DEFAULT_MOCK_INTERVIEW_FEEDBACK_PROMPT) }}
+            </div>
+        </div>
+    </div>
+</div>
