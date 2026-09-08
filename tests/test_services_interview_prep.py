@@ -150,8 +150,10 @@ def test_generate_prep_pack_success(db_session, monkeypatch):
         __import__("sqlmodel").select(InterviewSession).where(InterviewSession.job_id == job.id)
     ).first()
     assert session_obj is not None
+    assert isinstance(session_obj.prep_questions, list)
     assert "Q1" in session_obj.prep_questions
-    assert "Python" in session_obj.prep_skills_gap
+    assert isinstance(session_obj.prep_skills_gap, list)
+    assert "Python" in str(session_obj.prep_skills_gap[0])
 
 
 def test_generate_prep_pack_retry_then_success(db_session, monkeypatch):
@@ -241,8 +243,8 @@ def test_start_session_success(db_session):
 
     prep = InterviewSession(
         job_id=job.id,
-        prep_questions='["Q1", "Q2", "Q3", "Q4", "Q5"]',
-        prep_skills_gap="[]",
+        prep_questions=["Q1", "Q2", "Q3", "Q4", "Q5"],
+        prep_skills_gap=[],
     )
     db_session.add(prep)
     db_session.commit()
@@ -251,8 +253,7 @@ def test_start_session_success(db_session):
     assert session_obj.status == "in_progress"
     assert session_obj.total_questions == 3
     assert session_obj.current_question == 0
-    questions = __import__("json").loads(session_obj.questions)
-    assert questions == ["Q1", "Q2", "Q3"]
+    assert session_obj.questions == ["Q1", "Q2", "Q3"]
 
 
 def test_start_session_clamps_to_available(db_session):
@@ -267,8 +268,8 @@ def test_start_session_clamps_to_available(db_session):
 
     prep = InterviewSession(
         job_id=job.id,
-        prep_questions='["Q1", "Q2"]',
-        prep_skills_gap="[]",
+        prep_questions=["Q1", "Q2"],
+        prep_skills_gap=[],
     )
     db_session.add(prep)
     db_session.commit()
@@ -318,11 +319,11 @@ def test_submit_answer_success(db_session, monkeypatch):
         status="in_progress",
         total_questions=2,
         current_question=0,
-        questions='["Q1", "Q2"]',
-        user_answers="[]",
-        feedback="[]",
-        prep_questions='["Q1", "Q2"]',
-        prep_skills_gap="[]",
+        questions=["Q1", "Q2"],
+        user_answers=[],
+        feedback=[],
+        prep_questions=["Q1", "Q2"],
+        prep_skills_gap=[],
     )
     db_session.add(session_obj)
     db_session.commit()
@@ -370,11 +371,11 @@ def test_submit_answer_last_question_completes_session(db_session, monkeypatch):
         status="in_progress",
         total_questions=1,
         current_question=0,
-        questions='["Q1"]',
-        user_answers="[]",
-        feedback="[]",
-        prep_questions='["Q1"]',
-        prep_skills_gap="[]",
+        questions=["Q1"],
+        user_answers=[],
+        feedback=[],
+        prep_questions=["Q1"],
+        prep_skills_gap=[],
     )
     db_session.add(session_obj)
     db_session.commit()
@@ -433,11 +434,11 @@ def test_submit_answer_retry_then_success(db_session, monkeypatch):
         status="in_progress",
         total_questions=1,
         current_question=0,
-        questions='["Q1"]',
-        user_answers="[]",
-        feedback="[]",
-        prep_questions='["Q1"]',
-        prep_skills_gap="[]",
+        questions=["Q1"],
+        user_answers=[],
+        feedback=[],
+        prep_questions=["Q1"],
+        prep_skills_gap=[],
     )
     db_session.add(session_obj)
     db_session.commit()

@@ -1,5 +1,4 @@
 import asyncio
-import json
 import logging
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
@@ -37,13 +36,10 @@ def interview_page(request: Request, job_id: int, session: Session = Depends(get
         .order_by(InterviewSession.id.desc())
     ).first()
 
-    prep_questions = []
-    prep_skills_gap = []
-    if existing_session and existing_session.prep_questions:
-        prep_questions = json.loads(existing_session.prep_questions)
-        prep_skills_gap = _sort_gaps_by_severity(
-            json.loads(existing_session.prep_skills_gap) if existing_session.prep_skills_gap else []
-        )
+    prep_questions = existing_session.prep_questions if existing_session else []
+    prep_skills_gap = (
+        _sort_gaps_by_severity(existing_session.prep_skills_gap) if existing_session else []
+    )
 
     active_session = None
     if existing_session and existing_session.status == "in_progress":
@@ -119,7 +115,7 @@ def start_session(
                 "session_id": session_obj.id,
                 "total_questions": session_obj.total_questions,
                 "current_question": session_obj.current_question,
-                "questions": json.loads(session_obj.questions),
+                "questions": session_obj.questions,
             }
         )
     except ValueError as e:
@@ -177,13 +173,9 @@ def get_session_state(
             "status": session_obj.status,
             "total_questions": session_obj.total_questions,
             "current_question": session_obj.current_question,
-            "questions": json.loads(session_obj.questions) if session_obj.questions else [],
-            "user_answers": json.loads(session_obj.user_answers)
-            if session_obj.user_answers
-            else [],
-            "feedback": json.loads(session_obj.feedback) if session_obj.feedback else [],
-            "overall_summary": json.loads(session_obj.overall_summary)
-            if session_obj.overall_summary
-            else None,
+            "questions": session_obj.questions or [],
+            "user_answers": session_obj.user_answers or [],
+            "feedback": session_obj.feedback or [],
+            "overall_summary": session_obj.overall_summary,
         }
     )

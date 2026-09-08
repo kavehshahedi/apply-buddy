@@ -1,5 +1,3 @@
-import json
-
 import app.routers.interview as interview_router
 from app.models import InterviewSession
 
@@ -20,18 +18,16 @@ def test_interview_page_returns_200(client, sample_job):
 def test_interview_page_with_prep_pack(client, db_session, sample_job):
     prep = InterviewSession(
         job_id=sample_job.id,
-        prep_questions=json.dumps(["Q1", "Q2"]),
-        prep_skills_gap=json.dumps(
-            [
-                {
-                    "skill": "Python",
-                    "required_level": "Advanced",
-                    "candidate_level": "Intermediate",
-                    "gap_severity": "medium",
-                    "recommendation": "Practice",
-                }
-            ]
-        ),
+        prep_questions=["Q1", "Q2"],
+        prep_skills_gap=[
+            {
+                "skill": "Python",
+                "required_level": "Advanced",
+                "candidate_level": "Intermediate",
+                "gap_severity": "medium",
+                "recommendation": "Practice",
+            }
+        ],
     )
     db_session.add(prep)
     db_session.commit()
@@ -51,9 +47,9 @@ def test_interview_page_with_active_session(client, db_session, sample_job):
     session_obj = InterviewSession(
         job_id=sample_job.id,
         status="in_progress",
-        questions=json.dumps(["Q1", "Q2"]),
-        prep_questions=json.dumps(["Q1", "Q2"]),
-        prep_skills_gap="[]",
+        questions=["Q1", "Q2"],
+        prep_questions=["Q1", "Q2"],
+        prep_skills_gap=[],
     )
     db_session.add(session_obj)
     db_session.commit()
@@ -128,8 +124,8 @@ def test_start_session_returns_400_no_prep(client, sample_job):
 def test_start_session_returns_200(client, db_session, sample_job):
     prep = InterviewSession(
         job_id=sample_job.id,
-        prep_questions=json.dumps(["Q1", "Q2", "Q3"]),
-        prep_skills_gap="[]",
+        prep_questions=["Q1", "Q2", "Q3"],
+        prep_skills_gap=[],
     )
     db_session.add(prep)
     db_session.commit()
@@ -170,11 +166,11 @@ def test_get_session_state_returns_200(client, db_session, sample_job):
         status="in_progress",
         total_questions=2,
         current_question=0,
-        questions=json.dumps(["Q1", "Q2"]),
-        user_answers="[]",
-        feedback="[]",
-        prep_questions=json.dumps(["Q1", "Q2"]),
-        prep_skills_gap="[]",
+        questions=["Q1", "Q2"],
+        user_answers=[],
+        feedback=[],
+        prep_questions=["Q1", "Q2"],
+        prep_skills_gap=[],
     )
     db_session.add(session_obj)
     db_session.commit()
@@ -205,11 +201,11 @@ def test_submit_answer_returns_500_on_llm_error(client, db_session, sample_job, 
         status="in_progress",
         total_questions=1,
         current_question=0,
-        questions=json.dumps(["Q1"]),
-        user_answers="[]",
-        feedback="[]",
-        prep_questions=json.dumps(["Q1"]),
-        prep_skills_gap="[]",
+        questions=["Q1"],
+        user_answers=[],
+        feedback=[],
+        prep_questions=["Q1"],
+        prep_skills_gap=[],
     )
     db_session.add(session_obj)
     db_session.commit()

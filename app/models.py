@@ -112,9 +112,9 @@ class InterviewSession(SQLModel, table=True):
     status: str = "pending"
     total_questions: int = 5
     current_question: int = 0
-    questions: str = ""
-    user_answers: str = ""
-    feedback: str = ""
-    overall_summary: str = ""
-    prep_questions: str = ""
-    prep_skills_gap: str = ""
+    questions: Any = Field(default="[]", sa_type=JSON)
+    user_answers: Any = Field(default="[]", sa_type=JSON)
+    feedback: Any = Field(default="[]", sa_type=JSON)
+    overall_summary: Any = Field(default="{}", sa_type=JSON)
+    prep_questions: Any = Field(default="[]", sa_type=JSON)
+    prep_skills_gap: Any = Field(default="[]", sa_type=JSON)

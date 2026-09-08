@@ -128,8 +128,8 @@ def generate_prep_pack(job_id: int, state: dict[str, Any]) -> None:
             data = _llm_call_with_retry(messages, model)
 
             prep_session = _create_prep_session(session, job_id)
-            prep_session.prep_questions = json.dumps(data.get("questions", []))
-            prep_session.prep_skills_gap = json.dumps(data.get("skills_gap", []))
+            prep_session.prep_questions = data.get("questions", [])
+            prep_session.prep_skills_gap = data.get("skills_gap", [])
             session.add(prep_session)
             session.commit()
 
@@ -174,7 +174,7 @@ def start_session(
             session.add(existing_active)
             session.commit()
 
-        questions_list = json.loads(existing.prep_questions)
+        questions_list = existing.prep_questions
         selected = questions_list[:total_questions]
 
         session_obj = InterviewSession(
@@ -182,9 +182,9 @@ def start_session(
             status="in_progress",
             total_questions=min(total_questions, len(selected)),
             current_question=0,
-            questions=json.dumps(selected),
-            user_answers=json.dumps([]),
-            feedback=json.dumps([]),
+            questions=selected,
+            user_answers=[],
+            feedback=[],
             overall_summary="",
             prep_questions=existing.prep_questions,
             prep_skills_gap=existing.prep_skills_gap,
@@ -206,9 +206,9 @@ def submit_answer(session_id: int, answer_text: str, db_session: Session | None 
         if not session_obj:
             raise ValueError("Session not found")
 
-        questions = json.loads(session_obj.questions)
-        answers = json.loads(session_obj.user_answers) if session_obj.user_answers else []
-        feedback_list = json.loads(session_obj.feedback) if session_obj.feedback else []
+        questions = session_obj.questions
+        answers = session_obj.user_answers or []
+        feedback_list = session_obj.feedback or []
 
         current_q_idx = session_obj.current_question
         if current_q_idx >= len(questions):
@@ -249,12 +249,12 @@ def submit_answer(session_id: int, answer_text: str, db_session: Session | None 
         next_q_idx = current_q_idx + 1
         if next_q_idx >= len(questions):
             session_obj.status = "completed"
-            session_obj.overall_summary = json.dumps(_generate_overall_summary(feedback_list))
+            session_obj.overall_summary = _generate_overall_summary(feedback_list)
         else:
             session_obj.current_question = next_q_idx
 
-        session_obj.user_answers = json.dumps(answers)
-        session_obj.feedback = json.dumps(feedback_list)
+        session_obj.user_answers = answers
+        session_obj.feedback = feedback_list
         session.add(session_obj)
         session.commit()
 
