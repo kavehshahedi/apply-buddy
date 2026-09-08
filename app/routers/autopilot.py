@@ -1,3 +1,4 @@
+import asyncio
 import contextlib
 from datetime import UTC, datetime
 from typing import Any
@@ -7,7 +8,8 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from sqlmodel import Session, select
 
 from app.db import get_session
-from app.models import AutoPilotRun, Job, JobStatus
+from app.models import AutoPilotRun, Job, JobStatus, SearchQuery, Setting
+from app.services.autopilot import run_autopilot as _run_autopilot_service
 
 router = APIRouter(prefix="/autopilot", tags=["autopilot"])
 
@@ -34,8 +36,6 @@ async def run_autopilot(
     skip_fetch = (data or {}).get("skip_fetch", False)
 
     if not skip_fetch:
-        from app.models import SearchQuery
-
         queries_exist = session.exec(select(SearchQuery).where(SearchQuery.enabled)).first()
         if not queries_exist:
             raise HTTPException(status_code=400, detail="No enabled search queries")
@@ -63,13 +63,9 @@ async def run_autopilot(
 
 
 async def _run_autopilot_impl():
-    from app.services.autopilot import run_autopilot
-
     try:
-        import asyncio
-
         loop = asyncio.get_event_loop()
-        await loop.run_in_executor(None, run_autopilot, _autopilot_state)
+        await loop.run_in_executor(None, _run_autopilot_service, _autopilot_state)
     finally:
         pass
 
@@ -82,7 +78,6 @@ async def autopilot_progress():
 @router.get("/queue", response_class=HTMLResponse)
 async def autopilot_queue(request: Request, session: Session = Depends(get_session)):
     min_score = 70
-    from app.models import Setting
 
     setting = session.get(Setting, "autopilot_min_score")
     if setting and setting.value:

@@ -1,6 +1,7 @@
 import logging
 from pathlib import Path
 
+from sqlalchemy import inspect, text
 from sqlmodel import Session, SQLModel, create_engine
 
 from app.config import settings
@@ -24,8 +25,6 @@ def init_db():
 
 
 def _migrate_schema():
-    from sqlalchemy import inspect, text
-
     inspector = inspect(engine)
 
     jobs_columns = [c["name"] for c in inspector.get_columns("jobs")]

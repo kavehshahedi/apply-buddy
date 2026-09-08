@@ -1,4 +1,5 @@
 import logging
+import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import UTC, datetime
@@ -9,6 +10,10 @@ from sqlmodel import Session, select
 from app.config import settings
 from app.db import engine
 from app.models import AutoPilotRun, Job, JobStatus, SearchQuery
+from app.services.cover_letter import generate_cover_letter
+from app.services.cv_tailor import tailor_cv_for_job
+from app.services.matcher import score_all_new_jobs
+from app.services.scraper import scrape_jobs
 from app.services.utils import load_setting
 
 logger = logging.getLogger("apply-buddy.autopilot")
@@ -84,10 +89,6 @@ def run_autopilot(state: dict[str, Any]) -> None:
 
 
 def _run_scrape_phase(state: dict[str, Any]) -> None:
-    import threading
-
-    from app.services.scraper import scrape_jobs
-
     with Session(engine) as session:
         queries = session.exec(select(SearchQuery).where(SearchQuery.enabled)).all()
 
@@ -113,10 +114,6 @@ def _run_scrape_phase(state: dict[str, Any]) -> None:
 
 
 def _run_score_phase(state: dict[str, Any]) -> None:
-    import threading
-
-    from app.services.matcher import score_all_new_jobs
-
     score_state = {"running": True, "total": 0, "current": 0, "errors": 0, "message": ""}
     t = threading.Thread(
         target=score_all_new_jobs, args=(score_state,), kwargs={"force_rescore": False}, daemon=True
@@ -142,9 +139,6 @@ def _run_process_phase(
     cover_letter: bool,
     use_template: bool,
 ) -> None:
-    from app.services.cover_letter import generate_cover_letter
-    from app.services.cv_tailor import tailor_cv_for_job
-
     with Session(engine) as session:
         jobs = session.exec(
             select(Job).where(

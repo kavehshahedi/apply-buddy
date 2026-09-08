@@ -4,7 +4,7 @@ import re
 import time
 from typing import Any
 
-from sqlmodel import Session
+from sqlmodel import Session, select
 
 from app.db import engine
 from app.models import InterviewSession, Job
@@ -155,8 +155,6 @@ def start_session(
     session = db_session or Session(engine)
     own_session = db_session is None
     try:
-        from sqlmodel import select
-
         existing = session.exec(
             select(InterviewSession)
             .where(InterviewSession.job_id == job_id)

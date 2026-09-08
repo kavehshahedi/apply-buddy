@@ -55,7 +55,7 @@ def test_run_scrape_phase_with_queries(monkeypatch, db_session, sample_query):
         scrape_state["message"] = "Scraped 5 jobs"
 
     mock_scrape.side_effect = _fake_scrape
-    monkeypatch.setattr("app.services.scraper.scrape_jobs", mock_scrape)
+    monkeypatch.setattr("app.services.autopilot.scrape_jobs", mock_scrape)
 
     state = {"running": True, "message": ""}
     _run_scrape_phase(state)
@@ -75,7 +75,7 @@ def test_run_score_phase_force_rescore(monkeypatch):
         score_state["message"] = "Scored 3 jobs"
 
     mock_score.side_effect = _fake_score
-    monkeypatch.setattr("app.services.matcher.score_all_new_jobs", mock_score)
+    monkeypatch.setattr("app.services.autopilot.score_all_new_jobs", mock_score)
 
     state = {"running": True, "message": ""}
     _run_score_phase(state)
@@ -146,14 +146,14 @@ def test_run_process_phase_sets_ready_only_when_successful(db_session, monkeypat
             sub_state["message"] = "CV tailored successfully"
 
     mock_tailor = MagicMock(side_effect=_fake_tailor)
-    monkeypatch.setattr("app.services.cv_tailor.tailor_cv_for_job", mock_tailor)
+    monkeypatch.setattr("app.services.autopilot.tailor_cv_for_job", mock_tailor)
 
     def _fake_cl(job_id, sub_state=None, use_template=True):
         if sub_state:
             sub_state["message"] = "Cover letter generated"
 
     mock_cl = MagicMock(side_effect=_fake_cl)
-    monkeypatch.setattr("app.services.cover_letter.generate_cover_letter", mock_cl)
+    monkeypatch.setattr("app.services.autopilot.generate_cover_letter", mock_cl)
 
     state = {"running": True, "message": ""}
     _run_process_phase(state, 70, True, True, True)
@@ -176,10 +176,10 @@ def test_run_process_phase_keeps_new_on_failure(db_session, monkeypatch):
     db_session.commit()
 
     mock_tailor = MagicMock(side_effect=Exception("LLM error"))
-    monkeypatch.setattr("app.services.cv_tailor.tailor_cv_for_job", mock_tailor)
+    monkeypatch.setattr("app.services.autopilot.tailor_cv_for_job", mock_tailor)
 
     mock_cl = MagicMock(side_effect=Exception("LLM error"))
-    monkeypatch.setattr("app.services.cover_letter.generate_cover_letter", mock_cl)
+    monkeypatch.setattr("app.services.autopilot.generate_cover_letter", mock_cl)
 
     state = {"running": True, "message": ""}
     _run_process_phase(state, 70, True, True, True)
@@ -206,10 +206,10 @@ def test_run_process_phase_partial_failure_stays_new(db_session, monkeypatch, te
             sub_state["message"] = "CV tailored successfully"
 
     mock_tailor = MagicMock(side_effect=_fake_tailor)
-    monkeypatch.setattr("app.services.cv_tailor.tailor_cv_for_job", mock_tailor)
+    monkeypatch.setattr("app.services.autopilot.tailor_cv_for_job", mock_tailor)
 
     mock_cl = MagicMock(side_effect=Exception("CL error"))
-    monkeypatch.setattr("app.services.cover_letter.generate_cover_letter", mock_cl)
+    monkeypatch.setattr("app.services.autopilot.generate_cover_letter", mock_cl)
 
     state = {"running": True, "message": ""}
     _run_process_phase(state, 70, True, True, True)
@@ -229,7 +229,7 @@ def test_run_autopilot_full_pipeline(monkeypatch, db_session, sample_query, temp
         scrape_state["errors"] = 0
 
     mock_scrape.side_effect = _fake_scrape
-    monkeypatch.setattr("app.services.scraper.scrape_jobs", mock_scrape)
+    monkeypatch.setattr("app.services.autopilot.scrape_jobs", mock_scrape)
 
     mock_score = MagicMock()
 
@@ -240,13 +240,13 @@ def test_run_autopilot_full_pipeline(monkeypatch, db_session, sample_query, temp
         score_state["errors"] = 0
 
     mock_score.side_effect = _fake_score
-    monkeypatch.setattr("app.services.matcher.score_all_new_jobs", mock_score)
+    monkeypatch.setattr("app.services.autopilot.score_all_new_jobs", mock_score)
 
     mock_tailor = MagicMock()
-    monkeypatch.setattr("app.services.cv_tailor.tailor_cv_for_job", mock_tailor)
+    monkeypatch.setattr("app.services.autopilot.tailor_cv_for_job", mock_tailor)
 
     mock_cl = MagicMock()
-    monkeypatch.setattr("app.services.cover_letter.generate_cover_letter", mock_cl)
+    monkeypatch.setattr("app.services.autopilot.generate_cover_letter", mock_cl)
 
     state = {
         "running": True,

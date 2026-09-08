@@ -1,5 +1,5 @@
 import uuid
-from datetime import UTC
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -132,8 +132,6 @@ async def update_job_status(
     if notes:
         job.notes = notes
     if status == "applied" and job.applied_at is None:
-        from datetime import datetime
-
         job.applied_at = datetime.now(UTC)
     session.add(job)
     session.commit()

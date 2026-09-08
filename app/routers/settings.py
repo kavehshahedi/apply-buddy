@@ -1,4 +1,5 @@
 import json
+import os
 import shutil
 
 from fastapi import APIRouter, Depends, Request
@@ -89,8 +90,6 @@ async def settings_page(request: Request, session: Session = Depends(get_session
 
 @router.get("/tool-check")
 async def tool_check():
-    import os
-
     chrome_paths = [
         r"C:\Program Files\Google\Chrome\Application\chrome.exe",
         r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
