@@ -35,12 +35,12 @@ db = Database()
 
 
 def init_db():
-    SQLModel.metadata.create_all(engine)
+    SQLModel.metadata.create_all(db._engine)
     _migrate_schema()
 
 
 def _migrate_schema():
-    inspector = inspect(engine)
+    inspector = inspect(db._engine)
 
     jobs_columns = [c["name"] for c in inspector.get_columns("jobs")]
     for col, col_type, default in [
@@ -55,12 +55,12 @@ def _migrate_schema():
             sql = f"ALTER TABLE jobs ADD COLUMN {col} {col_type}"
             if default:
                 sql += f" DEFAULT {default}"
-            with engine.connect() as conn:
+            with db._engine.connect() as conn:
                 conn.execute(text(sql))
                 conn.commit()
 
     if "autopilot_processed_at" not in jobs_columns:
-        with engine.connect() as conn:
+        with db._engine.connect() as conn:
             conn.execute(text("ALTER TABLE jobs ADD COLUMN autopilot_processed_at VARCHAR"))
             conn.commit()
 
@@ -78,7 +78,7 @@ def _migrate_schema():
             ("under_10_applicants", "BOOLEAN"),
         ]:
             if col not in queries_columns:
-                with engine.connect() as conn:
+                with db._engine.connect() as conn:
                     conn.execute(text(f"ALTER TABLE search_queries ADD COLUMN {col} {col_type}"))
                     conn.commit()
     except Exception:
