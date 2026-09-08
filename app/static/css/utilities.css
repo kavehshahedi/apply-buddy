@@ -1,0 +1,20 @@
+.hidden {
+    display: none !important;
+}
+.card {
+    background: var(--canvas);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+}
+.card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+.card-title {
+    font-size: var(--body);
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -0.374px;
+}
