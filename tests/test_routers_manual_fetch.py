@@ -10,13 +10,13 @@ def test_manual_fetch_run_returns_200(client, mock_scraper_single):
     assert response.json() == {"ok": True}
 
 
-def test_manual_fetch_run_returns_400_with_invalid_url(client, mock_scraper_single):
+def test_manual_fetch_run_returns_422_with_invalid_url(client, mock_scraper_single):
     response = client.post(
         "/manual-fetch/run",
         json={"url": "https://example.com/not-linkedin"},
     )
-    assert response.status_code == 400
-    assert "Invalid LinkedIn job URL" in response.json()["error"]
+    assert response.status_code == 422
+    assert "URL must start with" in response.json()["detail"][0]["msg"]
 
 
 def test_manual_fetch_run_returns_409_when_already_running(client, mock_scraper_single):
