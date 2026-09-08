@@ -6,10 +6,10 @@ from pathlib import Path
 from threading import Lock
 from typing import Any
 
-from sqlmodel import Session, select
+from sqlmodel import select
 
 from app.config import settings
-from app.db import engine
+from app.db import db
 from app.models import Job, JobStatus, Setting
 from app.services.llm import LLMError, chat_completion
 from app.services.utils import load_prompt, load_prompt_model, read_cv_text, strip_tex_to_plain
@@ -18,7 +18,7 @@ logger = logging.getLogger("apply-buddy.matcher")
 
 
 def _load_keywords() -> dict[str, float]:
-    with Session(engine) as session:
+    with db.session() as session:
         setting = session.get(Setting, "match_keywords")
         if setting and setting.value:
             try:
@@ -32,7 +32,7 @@ def _load_keywords() -> dict[str, float]:
 
 
 def _load_min_score() -> int:
-    with Session(engine) as session:
+    with db.session() as session:
         setting = session.get(Setting, "min_fit_score")
         if setting and setting.value:
             try:
@@ -43,7 +43,7 @@ def _load_min_score() -> int:
 
 
 def _load_min_keyword_score() -> int:
-    with Session(engine) as session:
+    with db.session() as session:
         setting = session.get(Setting, "min_keyword_score")
         if setting and setting.value:
             try:
@@ -103,7 +103,7 @@ def score_all_new_jobs(state: dict[str, Any] | None = None, force_rescore: bool 
         cv_text = read_cv_text()
         cv_plain = strip_tex_to_plain(cv_text) if cv_text else ""
 
-        with Session(engine) as session:
+        with db.session() as session:
             query = select(Job).where(Job.status == JobStatus.new)
             if not force_rescore:
                 query = query.where(Job.fit_score.is_(None))
@@ -209,7 +209,7 @@ def score_single_job(
         cv_text = _read_cv_text_with_fallback(cv_path)
         cv_plain = strip_tex_to_plain(cv_text) if cv_text else ""
 
-        with Session(engine) as session:
+        with db.session() as session:
             job = session.get(Job, job_id)
             if not job:
                 state["message"] = "Job not found"

@@ -6,7 +6,7 @@ from typing import Any
 from sqlmodel import Session
 
 from app.config import settings
-from app.db import engine
+from app.db import db
 from app.models import Job, Setting
 from app.services.compile import compile_latex_to_pdf, latex_available
 from app.services.cv_diff import generate_cv_diff
@@ -16,23 +16,35 @@ from app.services.utils import load_prompt, load_prompt_model
 logger = logging.getLogger("apply-buddy.cv_tailor")
 
 
-def tailor_cv_for_job(job_id: int, state: dict[str, Any] | None = None) -> None:
+def tailor_cv_for_job(
+    job_id: int,
+    state: dict[str, Any] | None = None,
+    db_session: Session | None = None,
+) -> None:
     if state is None:
         state = {}
-    with Session(engine) as session:
-        job = session.get(Job, job_id)
-        if not job:
-            state["message"] = f"Job {job_id} not found"
-            logger.error(f"Job {job_id} not found")
-            return
 
-        cv_path = settings.cv_tex_path_resolved
-        if not cv_path.exists():
-            state["message"] = "Master CV not found"
-            logger.error(f"Master CV not found at {cv_path}")
-            return
+    if db_session is not None:
+        _tailor_cv_internal(job_id, state, db_session)
+    else:
+        with db.session() as session:
+            _tailor_cv_internal(job_id, state, session)
 
-        master_tex = cv_path.read_text(encoding="utf-8")
+
+def _tailor_cv_internal(job_id: int, state: dict[str, Any], session: Session) -> None:
+    job = session.get(Job, job_id)
+    if not job:
+        state["message"] = f"Job {job_id} not found"
+        logger.error(f"Job {job_id} not found")
+        return
+
+    cv_path = settings.cv_tex_path_resolved
+    if not cv_path.exists():
+        state["message"] = "Master CV not found"
+        logger.error(f"Master CV not found at {cv_path}")
+        return
+
+    master_tex = cv_path.read_text(encoding="utf-8")
 
     state["message"] = "Requesting LLM to tailor CV..."
     try:
@@ -49,18 +61,15 @@ def tailor_cv_for_job(job_id: int, state: dict[str, Any] | None = None) -> None:
     tex_path = output_dir / "cv.tex"
     tex_path.write_text(tailored, encoding="utf-8")
 
-    with Session(engine) as session:
-        job = session.get(Job, job_id)
-        job.tailored_cv_path = str(tex_path)
-        job.tailored_cv_pdf_path = None
-        session.add(job)
-        session.commit()
+    job.tailored_cv_path = str(tex_path)
+    job.tailored_cv_pdf_path = None
+    session.add(job)
+    session.commit()
 
     convert_pdf = True
-    with Session(engine) as session:
-        setting = session.get(Setting, "convert_cv_pdf")
-        if setting:
-            convert_pdf = setting.value == "1"
+    setting = session.get(Setting, "convert_cv_pdf")
+    if setting:
+        convert_pdf = setting.value == "1"
 
     if convert_pdf and latex_available():
         state["message"] = "Compiling CV to PDF..."
@@ -68,11 +77,9 @@ def tailor_cv_for_job(job_id: int, state: dict[str, Any] | None = None) -> None:
         _cleanup_latex_aux(output_dir, "cv")
         if success:
             pdf_path = output_dir / "cv.pdf"
-            with Session(engine) as session:
-                job = session.get(Job, job_id)
-                job.tailored_cv_pdf_path = str(pdf_path)
-                session.add(job)
-                session.commit()
+            job.tailored_cv_pdf_path = str(pdf_path)
+            session.add(job)
+            session.commit()
             state["message"] = "CV compiled successfully"
             logger.info(f"CV compiled for job {job_id}")
         else:
@@ -86,10 +93,9 @@ def tailor_cv_for_job(job_id: int, state: dict[str, Any] | None = None) -> None:
         logger.info("CV .tex saved without PDF compilation")
 
     convert_diff = True
-    with Session(engine) as session:
-        setting = session.get(Setting, "convert_cv_diff")
-        if setting:
-            convert_diff = setting.value == "1"
+    setting = session.get(Setting, "convert_cv_diff")
+    if setting:
+        convert_diff = setting.value == "1"
 
     if convert_diff:
         state["message"] = "Generating CV diff..."
@@ -97,11 +103,9 @@ def tailor_cv_for_job(job_id: int, state: dict[str, Any] | None = None) -> None:
         if diff_pdf:
             _cleanup_latex_aux(output_dir, "cv_diff")
         if diff_pdf:
-            with Session(engine) as session:
-                job = session.get(Job, job_id)
-                job.tailored_cv_diff_pdf_path = str(diff_pdf)
-                session.add(job)
-                session.commit()
+            job.tailored_cv_diff_pdf_path = str(diff_pdf)
+            session.add(job)
+            session.commit()
             logger.info("CV diff PDF generated for job %s", job_id)
             state["message"] = "CV tailored successfully (with diff PDF)"
         else:

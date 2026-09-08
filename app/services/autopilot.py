@@ -5,10 +5,10 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import UTC, datetime
 from typing import Any
 
-from sqlmodel import Session, select
+from sqlmodel import select
 
 from app.config import settings
-from app.db import engine
+from app.db import db
 from app.models import AutoPilotRun, Job, JobStatus, SearchQuery
 from app.services.cover_letter import generate_cover_letter
 from app.services.cv_tailor import tailor_cv_for_job
@@ -57,7 +57,7 @@ def run_autopilot(state: dict[str, Any]) -> None:
         state["message"] = "Auto-Pilot complete"
         state["running"] = False
 
-        with Session(engine) as session:
+        with db.session() as session:
             if run_id is not None:
                 run = session.get(AutoPilotRun, run_id)
                 if run:
@@ -77,7 +77,7 @@ def run_autopilot(state: dict[str, Any]) -> None:
         state["phase"] = "error"
         state["message"] = f"Auto-Pilot error: {e}"
         state["running"] = False
-        with Session(engine) as session:
+        with db.session() as session:
             if run_id is not None:
                 run = session.get(AutoPilotRun, run_id)
                 if run:
@@ -89,7 +89,7 @@ def run_autopilot(state: dict[str, Any]) -> None:
 
 
 def _run_scrape_phase(state: dict[str, Any]) -> None:
-    with Session(engine) as session:
+    with db.session() as session:
         queries = session.exec(select(SearchQuery).where(SearchQuery.enabled)).all()
 
     if not queries:
@@ -139,7 +139,7 @@ def _run_process_phase(
     cover_letter: bool,
     use_template: bool,
 ) -> None:
-    with Session(engine) as session:
+    with db.session() as session:
         jobs = session.exec(
             select(Job).where(
                 Job.status == JobStatus.new,
@@ -190,7 +190,7 @@ def _run_process_phase(
                 logger.error("Cover letter failed for job %s: %s", job.id, e)
                 job_errors += 1
 
-        with Session(engine) as session:
+        with db.session() as session:
             db_job = session.get(Job, job.id)
             if db_job:
                 db_job.autopilot_processed_at = datetime.now(UTC)

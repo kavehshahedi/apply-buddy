@@ -3,10 +3,9 @@ import re
 from typing import Any
 
 from sqlalchemy.exc import DatabaseError, OperationalError
-from sqlmodel import Session
 
 from app.config import settings
-from app.db import engine
+from app.db import db
 from app.models import Setting
 
 logger = logging.getLogger("apply-buddy.utils")
@@ -14,7 +13,7 @@ logger = logging.getLogger("apply-buddy.utils")
 
 def load_setting(key: str, default: str) -> str:
     try:
-        with Session(engine) as session:
+        with db.session() as session:
             setting = session.get(Setting, key)
             if setting and setting.value:
                 return setting.value
@@ -29,7 +28,7 @@ def load_prompt(key: str, default: str) -> str:
 
 def load_prompt_model(key: str) -> str | None:
     try:
-        with Session(engine) as session:
+        with db.session() as session:
             setting = session.get(Setting, key)
             if setting and setting.value:
                 return setting.value

@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import re
+from contextlib import nullcontext
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
@@ -11,7 +12,7 @@ from linkedin_jobs_scraper.filters import (
 )
 from sqlmodel import Session, select
 
-from app.db import engine
+from app.db import db
 from app.models import Job, SearchQuery, Setting
 from app.services.scraper_filters import (
     benefits_map,
@@ -100,10 +101,10 @@ def _extract_linkedin_job_id(url: str) -> str | None:
 
 
 def _inject_linkedin_cookies():
-    from app.db import engine as _engine
+    from app.db import db as _db
 
     try:
-        with Session(_engine) as _session:
+        with _db.session() as _session:
             for key in ("LI_RM_COOKIE", "LI_BCOOKIE"):
                 setting = _session.get(Setting, key.lower())
                 if setting and setting.value:
@@ -112,7 +113,7 @@ def _inject_linkedin_cookies():
         logger.exception("Failed to inject LinkedIn cookies")
 
 
-def scrape_single_job(url: str, state: dict[str, Any]) -> None:
+def scrape_single_job(url: str, state: dict[str, Any], db_session: Session | None = None) -> None:
     _inject_linkedin_cookies()
     from linkedin_jobs_scraper import LinkedinScraper
     from linkedin_jobs_scraper.events import EventData, EventNotFound, Events
@@ -126,7 +127,8 @@ def scrape_single_job(url: str, state: dict[str, Any]) -> None:
         state["errors"] += 1
         return
 
-    with Session(engine) as session:
+    ctx = nullcontext(db_session) if db_session is not None else db.session()
+    with ctx as session:
         existing = session.exec(select(Job).where(Job.linkedin_job_id == job_id)).first()
 
     if existing:
@@ -188,7 +190,8 @@ def scrape_single_job(url: str, state: dict[str, Any]) -> None:
         company_logo = data.company_img_link
         date_dt = _parse_relative_date(data.date_text)
 
-        with Session(engine) as session:
+        ctx = nullcontext(db_session) if db_session is not None else db.session()
+        with ctx as session:
             job = Job(
                 linkedin_job_id=data.job_id,
                 title=data.title or "",
@@ -217,7 +220,9 @@ def scrape_single_job(url: str, state: dict[str, Any]) -> None:
         state["running"] = False
 
 
-def scrape_jobs(queries: list[SearchQuery], state: dict[str, Any]) -> None:
+def scrape_jobs(
+    queries: list[SearchQuery], state: dict[str, Any], db_session: Session | None = None
+) -> None:
     _inject_linkedin_cookies()
     from linkedin_jobs_scraper import LinkedinScraper
     from linkedin_jobs_scraper.events import EventData, Events
@@ -239,7 +244,8 @@ def scrape_jobs(queries: list[SearchQuery], state: dict[str, Any]) -> None:
             state["total"] -= 1
             return
 
-        with Session(engine) as session:
+        ctx = nullcontext(db_session) if db_session is not None else db.session()
+        with ctx as session:
             existing = session.exec(select(Job).where(Job.linkedin_job_id == data.job_id)).first()
 
             if existing:

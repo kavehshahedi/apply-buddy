@@ -6,7 +6,7 @@ from typing import Any
 
 from sqlmodel import Session, select
 
-from app.db import engine
+from app.db import db
 from app.models import InterviewSession, Job
 from app.services.llm import chat_completion
 from app.services.utils import load_prompt, load_prompt_model, read_cv_text, strip_tex_to_plain
@@ -98,7 +98,7 @@ def _load_feedback_model() -> str | None:
 
 def generate_prep_pack(job_id: int, state: dict[str, Any]) -> None:
     try:
-        with Session(engine) as session:
+        with db.session() as session:
             job = session.get(Job, job_id)
             if not job:
                 state["message"] = "Job not found"
@@ -152,7 +152,7 @@ def _create_prep_session(session: Session, job_id: int) -> InterviewSession:
 def start_session(
     job_id: int, total_questions: int, db_session: Session | None = None
 ) -> InterviewSession:
-    session = db_session or Session(engine)
+    session = db_session or db.session().__enter__()
     own_session = db_session is None
     try:
         existing = session.exec(
@@ -199,7 +199,7 @@ def start_session(
 
 
 def submit_answer(session_id: int, answer_text: str, db_session: Session | None = None) -> dict:
-    session = db_session or Session(engine)
+    session = db_session or db.session().__enter__()
     own_session = db_session is None
     try:
         session_obj = session.get(InterviewSession, session_id)

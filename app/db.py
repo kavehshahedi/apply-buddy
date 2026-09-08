@@ -1,4 +1,6 @@
 import logging
+from collections.abc import Generator
+from contextlib import contextmanager
 from pathlib import Path
 
 from sqlalchemy import inspect, text
@@ -17,6 +19,19 @@ engine = create_engine(
     connect_args={"check_same_thread": False},
     echo=False,
 )
+
+
+class Database:
+    def __init__(self) -> None:
+        self._engine = engine
+
+    @contextmanager
+    def session(self) -> Generator[Session, None, None]:
+        with Session(self._engine) as session:
+            yield session
+
+
+db = Database()
 
 
 def init_db():

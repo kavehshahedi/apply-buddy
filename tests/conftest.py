@@ -67,8 +67,15 @@ def _patch_engine_and_state(test_engine):
         interview_prep_mod,
         utils_mod,
     ]:
-        originals[mod] = mod.engine
-        mod.engine = test_engine
+        if hasattr(mod, "db"):
+            originals[mod] = mod.db._engine
+            mod.db._engine = test_engine
+        else:
+            originals[mod] = mod.engine
+            mod.engine = test_engine
+
+    SQLModel.metadata.drop_all(test_engine)
+    SQLModel.metadata.create_all(test_engine)
 
     scrape_router._scrape_state["running"] = False
     scrape_router._scrape_state["total"] = 0
@@ -108,7 +115,9 @@ def _patch_engine_and_state(test_engine):
     yield
 
     for mod, orig in originals.items():
-        if hasattr(mod, "engine"):
+        if hasattr(mod, "db"):
+            mod.db._engine = orig
+        elif hasattr(mod, "engine"):
             mod.engine = orig
 
 

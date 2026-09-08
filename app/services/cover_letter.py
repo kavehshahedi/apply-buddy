@@ -2,10 +2,8 @@ import logging
 import re
 from typing import Any
 
-from sqlmodel import Session
-
 from app.config import settings
-from app.db import engine
+from app.db import db
 from app.models import Job, Setting
 from app.services.compile import (
     convert_markdown_to_docx,
@@ -24,7 +22,7 @@ def generate_cover_letter(
 ) -> None:
     if state is None:
         state = {}
-    with Session(engine) as session:
+    with db.session() as session:
         job = session.get(Job, job_id)
         if not job:
             state["message"] = f"Job {job_id} not found"
@@ -60,13 +58,13 @@ def generate_cover_letter(
     md_path = output_dir / "cover_letter.md"
     md_path.write_text(md, encoding="utf-8")
 
-    with Session(engine) as session:
+    with db.session() as session:
         job = session.get(Job, job_id)
         job.cover_letter_path = str(md_path)
         session.add(job)
         session.commit()
 
-    with Session(engine) as session:
+    with db.session() as session:
         convert_cl_pdf = session.get(Setting, "convert_cl_pdf")
         convert_cl_docx = session.get(Setting, "convert_cl_docx")
         want_pdf = convert_cl_pdf.value == "1" if convert_cl_pdf else True
@@ -90,7 +88,7 @@ def generate_cover_letter(
             logger.warning("PDF conversion failed: %s", pdf_err)
         conversion_attempted = True
 
-    with Session(engine) as session:
+    with db.session() as session:
         job = session.get(Job, job_id)
         docx_path = output_dir / "cover_letter.docx"
         pdf_path = output_dir / "cover_letter.pdf"
