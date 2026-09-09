@@ -1,7 +1,10 @@
+import contextlib
 import json
 import logging
 import os
 import re
+import threading
+import time
 from contextlib import nullcontext
 from datetime import UTC, datetime, timedelta
 from typing import Any
@@ -28,6 +31,9 @@ from app.services.scraper_filters import (
 )
 
 logger = logging.getLogger("apply-buddy.scraper")
+
+# Seconds without a new job before a bulk scrape is treated as stalled and stopped.
+SCRAPE_STALL_TIMEOUT = 90
 
 
 def _chrome_paths() -> dict:
@@ -225,8 +231,32 @@ def scrape_jobs(
 ) -> None:
     _inject_linkedin_cookies()
     from linkedin_jobs_scraper import LinkedinScraper
+    from linkedin_jobs_scraper import linkedin_scraper as scraper_module
     from linkedin_jobs_scraper.events import EventData, Events
     from linkedin_jobs_scraper.query import Query, QueryFilters, QueryOptions
+
+    drivers: list = []
+    last_activity = [time.monotonic()]
+    stop_watchdog = threading.Event()
+
+    original_build_driver = scraper_module.build_driver
+
+    def tracking_build_driver(*args, **kwargs):
+        driver = original_build_driver(*args, **kwargs)
+        drivers.append(driver)
+        return driver
+
+    scraper_module.build_driver = tracking_build_driver
+
+    def watchdog():
+        while not stop_watchdog.wait(2):
+            if time.monotonic() - last_activity[0] > SCRAPE_STALL_TIMEOUT:
+                logger.warning("Scrape stalled, forcing browser shutdown")
+                state["message"] = f"Scrape stalled after {state['current']} jobs, stopping"
+                for driver in list(drivers):
+                    with contextlib.suppress(Exception):
+                        driver.quit()
+                return
 
     chrome = _chrome_paths()
     scraper = LinkedinScraper(
@@ -239,6 +269,7 @@ def scrape_jobs(
     )
 
     def on_data(data: EventData):
+        last_activity[0] = time.monotonic()
         date_dt = _parse_relative_date(data.date_text)
         if not _is_within_days_back(date_dt):
             state["total"] -= 1
@@ -368,6 +399,10 @@ def scrape_jobs(
         state["message"] += f" (filtering to last {min_days_back} days)"
     state["exact_total_known"] = False
 
+    last_activity[0] = time.monotonic()
+    watchdog_thread = threading.Thread(target=watchdog, daemon=True)
+    watchdog_thread.start()
+
     try:
         scraper.run(linkedin_queries)
     except Exception as e:
@@ -375,5 +410,8 @@ def scrape_jobs(
         state["errors"] += 1
         state["message"] = f"Scraper error: {e}"
     finally:
+        stop_watchdog.set()
+        watchdog_thread.join(timeout=5)
+        scraper_module.build_driver = original_build_driver
         state["running"] = False
         state["message"] = state.get("message", "Scrape complete")
