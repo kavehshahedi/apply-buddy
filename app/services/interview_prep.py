@@ -9,7 +9,13 @@ from sqlmodel import Session, select
 from app.db import db
 from app.models import InterviewSession, Job
 from app.services.llm import chat_completion
-from app.services.utils import load_prompt, load_prompt_model, read_cv_text, strip_tex_to_plain
+from app.services.utils import (
+    escape_format,
+    load_prompt,
+    load_prompt_model,
+    read_cv_text,
+    strip_tex_to_plain,
+)
 
 logger = logging.getLogger("apply-buddy.interview_prep")
 
@@ -76,10 +82,6 @@ def _llm_call_with_retry(
     raise RuntimeError(f"LLM response parsing failed after {max_retries} attempts: {last_error}")
 
 
-def _escape_format(s: str) -> str:
-    return s.replace("{", "{{").replace("}", "}}")
-
-
 def _load_questions_prompt() -> str:
     return load_prompt("prompt_interview_questions", DEFAULT_INTERVIEW_QUESTIONS_PROMPT)
 
@@ -110,10 +112,10 @@ def generate_prep_pack(job_id: int, state: dict[str, Any]) -> None:
 
             prompt_template = _load_questions_prompt()
             prompt = prompt_template.format(
-                cv_plain=_escape_format(cv_plain if cv_plain else ""),
-                job_title=_escape_format(job.title),
-                company=_escape_format(job.company),
-                description=_escape_format(job.description),
+                cv_plain=escape_format(cv_plain if cv_plain else ""),
+                job_title=escape_format(job.title),
+                company=escape_format(job.company),
+                description=escape_format(job.description),
             )
 
             messages = [
@@ -224,12 +226,12 @@ def submit_answer(session_id: int, answer_text: str, db_session: Session | None 
 
         prompt_template = _load_feedback_prompt()
         prompt = prompt_template.format(
-            job_title=_escape_format(job.title),
-            company=_escape_format(job.company),
-            description=_escape_format(job.description),
-            cv_plain=_escape_format(cv_plain if cv_plain else ""),
-            question=_escape_format(current_question),
-            user_answer=_escape_format(answer_text),
+            job_title=escape_format(job.title),
+            company=escape_format(job.company),
+            description=escape_format(job.description),
+            cv_plain=escape_format(cv_plain if cv_plain else ""),
+            question=escape_format(current_question),
+            user_answer=escape_format(answer_text),
         )
 
         messages = [

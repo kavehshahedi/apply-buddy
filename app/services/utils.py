@@ -69,6 +69,10 @@ def read_cv_text() -> str | None:
         return None
 
 
+def escape_format(s: str) -> str:
+    return s.replace("{", "{{").replace("}", "}}")
+
+
 def strip_tex_to_plain(tex: str) -> str:
     body = tex
     doc_start = body.find(r"\begin{document}")

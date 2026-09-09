@@ -11,7 +11,7 @@ from app.services.interview_prep import (
     start_session,
     submit_answer,
 )
-from app.services.utils import read_cv_text, strip_tex_to_plain
+from app.services.utils import escape_format, read_cv_text, strip_tex_to_plain
 
 
 def test_llm_call_with_retry_success(monkeypatch):
@@ -83,6 +83,39 @@ def test_strip_tex_to_plain_removes_commands():
     result = strip_tex_to_plain(tex)
     assert "Bold" in result
     assert "Italic" in result
+
+
+def test_escape_format_doubles_braces():
+    result = escape_format("foo {bar} baz")
+    assert result == "foo {{bar}} baz"
+
+
+def test_escape_format_no_braces():
+    result = escape_format("hello world")
+    assert result == "hello world"
+
+
+def test_escape_format_nested_braces():
+    result = escape_format("{{nested}}")
+    assert result == "{{{{nested}}}}"
+
+
+def test_escape_format_empty_string():
+    result = escape_format("")
+    assert result == ""
+
+
+def test_escape_format_allows_safe_formatting():
+    text = escape_format("Dear {name}")
+    formatted = f"Hello {text}"
+    assert formatted == "Hello Dear {{name}}"
+    with_format = formatted.format(name="Alice")
+    assert with_format == "Hello Dear {name}"
+
+
+def test_escape_format_latex_content():
+    result = escape_format(r"\section{Experience} \textbf{Company}")
+    assert result == r"\section{{Experience}} \textbf{{Company}}"
 
 
 def test_read_cv_text_returns_none_when_not_found(monkeypatch):

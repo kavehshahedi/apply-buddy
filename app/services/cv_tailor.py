@@ -11,7 +11,7 @@ from app.models import Job, Setting
 from app.services.compile import compile_latex_to_pdf, latex_available
 from app.services.cv_diff import generate_cv_diff
 from app.services.llm import LLMError, chat_completion
-from app.services.utils import load_prompt, load_prompt_model
+from app.services.utils import escape_format, load_prompt, load_prompt_model
 
 logger = logging.getLogger("apply-buddy.cv_tailor")
 
@@ -139,10 +139,10 @@ def _load_tailor_cv_model() -> str | None:
 def _llm_tailor_cv(master_tex: str, title: str, company: str, description: str) -> str:
     prompt_template = _load_tailor_cv_prompt()
     prompt = prompt_template.format(
-        title=title,
-        company=company,
-        description=description,
-        master_tex=master_tex,
+        title=escape_format(title),
+        company=escape_format(company),
+        description=escape_format(description),
+        master_tex=escape_format(master_tex),
     )
 
     messages = [

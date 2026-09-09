@@ -12,7 +12,13 @@ from app.config import settings
 from app.db import db
 from app.models import Job, JobStatus, Setting
 from app.services.llm import LLMError, chat_completion
-from app.services.utils import load_prompt, load_prompt_model, read_cv_text, strip_tex_to_plain
+from app.services.utils import (
+    escape_format,
+    load_prompt,
+    load_prompt_model,
+    read_cv_text,
+    strip_tex_to_plain,
+)
 
 logger = logging.getLogger("apply-buddy.matcher")
 
@@ -254,9 +260,9 @@ def _llm_score_job(job: Job, cv_plain: str) -> dict:
     prompt_template = _load_score_fit_prompt()
     prompt = prompt_template.format(
         cv_plain=cv_plain,
-        job_title=job.title,
-        company=job.company,
-        description=job.description,
+        job_title=escape_format(job.title),
+        company=escape_format(job.company),
+        description=escape_format(job.description),
     )
 
     messages = [

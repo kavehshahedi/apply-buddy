@@ -12,7 +12,7 @@ from app.services.compile import (
     pandoc_available,
 )
 from app.services.llm import LLMError, chat_completion
-from app.services.utils import load_prompt, load_prompt_model
+from app.services.utils import escape_format, load_prompt, load_prompt_model
 
 logger = logging.getLogger("apply-buddy.cover_letter")
 
@@ -183,20 +183,20 @@ def _llm_cover_letter(
     if template_text:
         prompt_template = _load_cover_letter_template_prompt()
         prompt = prompt_template.format(
-            title=title,
-            company=company,
-            description=description,
-            cv_text=cv_text,
-            template=template_text,
+            title=escape_format(title),
+            company=escape_format(company),
+            description=escape_format(description),
+            cv_text=escape_format(cv_text),
+            template=escape_format(template_text),
         )
         model = _load_cover_letter_template_model()
     else:
         prompt_template = _load_cover_letter_prompt()
         prompt = prompt_template.format(
-            title=title,
-            company=company,
-            description=description,
-            cv_text=cv_text,
+            title=escape_format(title),
+            company=escape_format(company),
+            description=escape_format(description),
+            cv_text=escape_format(cv_text),
         )
         model = _load_cover_letter_model()
 
