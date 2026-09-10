@@ -64,7 +64,7 @@ class SearchQueryCreate(BaseModel):
     commitments: list[str] = Field(default_factory=list, max_length=50)
     easy_apply: bool = False
     under_10_applicants: bool = False
-    limit: int = Field(default=25, ge=1, le=1000)
+    limit: int = Field(default=25, ge=0, le=1000)
     days_back: int | None = Field(default=None, ge=1, le=365)
     enabled: bool = True
 
@@ -123,7 +123,7 @@ class SearchQueryUpdate(BaseModel):
     commitments: list[str] | None = Field(default=None, max_length=50)
     easy_apply: bool | None = None
     under_10_applicants: bool | None = None
-    limit: int | None = Field(default=None, ge=1, le=1000)
+    limit: int | None = Field(default=None, ge=0, le=1000)
     days_back: int | None = Field(default=None, ge=1, le=365)
     enabled: bool | None = None
 

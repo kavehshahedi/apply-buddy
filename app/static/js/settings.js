@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function populateForm(q) {
         document.getElementById("q-keywords").value = q.keywords || "";
         document.getElementById("q-locations").value = (q.locations || []).join(", ");
-        document.getElementById("q-limit").value = q.limit || 25;
+        document.getElementById("q-limit").value = q.limit != null ? q.limit : 25;
         document.getElementById("q-days-back").value = q.days_back || "";
         document.getElementById("q-time-filter").value = q.time_filter || "any";
         document.getElementById("q-relevance").value = q.relevance || "recent";
@@ -127,7 +127,8 @@ document.addEventListener("DOMContentLoaded", function () {
                     return s.trim();
                 })
                 .filter(Boolean);
-            var limit = parseInt(document.getElementById("q-limit").value) || 25;
+            var limit = parseInt(document.getElementById("q-limit").value);
+            if (isNaN(limit)) limit = 25;
             var daysBackInput = document.getElementById("q-days-back");
             var days_back = daysBackInput.value ? parseInt(daysBackInput.value) : null;
             var time_filter = document.getElementById("q-time-filter").value;

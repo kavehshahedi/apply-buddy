@@ -9,30 +9,15 @@ from contextlib import nullcontext
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from linkedin_jobs_scraper.filters import (
-    RelevanceFilters,
-    TimeFilters,
-)
 from sqlmodel import Session, select
 
 from app.db import db
 from app.models import Job, SearchQuery, Setting
-from app.services.scraper_filters import (
-    benefits_map,
-    commitments_map,
-    experience_map,
-    industry_map,
-    job_function_map,
-    relevance_map,
-    remote_map,
-    salary_map,
-    time_filter_map,
-    type_filter_map,
-)
 
 logger = logging.getLogger("apply-buddy.scraper")
 
-# Seconds without a new job before a bulk scrape is treated as stalled and stopped.
+# Seconds without progress (session setup or a new job) before a bulk scrape is treated
+# as stalled and stopped.
 SCRAPE_STALL_TIMEOUT = 90
 
 
@@ -232,8 +217,22 @@ def scrape_jobs(
     _inject_linkedin_cookies()
     from linkedin_jobs_scraper import LinkedinScraper
     from linkedin_jobs_scraper import linkedin_scraper as scraper_module
-    from linkedin_jobs_scraper.events import EventData, Events
+    from linkedin_jobs_scraper.events import EventBegin, EventData, Events
+    from linkedin_jobs_scraper.filters import RelevanceFilters, TimeFilters
     from linkedin_jobs_scraper.query import Query, QueryFilters, QueryOptions
+
+    from app.services.scraper_filters import (
+        benefits_map,
+        commitments_map,
+        experience_map,
+        industry_map,
+        job_function_map,
+        relevance_map,
+        remote_map,
+        salary_map,
+        time_filter_map,
+        type_filter_map,
+    )
 
     drivers: list = []
     last_activity = [time.monotonic()]
@@ -314,6 +313,9 @@ def scrape_jobs(
         state["current"] += 1
         state["message"] = f"Scraped job {data.title} at {data.company}"
 
+    def on_begin(_data: EventBegin):
+        last_activity[0] = time.monotonic()
+
     def on_error(error):
         logger.error(f"Scrape error: {error}")
         state["errors"] += 1
@@ -323,6 +325,7 @@ def scrape_jobs(
         state["message"] = f"Scrape session ended: {state['current']} jobs scraped"
         state["total"] = state["current"]
 
+    scraper.on(Events.BEGIN, on_begin)
     scraper.on(Events.DATA, on_data)
     scraper.on(Events.ERROR, on_error)
     scraper.on(Events.END, on_end)
@@ -375,7 +378,7 @@ def scrape_jobs(
                     apply_link=False,
                     skip_promoted_jobs=True,
                     page_offset=0,
-                    limit=q.limit or 25,
+                    limit=q.limit if q.limit is not None else 25,
                     filters=filters,
                 ),
             )
@@ -392,7 +395,7 @@ def scrape_jobs(
         cutoff = datetime.now(UTC) - timedelta(days=min_days_back)
         return job_date_dt >= cutoff
 
-    state["total"] = sum(q.limit or 25 for q in queries)
+    state["total"] = sum(q.limit if q.limit is not None else 25 for q in queries)
     state["current"] = 0
     state["message"] = f"Starting scrape with {len(linkedin_queries)} queries..."
     if min_days_back:
