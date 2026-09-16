@@ -17,7 +17,7 @@ dependencies = [
     "httpx==0.28.1",
     "pydantic-settings==2.15.0",
     "pyyaml==6.0.3",
-    "linkedin-jobs-scraper==7.0.10",
+    "linkedin-jobs-scraper @ file:vendor/linkedin_jobs_scraper-7.0.10-py3-none-any.whl",
     "starlette==0.38.6",
 ]
 
