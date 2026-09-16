@@ -24,6 +24,7 @@ WORKDIR /app
 RUN pip install --no-cache-dir "poetry==2.4.1" && poetry config virtualenvs.in-project true
 
 COPY pyproject.toml poetry.lock ./
+COPY vendor/ ./vendor/
 RUN poetry install --no-interaction --no-ansi --no-root
 
 ENV VIRTUAL_ENV=/app/.venv \
