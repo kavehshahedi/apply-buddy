@@ -2,6 +2,9 @@
 
 A local job-application assistant that scrapes LinkedIn job postings, scores their fit against your CV using an LLM, tailors your LaTeX CV per role, generates cover letters, and tracks application status.
 
+> [!WARNING]
+> For personal or educational use only. LinkedIn scraping is against LinkedIn's Terms of Service — use at low volume and at your own risk. All data accessed through this tool is publicly available on LinkedIn and remains owned by LinkedIn. I am not responsible for any misuse of data extracted through this project.
+
 ## Setup
 
 ### Prerequisites
@@ -81,6 +84,6 @@ poetry run pre-commit run --all-files         # Run all pre-commit hooks
 
 ## Notes
 
-- LinkedIn scraping is best-effort and against LinkedIn ToS. Use at low volume for personal use.
+- LinkedIn scraping is best-effort; results may vary as LinkedIn changes its structure over time.
 - CV tailoring and cover letters require an LLM endpoint (OpenAI, Ollama, LM Studio, etc.).
 - LaTeX and Pandoc are optional; the app saves raw `.tex` and `.md` files even if compilation is unavailable.
