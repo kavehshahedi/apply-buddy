@@ -168,7 +168,7 @@
             <div class="settings-section">
                 <div class="settings-section-title">Prompts</div>
 
-                {% macro prompt_block(name, id, model_key, prompt_key, variables, prompt_value, default_value) %}
+                {% macro prompt_block(name, id, model_key, prompt_key, variables, model_value, prompt_value, default_value) %}
                 <div class="prompt-block">
                     <div class="prompt-block-header">
                         <div class="prompt-block-title">{{ name }}</div>
@@ -181,7 +181,7 @@
                         <div style="display: flex; gap: 6px; align-items: center;">
                             <select id="{{ id }}-model" class="form-control prompt-model-select" data-setting-key="{{ model_key }}" data-input-id="{{ id }}-model">
                                 {% for m in available_models %}
-                                <option value="{{ m }}" {% if prompt_value == m %}selected{% endif %}>{{ m }}</option>
+                                <option value="{{ m }}" {% if model_value == m %}selected{% endif %}>{{ m }}</option>
                                 {% endfor %}
                             </select>
                             <button class="btn btn-primary btn-xs save-setting" data-setting-key="{{ model_key }}" data-input-id="{{ id }}-model">Save</button>
@@ -197,17 +197,17 @@
                 </div>
                 {% endmacro %}
 
-                {{ prompt_block("Score Fit", "prompt-score-fit", "prompt_score_fit_model", "prompt_score_fit", ["{cv_plain}", "{job_title}", "{company}", "{description}"], prompt_score_fit_model, DEFAULT_SCORE_FIT_PROMPT) }}
+                {{ prompt_block("Score Fit", "prompt-score-fit", "prompt_score_fit_model", "prompt_score_fit", ["{cv_plain}", "{job_title}", "{company}", "{description}"], prompt_score_fit_model, prompt_score_fit, DEFAULT_SCORE_FIT_PROMPT) }}
 
-                {{ prompt_block("CV Tailor", "prompt-tailor-cv", "prompt_tailor_cv_model", "prompt_tailor_cv", ["{title}", "{company}", "{description}", "{master_tex}"], prompt_tailor_cv_model, DEFAULT_TAILOR_CV_PROMPT) }}
+                {{ prompt_block("CV Tailor", "prompt-tailor-cv", "prompt_tailor_cv_model", "prompt_tailor_cv", ["{title}", "{company}", "{description}", "{master_tex}"], prompt_tailor_cv_model, prompt_tailor_cv, DEFAULT_TAILOR_CV_PROMPT) }}
 
-                {{ prompt_block("Cover Letter", "prompt-cover-letter", "prompt_cover_letter_model", "prompt_cover_letter", ["{title}", "{company}", "{description}", "{cv_text}"], prompt_cover_letter_model, DEFAULT_COVER_LETTER_PROMPT) }}
+                {{ prompt_block("Cover Letter", "prompt-cover-letter", "prompt_cover_letter_model", "prompt_cover_letter", ["{title}", "{company}", "{description}", "{cv_text}"], prompt_cover_letter_model, prompt_cover_letter, DEFAULT_COVER_LETTER_PROMPT) }}
 
-                {{ prompt_block("Cover Letter (with Template)", "prompt-cover-letter-template", "prompt_cover_letter_template_model", "prompt_cover_letter_template", ["{title}", "{company}", "{description}", "{cv_text}", "{template}"], prompt_cover_letter_template_model, DEFAULT_COVER_LETTER_TEMPLATE_PROMPT) }}
+                {{ prompt_block("Cover Letter (with Template)", "prompt-cover-letter-template", "prompt_cover_letter_template_model", "prompt_cover_letter_template", ["{title}", "{company}", "{description}", "{cv_text}", "{template}"], prompt_cover_letter_template_model, prompt_cover_letter_template, DEFAULT_COVER_LETTER_TEMPLATE_PROMPT) }}
 
-                {{ prompt_block("Interview Questions Generator", "prompt-interview-questions", "prompt_interview_questions_model", "prompt_interview_questions", ["{cv_plain}", "{job_title}", "{company}", "{description}"], prompt_interview_questions_model, DEFAULT_INTERVIEW_QUESTIONS_PROMPT) }}
+                {{ prompt_block("Interview Questions Generator", "prompt-interview-questions", "prompt_interview_questions_model", "prompt_interview_questions", ["{cv_plain}", "{job_title}", "{company}", "{description}"], prompt_interview_questions_model, prompt_interview_questions, DEFAULT_INTERVIEW_QUESTIONS_PROMPT) }}
 
-                {{ prompt_block("Mock Interview Feedback", "prompt-mock-feedback", "prompt_mock_feedback_model", "prompt_mock_feedback", ["{question}", "{user_answer}", "{job_title}", "{company}", "{description}", "{cv_plain}"], prompt_mock_feedback_model, DEFAULT_MOCK_INTERVIEW_FEEDBACK_PROMPT) }}
+                {{ prompt_block("Mock Interview Feedback", "prompt-mock-feedback", "prompt_mock_feedback_model", "prompt_mock_feedback", ["{question}", "{user_answer}", "{job_title}", "{company}", "{description}", "{cv_plain}"], prompt_mock_feedback_model, prompt_mock_feedback, DEFAULT_MOCK_INTERVIEW_FEEDBACK_PROMPT) }}
             </div>
         </div>
     </div>
