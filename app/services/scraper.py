@@ -98,12 +98,37 @@ def _inject_linkedin_cookies():
 
     try:
         with _db.session() as _session:
-            for key in ("LI_RM_COOKIE", "LI_BCOOKIE", "LI_AT_COOKIE"):
+            for key in ("LI_RM_COOKIE", "LI_BCOOKIE", "LI_BSCOOKIE", "LI_AT_COOKIE"):
                 setting = _session.get(Setting, key.lower())
                 if setting and setting.value:
                     setattr(Config, key, setting.value.strip().strip("'"))
+        _patch_session_cookie()  # TEMP experiment
     except Exception:
         logger.exception("Failed to inject LinkedIn cookies")
+
+
+def _patch_session_cookie():  # TEMP experiment: remove if it does not help the session survive
+    """Also send the browser identity cookies from the same login whenever li_at is injected."""
+    from linkedin_jobs_scraper.config import Config
+    from linkedin_jobs_scraper.strategies import authenticated_strategy as strategy
+    from linkedin_jobs_scraper.utils.session import REMEMBER_COOKIE_MAX_AGE, set_cookie
+
+    if getattr(strategy.set_session_cookie, "_with_identity", False):
+        return
+    original = strategy.set_session_cookie
+
+    def with_identity(driver, li_at):
+        for name, value, domain in (
+            ("bcookie", Config.LI_BCOOKIE, ".linkedin.com"),
+            ("bscookie", getattr(Config, "LI_BSCOOKIE", None), ".www.linkedin.com"),
+        ):
+            if value:
+                logger.info("[experiment] setting %s (len=%d)", name, len(value))
+                set_cookie(driver, name, value, domain, REMEMBER_COOKIE_MAX_AGE)
+        return original(driver, li_at)
+
+    with_identity._with_identity = True
+    strategy.set_session_cookie = with_identity
 
 
 def scrape_single_job(url: str, state: dict[str, Any], db_session: Session | None = None) -> None:

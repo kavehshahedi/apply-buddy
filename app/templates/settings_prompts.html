@@ -164,6 +164,27 @@
                     <div class="form-hint">Browser ID cookie — must be paired with LI_RM cookie</div>
                 </div>
                 <div class="form-group">
+                    <label class="form-label">LI_BS Cookie</label>
+                    <div style="display: flex; gap: 8px">
+                        <input
+                            id="li-bscookie"
+                            type="password"
+                            value="{{ li_bscookie }}"
+                            class="form-control"
+                            style="font-size: 12px; font-family: var(--font-mono)"
+                        />
+                        <button
+                            data-setting-key="li_bscookie"
+                            data-input-id="li-bscookie"
+                            class="save-setting btn btn-primary btn-sm"
+                            style="flex-shrink: 0"
+                        >
+                            Save
+                        </button>
+                    </div>
+                    <div class="form-hint">TEMP experiment — bscookie from the same login as LI_AT</div>
+                </div>
+                <div class="form-group">
                     <label class="form-label">LI_AT Cookie</label>
                     <div style="display: flex; gap: 8px">
                         <input
