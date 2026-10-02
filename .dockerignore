@@ -14,3 +14,4 @@ Dockerfile
 docker-compose.yml
 .venv/
 .dockerignore
+chrome-profile/

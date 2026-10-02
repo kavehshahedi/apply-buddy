@@ -11,6 +11,7 @@ from typing import Any
 
 from sqlmodel import Session, select
 
+from app.config import settings
 from app.db import db
 from app.models import Job, SearchQuery, Setting
 
@@ -171,6 +172,7 @@ def scrape_single_job(url: str, state: dict[str, Any], db_session: Session | Non
     scraper = LinkedinScraper(
         chrome_executable_path=chrome["executable_path"],
         chrome_binary_location=chrome["binary_location"],
+        chrome_user_data_dir=os.path.abspath(settings.chrome_profile_dir),
         headless=True,
         max_workers=1,
         slow_mo=1.0,
@@ -288,6 +290,7 @@ def scrape_jobs(
     scraper = LinkedinScraper(
         chrome_executable_path=chrome["executable_path"],
         chrome_binary_location=chrome["binary_location"],
+        chrome_user_data_dir=os.path.abspath(settings.chrome_profile_dir),
         headless=True,
         max_workers=1,
         slow_mo=1.0,

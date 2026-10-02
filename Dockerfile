@@ -10,6 +10,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     chromium-driver \
     chromium-common \
     chromium-sandbox \
+    xvfb \
+    x11vnc \
+    novnc \
+    websockify \
     pandoc \
     texlive-latex-base \
     texlive-latex-extra \
@@ -31,7 +35,7 @@ ENV VIRTUAL_ENV=/app/.venv \
 
 COPY . .
 
-RUN mkdir -p /app/data/cv /app/data/output
+RUN mkdir -p /app/data/cv /app/data/output /app/chrome-profile
 
 EXPOSE 8000
 

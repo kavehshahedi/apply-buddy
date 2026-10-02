@@ -5,5 +5,17 @@ services:
       - "8000:8000"
     volumes:
       - ./data:/app/data
+      - ./chrome-profile:/app/chrome-profile
       - ./.env:/app/.env:ro
     restart: unless-stopped
+
+  # One-off LinkedIn sign-in inside the container's own Chromium, so the profile it
+  # saves can be read by the scraper: `docker compose run --rm --service-ports login`
+  login:
+    build: .
+    profiles: ["login"]
+    ports:
+      - "127.0.0.1:6080:6080"
+    volumes:
+      - ./chrome-profile:/app/chrome-profile
+    command: sh scripts/docker-login.sh

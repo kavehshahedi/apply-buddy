@@ -42,11 +42,23 @@ poetry install
 
 ### LinkedIn Login (First Time)
 
+The scraper keeps its LinkedIn session in a Chrome profile at `./chrome-profile`. It must be created by the same browser that scrapes, because Chrome encrypts a profile's cookies per OS, so a profile made on macOS is not readable inside the Docker container.
+
+**Docker:** sign in with the container's own Chromium, viewed in your browser:
+
+```bash
+docker compose run --rm --service-ports login
+```
+
+Open http://localhost:6080/vnc.html, sign in to LinkedIn and **tick "Keep me logged in"**, then stop the command with Ctrl+C. Then `docker compose up`.
+
+**Without Docker:**
+
 ```bash
 poetry run python -m linkedin_jobs_scraper login --chrome-user-data-dir ./chrome-profile
 ```
 
-Log in with your LinkedIn credentials and **tick "Keep me logged in"**. The scraper uses LinkedIn session cookies (`LI_RM_COOKIE` and `LI_BCOOKIE`). Set these in the Settings UI from the output of the above command.
+If the profile holds no session, the `LI_AT` cookie from Settings is used as a fallback.
 
 ### Run
 
