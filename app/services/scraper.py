@@ -92,14 +92,16 @@ def _extract_linkedin_job_id(url: str) -> str | None:
 
 
 def _inject_linkedin_cookies():
+    from linkedin_jobs_scraper.config import Config
+
     from app.db import db as _db
 
     try:
         with _db.session() as _session:
-            for key in ("LI_RM_COOKIE", "LI_BCOOKIE"):
+            for key in ("LI_RM_COOKIE", "LI_BCOOKIE", "LI_AT_COOKIE"):
                 setting = _session.get(Setting, key.lower())
                 if setting and setting.value:
-                    os.environ[key] = setting.value
+                    setattr(Config, key, setting.value.strip().strip("'"))
     except Exception:
         logger.exception("Failed to inject LinkedIn cookies")
 
