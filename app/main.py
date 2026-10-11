@@ -1,5 +1,6 @@
 import contextlib
 import logging
+import os
 import re
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -15,16 +16,13 @@ from app.db import init_db
 
 logger = logging.getLogger("apply-buddy")
 
-# Forward linkedin-scraper debug output to stderr. Controlled by LOG_LEVEL env var;
-# set LOG_LEVEL=DEBUG to see page-state snapshots on scrape failures.
-import os as _os
 _li_logger = logging.getLogger("li:scraper")
 if not _li_logger.handlers:
     _li_handler = logging.StreamHandler()
     _li_handler.setLevel(logging.DEBUG)
     _li_handler.setFormatter(logging.Formatter("%(name)s %(levelname)s %(message)s"))
     _li_logger.addHandler(_li_handler)
-if _os.environ.get("LOG_LEVEL", "").upper() == "DEBUG":
+if os.environ.get("LOG_LEVEL", "").upper() == "DEBUG":
     _li_logger.setLevel(logging.DEBUG)
 
 
