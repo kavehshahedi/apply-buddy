@@ -719,6 +719,79 @@ PATCHES = [
                 return [title, company, place];\
 """,
     ),
+    # ------------------------------------------------------------------
+    # 17. Tertiary line ("<place> · <date> · <applicants>"): the
+    #     tertiary-description-container class is gone. The line is now the
+    #     first <p> sibling after the div wrapping the panel's title link.
+    #     Cards carry no /jobs/view/ link, so this only matches the panel.
+    #     Fixes date_text, date, reposted and applicant_count on both paths,
+    #     and place on the scrape_job() path.
+    # ------------------------------------------------------------------
+    (
+        "date_text = '.job-details-jobs-unified-top-card__tertiary-description-container'",
+        "date_text = 'div:has(> p > a[href*=\"/jobs/view/\"]) ~ p'",
+    ),
+    # ------------------------------------------------------------------
+    # 18. Company link: every /company/ link in the panel points to the
+    #     same page; the extraction JS already strips /life and the query.
+    # ------------------------------------------------------------------
+    (
+        "company_link = '.job-details-jobs-unified-top-card__company-name a'",
+        "company_link = 'a[href*=\"/company/\"]'",
+    ),
+    # ------------------------------------------------------------------
+    # 19. Employee count: "About the company" section has a stable id
+    #     prefix, same as the description section.
+    # ------------------------------------------------------------------
+    (
+        "company_employee_count = '.jobs-company__box .jobs-company__inline-information'",
+        "company_employee_count = '[id^=\"JobDetails_AboutTheCompany_\"] p > span'",
+    ),
+    # ------------------------------------------------------------------
+    # 20. Apply button: class gone, aria-label is "Easy Apply to this job".
+    #     The is-easy-apply regex in EXTRACT_EXTRA_FIELDS_SCRIPT is unchanged.
+    # ------------------------------------------------------------------
+    (
+        "apply_button = 'button.jobs-apply-button'",
+        "apply_button = 'button[aria-label*=\"apply\" i]'",
+    ),
+    # ------------------------------------------------------------------
+    # 21. Place fallback for run() / query path: the card caption class is
+    #     hashed now, so read the first segment of the panel tertiary line
+    #     (unless that segment is the date or applicant count).
+    # ------------------------------------------------------------------
+    (
+        """\
+                            Selectors.panel_company) or '')
+
+                    # Extract date text (eg '1 week ago')\
+""",
+        """\
+                            Selectors.panel_company) or '')
+
+                    # Place fallback: card caption is a hashed class in the new UI;
+                    # the panel tertiary line starts with the place when present.
+                    if not job_place:
+                        job_place = normalize_spaces(driver.execute_script(
+                            r'''
+                                const el = document.querySelector(arguments[0]);
+                                const first = el ? el.innerText.split('\xb7')[0].trim() : "";
+                                return /\\bago\\b|just now|applicant|clicked apply/i.test(first) ? "" : first;
+                            ''',
+                            Selectors.date_text) or '')
+
+                    # Extract date text (eg '1 week ago')\
+""",
+    ),
+    # ------------------------------------------------------------------
+    # 17b. Correct 17: the live panel wraps the title <p> in an extra
+    #      <div>, so the direct-child form never matched. Match the link at
+    #      any depth; verified to hit exactly one <p> on live and saved pages.
+    # ------------------------------------------------------------------
+    (
+        "date_text = 'div:has(> p > a[href*=\"/jobs/view/\"]) ~ p'",
+        "date_text = 'div:has(a[href*=\"/jobs/view/\"]) ~ p'",
+    ),
 ]
 
 

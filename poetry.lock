@@ -532,7 +532,7 @@ optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "linkedin_jobs_scraper-7.0.10-py3-none-any.whl", hash = "sha256:ce9bed25400b7e85c7033fceb3b9b0f7cd353f085adb0fc7f233cf4acd5a03cf"},
+    {file = "linkedin_jobs_scraper-7.0.10-py3-none-any.whl", hash = "sha256:5c88445657e54af70fb79cf9c161ae2a6734dc7acb89f3d2a3934c62d729e870"},
 ]
 
 [package.dependencies]
