@@ -67,7 +67,7 @@ def _build_url(model: str | None = None) -> str:
 
 
 def chat_completion(
-    messages: list[dict[str, str]],
+    messages: list[dict[str, Any]],
     response_format: str | None = None,
     max_retries: int = 3,
     model: str | None = None,

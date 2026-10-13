@@ -1,4 +1,5 @@
-{% extends "base.html" %} {% block title %} — {{ job.title }}{% endblock %} {% block subnav_title %}Job Details{% endblock %} {% block subnav_actions %}
+{% extends "base.html" %} {% block title %} — {{ job.title }}{% endblock %} {% block subnav_title %}Job Details{% endblock %} {% block head %}<script defer src="/static/js/job_chat.js"></script>{% endblock %} {% block subnav_actions %}
+<a href="#job-chat" class="btn btn-sm btn-pearl-capsule">Ask AI</a>
 {% if job.link %}
 <a href="{{ job.link }}" target="_blank" class="btn btn-sm btn-dark-utility">Open Job Posting</a>
 {% endif %}
@@ -68,6 +69,53 @@ steps.index(job.status) if job.status in steps else -1 %} {% set status_labels =
                 <div class="detail-section-title">Description</div>
                 <div class="detail-description">{{ job.description | beautify_description | safe }}</div>
             </div>
+        </div>
+
+        <div class="detail-card chat-card" id="job-chat" data-job-id="{{ job.id }}">
+            <div class="chat-head">
+                <div class="detail-card-title">Ask AI</div>
+                <button type="button" class="chat-text-btn" id="chat-clear">New chat</button>
+            </div>
+            <div class="chat-context" role="group" aria-label="Context sent with every message">
+                <span class="chat-chip is-fixed" title="The job title and description are always included">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12" /></svg>
+                    Job posting
+                </span>
+                <div class="chat-seg" role="radiogroup" aria-label="CV to attach">
+                    <span class="chat-seg-label">CV</span>
+                    <label><input type="radio" name="chat-cv" value="none" /><span>None</span></label>
+                    <label><input type="radio" name="chat-cv" value="reference" {% if not job.tailored_cv_path %}checked{% endif %} /><span>Reference</span></label>
+                    {% if job.tailored_cv_path %}
+                    <label><input type="radio" name="chat-cv" value="tailored" checked /><span>Tailored</span></label>
+                    {% endif %}
+                </div>
+                {% if job.cover_letter_path %}
+                <label class="chat-chip"><input type="checkbox" id="chat-cl" /><span>Cover letter</span></label>
+                {% endif %}
+            </div>
+            <div class="chat-log" id="chat-log" aria-live="polite">
+                <div class="chat-empty" id="chat-empty">
+                    <p>Ask anything about this role. Paste, drop, or attach screenshots.</p>
+                    <div class="chat-suggestions">
+                        <button type="button" class="chat-chip">How well do I fit this role?</button>
+                        <button type="button" class="chat-chip">Why do I want to work here? (short answer)</button>
+                        <button type="button" class="chat-chip">What should I highlight in the interview?</button>
+                    </div>
+                </div>
+            </div>
+            <form class="chat-composer" id="chat-form">
+                <div class="chat-attachments" id="chat-attachments"></div>
+                <div class="chat-input-row">
+                    <input type="file" id="chat-file" accept="image/*" multiple hidden />
+                    <button type="button" class="chat-icon-btn" id="chat-attach" aria-label="Attach image" title="Attach image">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" /></svg>
+                    </button>
+                    <textarea id="chat-input" rows="1" aria-label="Message" placeholder="Ask about this job… (Shift+Enter for a new line)"></textarea>
+                    <button type="submit" class="chat-send" id="chat-send" aria-label="Send">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="19" x2="12" y2="5" /><polyline points="5 12 12 5 19 12" /></svg>
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 

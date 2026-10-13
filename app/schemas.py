@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -181,3 +182,22 @@ class InterviewSessionCreate(BaseModel):
 
 class InterviewAnswerSubmit(BaseModel):
     answer: str = Field(min_length=1, max_length=10000)
+
+
+class ChatMessage(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str = Field(max_length=50000)
+    images: list[str] = Field(default_factory=list, max_length=10)
+
+    @field_validator("images")
+    @classmethod
+    def validate_images(cls, v: list[str]) -> list[str]:
+        if any(not url.startswith("data:image/") for url in v):
+            raise ValueError("images must be data:image/* URLs")
+        return v
+
+
+class ChatRequest(BaseModel):
+    messages: list[ChatMessage] = Field(min_length=1, max_length=100)
+    cv: Literal["none", "reference", "tailored"] = "none"
+    cover_letter: bool = False

@@ -216,9 +216,11 @@
                 <div class="prompt-block">
                     <div class="prompt-block-header">
                         <div class="prompt-block-title">{{ name }}</div>
+                        {% if variables %}
                         <span style="font-size: 11px; color: var(--ink-muted-48); font-family: var(--font-mono);">
                             Variables: {% for var in variables %}<code>{{ var }}</code> {% endfor %}
                         </span>
+                        {% endif %}
                     </div>
                     <div class="prompt-block-model">
                         <label class="form-label" style="margin-bottom: 0; font-size: 11px;">Model</label>
@@ -252,6 +254,8 @@
                 {{ prompt_block("Interview Questions Generator", "prompt-interview-questions", "prompt_interview_questions_model", "prompt_interview_questions", ["{cv_plain}", "{job_title}", "{company}", "{description}"], prompt_interview_questions_model, prompt_interview_questions, DEFAULT_INTERVIEW_QUESTIONS_PROMPT) }}
 
                 {{ prompt_block("Mock Interview Feedback", "prompt-mock-feedback", "prompt_mock_feedback_model", "prompt_mock_feedback", ["{question}", "{user_answer}", "{job_title}", "{company}", "{description}", "{cv_plain}"], prompt_mock_feedback_model, prompt_mock_feedback, DEFAULT_MOCK_INTERVIEW_FEEDBACK_PROMPT) }}
+
+                {{ prompt_block("Job Chat (system prompt; job, CV and cover letter are appended automatically)", "prompt-job-chat", "prompt_job_chat_model", "prompt_job_chat", [], prompt_job_chat_model, prompt_job_chat, DEFAULT_JOB_CHAT_PROMPT) }}
             </div>
         </div>
     </div>

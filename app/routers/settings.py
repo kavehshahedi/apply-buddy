@@ -19,6 +19,7 @@ from app.services.interview_prep import (
     DEFAULT_INTERVIEW_QUESTIONS_PROMPT,
     DEFAULT_MOCK_INTERVIEW_FEEDBACK_PROMPT,
 )
+from app.services.job_chat import DEFAULT_JOB_CHAT_PROMPT
 from app.services.llm import _load_available_models
 from app.services.matcher import DEFAULT_SCORE_FIT_PROMPT
 
@@ -70,6 +71,9 @@ async def settings_page(request: Request, session: Session = Depends(get_session
                 "prompt_interview_questions_model", ""
             ),
             "prompt_mock_feedback_model": db_settings.get("prompt_mock_feedback_model", ""),
+            "prompt_job_chat": db_settings.get("prompt_job_chat", DEFAULT_JOB_CHAT_PROMPT),
+            "prompt_job_chat_model": db_settings.get("prompt_job_chat_model", ""),
+            "DEFAULT_JOB_CHAT_PROMPT": DEFAULT_JOB_CHAT_PROMPT,
             "convert_cv_pdf": db_settings.get("convert_cv_pdf", "1"),
             "convert_cv_diff": db_settings.get("convert_cv_diff", "1"),
             "convert_cl_pdf": db_settings.get("convert_cl_pdf", "1"),
