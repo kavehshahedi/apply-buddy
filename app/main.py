@@ -185,9 +185,17 @@ def _beautify_description(text: str) -> str:
 templates.env.filters["beautify_description"] = _beautify_description
 app.state.templates = templates
 
+
+class RevalidatingStaticFiles(StaticFiles):
+    def file_response(self, *args, **kwargs):
+        response = super().file_response(*args, **kwargs)
+        response.headers["Cache-Control"] = "no-cache"
+        return response
+
+
 static_dir = Path(__file__).parent / "static"
 if static_dir.exists():
-    app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+    app.mount("/static", RevalidatingStaticFiles(directory=str(static_dir)), name="static")
 
 
 @app.get("/")

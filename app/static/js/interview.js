@@ -12,6 +12,51 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
+    document.querySelectorAll(".question-answer").forEach(function (details) {
+        details.addEventListener("toggle", async function () {
+            if (!details.open || details.dataset.state) return;
+            details.dataset.state = "loading";
+            var body = details.querySelector(".question-answer-body");
+            body.innerHTML =
+                '<div class="question-answer-loading"><span class="progress-spinner"></span>Writing a suggested answer\u2026</div>';
+
+            function el(tag, className, text) {
+                var node = document.createElement(tag);
+                node.className = className;
+                if (text) node.textContent = text;
+                return node;
+            }
+
+            try {
+                var resp = await fetch(
+                    "/interview/" + details.dataset.jobId + "/questions/" + details.dataset.index + "/answer",
+                    { method: "POST" }
+                );
+                var data = await resp.json();
+                if (!resp.ok) throw new Error(data.error || "Failed to generate answer");
+
+                body.innerHTML = "";
+                body.appendChild(el("p", "question-answer-text", data.answer || ""));
+                if (data.key_points && data.key_points.length) {
+                    body.appendChild(el("div", "question-answer-label", "Talking points"));
+                    var ul = el("ul", "question-answer-points");
+                    data.key_points.forEach(function (point) {
+                        ul.appendChild(el("li", "", point));
+                    });
+                    body.appendChild(ul);
+                }
+                body.appendChild(
+                    el("p", "question-answer-note", "Based on your CV. Rephrase it in your own words before the interview.")
+                );
+                details.dataset.state = "loaded";
+            } catch (e) {
+                delete details.dataset.state;
+                details.open = false;
+                window.showToast(e.message || "Network error", "error");
+            }
+        });
+    });
+
     var generatePrepBtn = document.getElementById("generate-prep-btn");
     if (generatePrepBtn) {
         generatePrepBtn.addEventListener("click", async function () {

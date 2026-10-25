@@ -96,6 +96,39 @@ def interview_progress(job_id: int):
     return JSONResponse(state)
 
 
+@router.post("/{job_id}/questions/{index}/answer")
+def suggested_answer(job_id: int, index: int, session: Session = Depends(get_session)):
+    job = session.get(Job, job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    prep = session.exec(
+        select(InterviewSession)
+        .where(InterviewSession.job_id == job_id)
+        .order_by(InterviewSession.id.desc())
+    ).first()
+    if not prep or not (0 <= index < len(prep.prep_questions or [])):
+        raise HTTPException(status_code=404, detail="Question not found")
+
+    answers = prep.prep_answers if isinstance(prep.prep_answers, dict) else {}
+    if str(index) in answers:
+        return JSONResponse(answers[str(index)])
+
+    from app.services.interview_prep import generate_suggested_answer
+
+    try:
+        result = generate_suggested_answer(prep, index, job)
+    except Exception:
+        logger.exception("Failed to generate suggested answer")
+        raise HTTPException(status_code=500, detail="Failed to generate answer") from None
+
+    # Reassign a new dict so SQLAlchemy detects the JSON change
+    prep.prep_answers = {**answers, str(index): result}
+    session.add(prep)
+    session.commit()
+    return JSONResponse(result)
+
+
 @router.post("/{job_id}/session")
 def start_session(
     job_id: int,

@@ -22,6 +22,11 @@ logger = logging.getLogger("apply-buddy.interview_prep")
 DEFAULT_INTERVIEW_QUESTIONS_PROMPT = (
     "You are an interview coach. Based on the job description and the candidate's CV, "
     "generate 10-15 likely interview questions and a skills gap analysis.\n\n"
+    "Write the questions a real interviewer for this role would ask: most should come from the "
+    "job description (required skills, responsibilities, typical behavioral and technical "
+    "questions for this role and seniority). Only 2-4 should reference the candidate's CV, the way "
+    "an interviewer who skimmed it would (e.g. a listed project, a career transition, a gap with "
+    "the requirements). Do not tailor questions to make them easy for this candidate.\n\n"
     "CV: {cv_plain}\n"
     "Job Title: {job_title}\n"
     "Company: {company}\n"
@@ -46,6 +51,29 @@ DEFAULT_MOCK_INTERVIEW_FEEDBACK_PROMPT = (
     "- model_answer: string (what a strong answer would look like)\n"
     "- key_strengths: array of strings\n"
     "- areas_for_improvement: array of strings"
+)
+
+
+DEFAULT_SUGGESTED_ANSWER_PROMPT = (
+    "You are an interview coach. Write a strong answer the candidate could give to this "
+    "interview question, in the first person, as they would say it out loud (about 150-250 "
+    "words).\n\n"
+    "Job Title: {job_title}\n"
+    "Company: {company}\n"
+    "Job Description: {description}\n"
+    "Candidate's CV: {cv_plain}\n"
+    "Question: {question}\n\n"
+    "Rules:\n"
+    "- Ground the answer in real experience from the CV. Never invent employers, projects, "
+    "numbers or skills that are not in the CV.\n"
+    "- For behavioral questions, use the STAR structure (Situation, Task, Action, Result).\n"
+    "- If the CV has no relevant experience, answer honestly: show related experience, how the "
+    "candidate would approach it, and willingness to learn. Mark any detail the candidate must "
+    "fill in themselves as [placeholder].\n"
+    "- Connect the answer to what this job needs.\n\n"
+    "Return JSON with keys:\n"
+    "- answer: string (the suggested answer)\n"
+    "- key_points: array of 2-4 short strings (talking points to remember)"
 )
 
 
@@ -96,6 +124,34 @@ def _load_feedback_prompt() -> str:
 
 def _load_feedback_model() -> str | None:
     return load_prompt_model("prompt_mock_feedback_model")
+
+
+def _load_answer_prompt() -> str:
+    return load_prompt("prompt_suggested_answer", DEFAULT_SUGGESTED_ANSWER_PROMPT)
+
+
+def _load_answer_model() -> str | None:
+    return load_prompt_model("prompt_suggested_answer_model")
+
+
+def generate_suggested_answer(session_obj: InterviewSession, index: int, job: Job) -> dict:
+    question = session_obj.prep_questions[index]
+    cv_text = read_cv_text()
+    cv_plain = strip_tex_to_plain(cv_text) if cv_text else ""
+
+    prompt = _load_answer_prompt().format(
+        job_title=escape_format(job.title),
+        company=escape_format(job.company),
+        description=escape_format(job.description),
+        cv_plain=escape_format(cv_plain),
+        question=escape_format(question),
+    )
+    messages = [
+        {"role": "system", "content": "You are an interview coach. Return valid JSON only."},
+        {"role": "user", "content": prompt},
+    ]
+    data = _llm_call_with_retry(messages, _load_answer_model())
+    return {"answer": data.get("answer", ""), "key_points": data.get("key_points", [])}
 
 
 def generate_prep_pack(job_id: int, state: dict[str, Any]) -> None:
@@ -190,6 +246,7 @@ def start_session(
             overall_summary="",
             prep_questions=existing.prep_questions,
             prep_skills_gap=existing.prep_skills_gap,
+            prep_answers=existing.prep_answers or {},
         )
         session.add(session_obj)
         session.commit()

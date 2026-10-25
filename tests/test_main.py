@@ -168,3 +168,9 @@ class TestTemplatesRegistered:
     def test_beautify_description_filter_available(self, client):
         response = client.get("/jobs/")
         assert response.status_code == 200
+
+
+def test_static_files_force_revalidation(client):
+    response = client.get("/static/js/interview.js")
+    assert response.status_code == 200
+    assert response.headers["cache-control"] == "no-cache"

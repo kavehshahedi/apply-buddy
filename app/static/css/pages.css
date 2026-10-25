@@ -819,6 +819,103 @@
     padding-top: 3px;
 }
 
+.question-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.question-answer-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: var(--spacing-xs);
+    padding: 4px 0;
+    font-size: var(--caption);
+    letter-spacing: -0.224px;
+    color: var(--primary);
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+}
+.question-answer-toggle::-webkit-details-marker {
+    display: none;
+}
+.question-answer-toggle:focus-visible {
+    outline: 2px solid var(--primary-focus);
+    outline-offset: 2px;
+    border-radius: var(--radius-xs);
+}
+.question-answer-chevron {
+    transition: transform 0.2s ease;
+}
+.question-answer[open] .question-answer-chevron {
+    transform: rotate(90deg);
+}
+.question-answer-hide,
+.question-answer[open] .question-answer-show {
+    display: none;
+}
+.question-answer[open] .question-answer-hide {
+    display: inline;
+}
+
+.question-answer-body {
+    margin-top: var(--spacing-sm);
+    padding: var(--spacing-md) var(--spacing-lg);
+    background: var(--canvas-parchment);
+    border-radius: var(--radius-sm);
+}
+
+.question-answer-loading {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: var(--caption);
+    letter-spacing: -0.224px;
+    color: var(--ink-muted-48);
+}
+
+.question-answer-text {
+    font-size: var(--body);
+    line-height: 1.47;
+    letter-spacing: -0.374px;
+    color: var(--ink-muted-80);
+    white-space: pre-line;
+}
+
+.question-answer-label {
+    margin-top: var(--spacing-md);
+    margin-bottom: var(--spacing-xxs);
+    font-size: var(--caption-strong);
+    font-weight: 600;
+    letter-spacing: -0.224px;
+    color: var(--ink);
+}
+
+.question-answer-points {
+    padding-left: 20px;
+    font-size: var(--caption);
+    line-height: 1.43;
+    letter-spacing: -0.224px;
+    color: var(--ink-muted-80);
+}
+.question-answer-points li + li {
+    margin-top: var(--spacing-xxs);
+}
+
+.question-answer-note {
+    margin-top: var(--spacing-md);
+    font-size: var(--fine-print);
+    letter-spacing: -0.12px;
+    color: var(--ink-muted-48);
+}
+
+@media (max-width: 640px) {
+    .question-answer-body {
+        padding: var(--spacing-sm) var(--spacing-md);
+    }
+}
+
 .gaps-list {
     display: flex;
     flex-direction: column;

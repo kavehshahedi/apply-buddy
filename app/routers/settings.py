@@ -18,6 +18,7 @@ from app.services.cv_tailor import DEFAULT_TAILOR_CV_PROMPT
 from app.services.interview_prep import (
     DEFAULT_INTERVIEW_QUESTIONS_PROMPT,
     DEFAULT_MOCK_INTERVIEW_FEEDBACK_PROMPT,
+    DEFAULT_SUGGESTED_ANSWER_PROMPT,
 )
 from app.services.job_chat import DEFAULT_JOB_CHAT_PROMPT
 from app.services.llm import _load_available_models
@@ -71,6 +72,11 @@ async def settings_page(request: Request, session: Session = Depends(get_session
                 "prompt_interview_questions_model", ""
             ),
             "prompt_mock_feedback_model": db_settings.get("prompt_mock_feedback_model", ""),
+            "prompt_suggested_answer": db_settings.get(
+                "prompt_suggested_answer", DEFAULT_SUGGESTED_ANSWER_PROMPT
+            ),
+            "prompt_suggested_answer_model": db_settings.get("prompt_suggested_answer_model", ""),
+            "DEFAULT_SUGGESTED_ANSWER_PROMPT": DEFAULT_SUGGESTED_ANSWER_PROMPT,
             "prompt_job_chat": db_settings.get("prompt_job_chat", DEFAULT_JOB_CHAT_PROMPT),
             "prompt_job_chat_model": db_settings.get("prompt_job_chat_model", ""),
             "DEFAULT_JOB_CHAT_PROMPT": DEFAULT_JOB_CHAT_PROMPT,

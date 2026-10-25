@@ -255,6 +255,8 @@
 
                 {{ prompt_block("Mock Interview Feedback", "prompt-mock-feedback", "prompt_mock_feedback_model", "prompt_mock_feedback", ["{question}", "{user_answer}", "{job_title}", "{company}", "{description}", "{cv_plain}"], prompt_mock_feedback_model, prompt_mock_feedback, DEFAULT_MOCK_INTERVIEW_FEEDBACK_PROMPT) }}
 
+                {{ prompt_block("Suggested Interview Answer", "prompt-suggested-answer", "prompt_suggested_answer_model", "prompt_suggested_answer", ["{question}", "{job_title}", "{company}", "{description}", "{cv_plain}"], prompt_suggested_answer_model, prompt_suggested_answer, DEFAULT_SUGGESTED_ANSWER_PROMPT) }}
+
                 {{ prompt_block("Job Chat (system prompt; job, CV and cover letter are appended automatically)", "prompt-job-chat", "prompt_job_chat_model", "prompt_job_chat", [], prompt_job_chat_model, prompt_job_chat, DEFAULT_JOB_CHAT_PROMPT) }}
             </div>
         </div>

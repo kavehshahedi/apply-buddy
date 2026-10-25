@@ -118,3 +118,4 @@ class InterviewSession(SQLModel, table=True):
     overall_summary: Any = Field(default="{}", sa_type=JSON)
     prep_questions: Any = Field(default="[]", sa_type=JSON)
     prep_skills_gap: Any = Field(default="[]", sa_type=JSON)
+    prep_answers: Any = Field(default="{}", sa_type=JSON)

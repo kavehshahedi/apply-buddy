@@ -64,6 +64,14 @@ def _migrate_schema():
             conn.execute(text("ALTER TABLE jobs ADD COLUMN autopilot_processed_at VARCHAR"))
             conn.commit()
 
+    session_columns = [c["name"] for c in inspector.get_columns("interview_sessions")]
+    if "prep_answers" not in session_columns:
+        with db._engine.connect() as conn:
+            conn.execute(
+                text("ALTER TABLE interview_sessions ADD COLUMN prep_answers JSON DEFAULT '{}'")
+            )
+            conn.commit()
+
     try:
         queries_columns = [c["name"] for c in inspector.get_columns("search_queries")]
         for col, col_type in [

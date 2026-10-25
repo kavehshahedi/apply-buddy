@@ -58,7 +58,17 @@
                 {% for q in prep_questions %}
                 <div class="question-card">
                     <div class="question-number">{{ loop.index }}</div>
-                    <div class="question-text">{{ q }}</div>
+                    <div class="question-body">
+                        <div class="question-text">{{ q }}</div>
+                        <details class="question-answer" data-job-id="{{ job.id }}" data-index="{{ loop.index0 }}">
+                            <summary class="question-answer-toggle">
+                                <svg class="question-answer-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 6 15 12 9 18" /></svg>
+                                <span class="question-answer-show">Show suggested answer</span>
+                                <span class="question-answer-hide">Hide suggested answer</span>
+                            </summary>
+                            <div class="question-answer-body"></div>
+                        </details>
+                    </div>
                 </div>
                 {% endfor %}
             </div>

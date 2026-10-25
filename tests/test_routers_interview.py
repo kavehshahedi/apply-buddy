@@ -216,3 +216,24 @@ def test_submit_answer_returns_500_on_llm_error(client, db_session, sample_job, 
     )
     assert response.status_code == 500
     assert response.json() == {"error": "Internal server error"}
+
+
+def test_suggested_answer_generates_once_and_caches(client, db_session, sample_job, monkeypatch):
+    prep = InterviewSession(job_id=sample_job.id, prep_questions=["Q1", "Q2"], prep_skills_gap=[])
+    db_session.add(prep)
+    db_session.commit()
+
+    calls = []
+
+    def fake_generate(session_obj, index, job):
+        calls.append(index)
+        return {"answer": f"A{index}", "key_points": ["p"]}
+
+    monkeypatch.setattr("app.services.interview_prep.generate_suggested_answer", fake_generate)
+
+    url = f"/interview/{sample_job.id}/questions/1/answer"
+    assert client.post(url).json() == {"answer": "A1", "key_points": ["p"]}
+    assert client.post(url).json() == {"answer": "A1", "key_points": ["p"]}
+    assert calls == [1]
+
+    assert client.post(f"/interview/{sample_job.id}/questions/2/answer").status_code == 404
