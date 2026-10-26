@@ -792,6 +792,38 @@ PATCHES = [
         "date_text = 'div:has(> p > a[href*=\"/jobs/view/\"]) ~ p'",
         "date_text = 'div:has(a[href*=\"/jobs/view/\"]) ~ p'",
     ),
+    # ------------------------------------------------------------------
+    # 22. __load_more_jobs: count unique job ids, not elements. Each card
+    #     carries componentkey twice (see 11a), so 25 jobs read as 50
+    #     elements, "more jobs loaded" was always true and the jobs loop
+    #     spun forever after the last card of every page.
+    # ------------------------------------------------------------------
+    (
+        """\
+                        const items = document.querySelectorAll(arguments[0]);
+
+                        // Scrolling the last known item into view is what makes LinkedIn
+                        // append the next batch
+                        if (items.length && items.length <= arguments[1]) {
+                            items[items.length - 1].scrollIntoView({block: 'end'});
+                        }
+
+                        return items.length;\
+""",
+        """\
+                        const items = document.querySelectorAll(arguments[0]);
+                        const count = new Set(Array.from(items)
+                            .map(e => e.getAttribute('componentkey'))).size;
+
+                        // Scrolling the last known item into view is what makes LinkedIn
+                        // append the next batch
+                        if (items.length && count <= arguments[1]) {
+                            items[items.length - 1].scrollIntoView({block: 'end'});
+                        }
+
+                        return count;\
+""",
+    ),
 ]
 
 
