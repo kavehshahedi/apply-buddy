@@ -7,6 +7,10 @@ from pathlib import Path
 
 logger = logging.getLogger("apply-buddy.compile")
 
+COVER_LETTER_REFERENCE_DOCX = (
+    Path(__file__).parent.parent / "resources" / "cover_letter_reference.docx"
+)
+
 
 def _find_exe(name: str) -> str | None:
     found = shutil.which(name)
@@ -112,7 +116,13 @@ def convert_markdown_to_docx(md_path: Path, output_dir: Path) -> tuple[bool, str
     try:
         docx_path = output_dir / f"{md_path.stem}.docx"
         result = subprocess.run(
-            [pandoc_exe, str(md_path), "-o", str(docx_path)],
+            [
+                pandoc_exe,
+                str(md_path),
+                "-o",
+                str(docx_path),
+                f"--reference-doc={COVER_LETTER_REFERENCE_DOCX}",
+            ],
             capture_output=True,
             text=True,
             timeout=60,

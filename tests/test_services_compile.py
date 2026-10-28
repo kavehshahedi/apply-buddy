@@ -1,4 +1,8 @@
+import shutil
+import zipfile
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 from app.services.compile import (
     _cleanup_aux_files,
@@ -264,6 +268,19 @@ def test_convert_markdown_to_docx_pandoc_success(tmp_path, mock_shutil_which):
         success, msg = convert_markdown_to_docx(md_path, tmp_path)
         assert success is True
         assert "docx" in msg
+
+
+@pytest.mark.skipif(not shutil.which("pandoc"), reason="pandoc not installed")
+def test_convert_markdown_to_docx_uses_reference_styles(tmp_path):
+    md_path = tmp_path / "cover_letter.md"
+    md_path.write_text("# Jane Doe\n\nDear Hiring Team,\n", encoding="utf-8")
+    success, msg = convert_markdown_to_docx(md_path, tmp_path)
+    assert success is True, msg
+    with zipfile.ZipFile(tmp_path / "cover_letter.docx") as z:
+        styles = z.read("word/styles.xml").decode()
+        document = z.read("word/document.xml").decode()
+    assert 'w:ascii="Aptos"' in styles
+    assert 'w:left="1134"' in document
 
 
 def test_convert_markdown_to_pdf_via_pandoc(tmp_path):
