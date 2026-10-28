@@ -16,6 +16,16 @@
                     </div>
                     <div class="form-hint">Jobs with a fit score below this value will be skipped (0–100, default: 70)</div>
                 </div>
+                <div class="toggle-row">
+                    <div class="toggle-label">
+                        <span class="toggle-label-title">AI triage before scoring</span>
+                        <span class="toggle-label-desc">Screen new jobs in batches and archive clearly irrelevant ones, so they are not scored and stay archived on later fetches</span>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" class="toggle-input" data-toggle-key="triage_enabled" {% if triage_enabled == "1" %}checked{% endif %} />
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
             </div>
 
             <div class="settings-section">

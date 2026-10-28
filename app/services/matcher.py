@@ -12,10 +12,12 @@ from app.config import settings
 from app.db import db
 from app.models import Job, JobStatus, Setting
 from app.services.llm import LLMError, chat_completion
+from app.services.triage import triage_new_jobs
 from app.services.utils import (
     escape_format,
     load_prompt,
     load_prompt_model,
+    load_setting,
     read_cv_text,
     strip_tex_to_plain,
 )
@@ -108,6 +110,9 @@ def score_all_new_jobs(state: dict[str, Any] | None = None, force_rescore: bool 
         min_kw_score = _load_min_keyword_score()
         cv_text = read_cv_text()
         cv_plain = strip_tex_to_plain(cv_text) if cv_text else ""
+
+        if load_setting("triage_enabled", "1") == "1":
+            triage_new_jobs(cv_plain, state)
 
         with db.session() as session:
             query = select(Job).where(Job.status == JobStatus.new)

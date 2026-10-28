@@ -23,6 +23,7 @@ from app.services.interview_prep import (
 from app.services.job_chat import DEFAULT_JOB_CHAT_PROMPT
 from app.services.llm import _load_available_models
 from app.services.matcher import DEFAULT_SCORE_FIT_PROMPT
+from app.services.triage import DEFAULT_TRIAGE_PROMPT
 
 router = APIRouter(prefix="/settings", tags=["settings"])
 
@@ -42,6 +43,9 @@ async def settings_page(request: Request, session: Session = Depends(get_session
                 "llm_max_concurrency", str(settings.llm_max_concurrency)
             ),
             "prompt_score_fit": db_settings.get("prompt_score_fit", DEFAULT_SCORE_FIT_PROMPT),
+            "prompt_triage": db_settings.get("prompt_triage", DEFAULT_TRIAGE_PROMPT),
+            "prompt_triage_model": db_settings.get("prompt_triage_model", ""),
+            "DEFAULT_TRIAGE_PROMPT": DEFAULT_TRIAGE_PROMPT,
             "prompt_tailor_cv": db_settings.get("prompt_tailor_cv", DEFAULT_TAILOR_CV_PROMPT),
             "prompt_cover_letter": db_settings.get(
                 "prompt_cover_letter", DEFAULT_COVER_LETTER_PROMPT
@@ -96,6 +100,7 @@ async def settings_page(request: Request, session: Session = Depends(get_session
             "autopilot_tailor_cv": db_settings.get("autopilot_tailor_cv", "1"),
             "autopilot_cover_letter": db_settings.get("autopilot_cover_letter", "1"),
             "autopilot_use_template": db_settings.get("autopilot_use_template", "1"),
+            "triage_enabled": db_settings.get("triage_enabled", "1"),
         },
     )
 
