@@ -2,6 +2,7 @@ import json
 import logging
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import UTC, datetime
 from pathlib import Path
 from threading import Lock
 from typing import Any
@@ -23,6 +24,8 @@ from app.services.utils import (
 )
 
 logger = logging.getLogger("apply-buddy.matcher")
+
+LOW_SCORE_REASON_PREFIX = "Archived, score below "
 
 
 def _load_keywords() -> dict[str, float]:
@@ -129,6 +132,7 @@ def score_all_new_jobs(state: dict[str, Any] | None = None, force_rescore: bool 
             state["current"] = 0
 
             llm_jobs = []
+            scored_jobs = []
             for job in jobs:
                 kw_score, matched = _keyword_score(job.title, job.description, keywords)
                 job.matched_keywords = json.dumps(matched)
@@ -171,6 +175,7 @@ def score_all_new_jobs(state: dict[str, Any] | None = None, force_rescore: bool 
                             )
                             job.cv_change_reason = score_result.get("cv_change_reason", "")
                             session.add(job)
+                            scored_jobs.append(job)
                             with lock:
                                 state["current"] += 1
                                 state["message"] = f"Scored {job.title}: {job.fit_score}/100"
@@ -184,8 +189,12 @@ def score_all_new_jobs(state: dict[str, Any] | None = None, force_rescore: bool 
                                 state["errors"] += 1
                                 state["message"] = f"Error scoring {job.title}: {e}"
 
+            archived = _archive_low_scores(scored_jobs, _load_min_score())
             session.commit()
-            state["message"] = f"Scored {state['current']} jobs ({state['errors']} errors)"
+            state["message"] = (
+                f"Scored {state['current']} jobs ({state['errors']} errors, "
+                f"{archived} archived for low score)"
+            )
             logger.info(f"Scored {len(jobs)} jobs")
     except Exception as e:
         logger.exception(f"Scoring crashed: {e}")
@@ -193,6 +202,30 @@ def score_all_new_jobs(state: dict[str, Any] | None = None, force_rescore: bool 
         state["message"] = f"Scoring error: {e}"
     finally:
         state["running"] = False
+
+
+def _archive_low_scores(jobs: list[Job], min_score: int) -> int:
+    """Archive jobs the LLM scored below min_score. Returns the archived count.
+
+    Only jobs given a real score in the current run are passed in, so a 0 from a failed call is
+    never mistaken for a low score, and a job the user restored from the archive keeps its
+    place unless it is explicitly rescored.
+    """
+    now = datetime.now(UTC)
+    archived = 0
+    for job in jobs:
+        try:
+            score = int(job.fit_score)  # type: ignore[arg-type]
+        except (TypeError, ValueError):
+            continue
+        if score < min_score:
+            job.status = JobStatus.archived
+            job.fit_reason = (
+                f"{LOW_SCORE_REASON_PREFIX}{min_score}: {job.fit_reason or ''}".rstrip()
+            )
+            job.updated_at = now
+            archived += 1
+    return archived
 
 
 def _read_cv_text_with_fallback(cv_path: str | None = None) -> str | None:

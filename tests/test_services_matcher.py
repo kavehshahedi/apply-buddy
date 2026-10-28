@@ -398,3 +398,63 @@ def test_score_all_new_jobs_default_prompt_constant():
     assert "description" in DEFAULT_SCORE_FIT_PROMPT
     assert "fit_score" in DEFAULT_SCORE_FIT_PROMPT
     assert "reason" in DEFAULT_SCORE_FIT_PROMPT
+
+
+def _score_by_title(monkeypatch, scores, min_score):
+    """Score each job from a {title: score} map, with triage off and a fixed archive threshold."""
+    cv = "\\documentclass{article}\\begin{document}Test CV\\end{document}"
+    monkeypatch.setattr("app.services.matcher.read_cv_text", lambda: cv)
+    monkeypatch.setattr("app.services.matcher.triage_new_jobs", lambda cv, state: 0)
+    monkeypatch.setattr("app.services.matcher._load_min_score", lambda: min_score)
+
+    def fake_score(job, cv_plain):
+        score = scores[job.title]
+        if isinstance(score, Exception):
+            raise score
+        return {"fit_score": score, "reason": "why"}
+
+    monkeypatch.setattr("app.services.matcher._llm_score_job", fake_score)
+
+
+def _new_jobs(db_session, *titles):
+    db_session.exec(__import__("sqlmodel").delete(Job))
+    db_session.commit()
+    jobs = [Job(linkedin_job_id=f"low_{t}", title=t, company="Co", description="d") for t in titles]
+    db_session.add_all(jobs)
+    db_session.commit()
+    return jobs
+
+
+def test_score_all_new_jobs_archives_below_min_fit_score(db_session, monkeypatch):
+    from app.models import JobStatus
+    from app.services.llm import LLMError
+    from app.services.matcher import LOW_SCORE_REASON_PREFIX
+
+    low, mid, high, failed = _new_jobs(db_session, "low", "mid", "high", "failed")
+    _score_by_title(
+        monkeypatch, {"low": 44, "mid": 45, "high": 80, "failed": LLMError("down")}, min_score=45
+    )
+
+    state = {"errors": 0}
+    score_all_new_jobs(state)
+
+    for job in (low, mid, high, failed):
+        db_session.refresh(job)
+    assert low.status == JobStatus.archived
+    assert low.fit_reason == f"{LOW_SCORE_REASON_PREFIX}45: why"
+    assert mid.status == JobStatus.new and high.status == JobStatus.new
+    # A failed call scores 0 but is not a low score
+    assert failed.status == JobStatus.new and failed.fit_score == 0
+    assert "1 archived for low score" in state["message"]  # type: ignore
+
+
+def test_score_all_new_jobs_min_fit_score_zero_archives_nothing(db_session, monkeypatch):
+    from app.models import JobStatus
+
+    (job,) = _new_jobs(db_session, "zero")
+    _score_by_title(monkeypatch, {"zero": 0}, min_score=0)
+
+    score_all_new_jobs({"errors": 0})
+
+    db_session.refresh(job)
+    assert job.status == JobStatus.new and job.fit_score == 0

@@ -97,6 +97,7 @@ async def settings_page(request: Request, session: Session = Depends(get_session
             "li_bscookie": db_settings.get("li_bscookie", ""),
             "li_at_cookie": db_settings.get("li_at_cookie", ""),
             "autopilot_min_score": db_settings.get("autopilot_min_score", "70"),
+            "min_fit_score": db_settings.get("min_fit_score", str(settings.min_fit_score)),
             "autopilot_tailor_cv": db_settings.get("autopilot_tailor_cv", "1"),
             "autopilot_cover_letter": db_settings.get("autopilot_cover_letter", "1"),
             "autopilot_use_template": db_settings.get("autopilot_use_template", "1"),

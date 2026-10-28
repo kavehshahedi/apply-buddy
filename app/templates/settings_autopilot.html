@@ -9,12 +9,20 @@
             <div class="settings-section">
                 <div class="settings-section-title">Thresholds</div>
                 <div class="form-group">
-                    <label class="form-label">Minimum Fit Score</label>
+                    <label class="form-label">Archive Below Score</label>
+                    <div style="display: flex; gap: 8px; align-items: center">
+                        <input id="min-fit-score" type="number" value="{{ min_fit_score }}" class="form-control" style="width: 100px" min="0" max="100" />
+                        <button data-setting-key="min_fit_score" data-input-id="min-fit-score" class="save-setting btn btn-primary btn-sm">Save</button>
+                    </div>
+                    <div class="form-hint">Newly scored jobs below this value are archived; jobs between this and the process threshold stay on the main page for you to decide (0–100, 0 disables, default: 30)</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Process At Score</label>
                     <div style="display: flex; gap: 8px; align-items: center">
                         <input id="autopilot-min-score" type="number" value="{{ autopilot_min_score }}" class="form-control" style="width: 100px" min="0" max="100" />
                         <button data-setting-key="autopilot_min_score" data-input-id="autopilot-min-score" class="save-setting btn btn-primary btn-sm">Save</button>
                     </div>
-                    <div class="form-hint">Jobs with a fit score below this value will be skipped (0–100, default: 70)</div>
+                    <div class="form-hint">Jobs at or above this value get a tailored CV and cover letter and move to the Review Queue (0–100, default: 70)</div>
                 </div>
                 <div class="toggle-row">
                     <div class="toggle-label">
