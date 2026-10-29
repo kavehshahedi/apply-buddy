@@ -12,10 +12,11 @@ document.addEventListener("DOMContentLoaded", function () {
         return Array.from(table.querySelectorAll("[data-bulk-row]"));
     }
 
-    // Rows hidden by a client-side filter (Applied Board tabs) are never part of the selection.
+    // Rows hidden by a client-side filter (search, Applied Board tabs) are never part of the selection.
     function visibleBoxes() {
         return rowBoxes().filter(function (b) {
-            return b.closest("tr").style.display !== "none";
+            var row = b.closest("tr");
+            return !row.hidden && row.style.display !== "none";
         });
     }
 

@@ -1,6 +1,6 @@
 {% extends "base.html" %} {% block title %} — Applied Board{% endblock %} {% block subnav_title %}Applied Board{% endblock %} {% block head %}<script defer src="/static/js/sankey.js"></script>{% endblock %} {% block subnav_actions %}
-  <a href="/jobs/" class="btn btn-sm btn-dark-utility">Back to Job Listings</a>
-{% endblock %} {% block content %} {% from "_bulk.html" import bulk_head, bulk_cell, bulk_bar %} {% set
+  <a href="/jobs/" class="btn btn-sm btn-dark-utility sub-nav-secondary">Back to Job Listings</a>
+{% endblock %} {% block content %} {% from "_bulk.html" import bulk_head, bulk_cell, bulk_bar %} {% from "_filters.html" import search_field, filter_reset, filter_empty_row, filtered_empty %} {% set
 ns = namespace(applied=0, interview=0, offer=0, accepted=0, rejected=0) %} {% for j in jobs %} {% if
 j.status == 'applied' %}{% set ns.applied = ns.applied + 1 %}{% endif %} {% if j.status ==
 'interview' %}{% set ns.interview = ns.interview + 1 %}{% endif %} {% if j.status == 'offer' %}{%
@@ -32,13 +32,48 @@ ns.accepted) / total * 100)|round|int if total > 0 else 0 %}
     <header class="flow-card-head">
         <div>
             <h2 class="flow-card-title" id="flow-title">Application Flow</h2>
-            <p class="flow-card-sub">Where your {{ flow.total }} applications have gone so far</p>
+            <p class="flow-card-sub">Where your {{ flow.total }} application{{ "s" if flow.total != 1 }} {% if period_label %}from {{ period_label }} {% endif %}{{ "have" if flow.total != 1 else "has" }} gone so far</p>
         </div>
         <p class="flow-card-hint">Select a stage to filter the table</p>
     </header>
     <div class="sankey" id="sankey"></div>
     <script type="application/json" id="sankey-data">{{ flow|tojson }}</script>
 </section>
+{% endif %} {% if jobs or filtered %}
+<form method="GET" action="/applied/" id="filter-form" data-storage-key="appliedFilters" aria-label="Filter applications">
+    <div class="filter-bar">
+        {{ search_field(q) }}
+        <div class="filter-divider" aria-hidden="true"></div>
+        <div class="filter-group">
+            <label for="period-select" class="filter-label">Applied</label>
+            <select id="period-select" name="period" class="filter-select" data-default="all">
+                <option value="all" {% if period not in ["7", "30", "90"] %}selected{% endif %}>Any Time</option>
+                <option value="7" {% if period == "7" %}selected{% endif %}>Last 7 Days</option>
+                <option value="30" {% if period == "30" %}selected{% endif %}>Last 30 Days</option>
+                <option value="90" {% if period == "90" %}selected{% endif %}>Last 90 Days</option>
+            </select>
+        </div>
+        <div class="filter-divider" aria-hidden="true"></div>
+        <div class="filter-group">
+            <label for="sort-select" class="filter-label">Sort</label>
+            <select id="sort-select" name="sort" class="filter-select" data-default="updated">
+                <option value="updated" {% if sort not in ["applied", "company", "score"] %}selected{% endif %}>Last Updated</option>
+                <option value="applied" {% if sort == "applied" %}selected{% endif %}>Date Applied</option>
+                <option value="company" {% if sort == "company" %}selected{% endif %}>Company</option>
+                <option value="score" {% if sort == "score" %}selected{% endif %}>Fit Score</option>
+            </select>
+        </div>
+        <div class="filter-divider" aria-hidden="true"></div>
+        <div class="filter-group">
+            <label for="order-select" class="filter-label">Order</label>
+            <select id="order-select" name="order" class="filter-select" data-default="desc">
+                <option value="desc" {% if order != "asc" %}selected{% endif %}>Desc</option>
+                <option value="asc" {% if order == "asc" %}selected{% endif %}>Asc</option>
+            </select>
+        </div>
+        {{ filter_reset() }}
+    </div>
+</form>
 {% endif %} {% if jobs %}
 <div class="status-tabs">
     <button class="status-tab active" onclick="filterByStatus('all', this)">All <span class="status-tab-count">{{ jobs|length }}</span></button>
@@ -64,7 +99,7 @@ ns.accepted) / total * 100)|round|int if total > 0 else 0 %}
         </thead>
         <tbody>
             {% for job in jobs %}
-            <tr data-status="{{ job.status }}" data-flow="{{ paths[job.id]|join(' ') }}">
+            <tr data-status="{{ job.status }}" data-flow="{{ paths[job.id]|join(' ') }}" data-search="{{ (job.title ~ ' ' ~ job.company ~ ' ' ~ job.location)|lower }}">
                 {{ bulk_cell(job) }}
                 <td>
                     {% if job.company_logo %}
@@ -123,10 +158,12 @@ ns.accepted) / total * 100)|round|int if total > 0 else 0 %}
                 </td>
             </tr>
             {% endfor %}
+            {{ filter_empty_row(8, "Try a different search or stage.") }}
         </tbody>
     </table>
 </div>
 {{ bulk_bar([('interview', 'Interview'), ('rejected', 'Rejected'), ('archived', 'Archive')]) }}
+{% elif filtered %} {{ filtered_empty("No applications in " ~ period_label, "Try a longer period, or reset the filters to see every application.") }}
 {% else %}
 <div class="empty-state">
     <div class="empty-state-icon">

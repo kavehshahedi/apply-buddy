@@ -3,11 +3,11 @@
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10" /><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10" /></svg>
     Reset All &amp; Re-run
 </button>
-<a href="/jobs/" class="btn btn-sm btn-dark-utility">
+<a href="/jobs/" class="btn btn-sm btn-dark-utility sub-nav-secondary">
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
     Back to Jobs
 </a>
-{% endblock %} {% block content %} {% from "_bulk.html" import bulk_head, bulk_cell, bulk_bar %} {% set
+{% endblock %} {% block content %} {% from "_bulk.html" import bulk_head, bulk_cell, bulk_bar %} {% from "_filters.html" import search_field, filter_reset, filter_empty_row, filtered_empty %} {% set
 ns = namespace(score_sum=0, scored_count=0, high_match=0, has_cv=0, has_cl=0) %} {% for j in jobs %}
 {% if j.fit_score is not none %} {% set ns.scored_count = ns.scored_count + 1 %} {% set ns.score_sum
 = ns.score_sum + j.fit_score %} {% if j.fit_score >= 70 %}{% set ns.high_match = ns.high_match + 1
@@ -38,7 +38,45 @@ avg_score = (ns.score_sum / ns.scored_count)|round|int if ns.scored_count > 0 el
     </div>
 </div>
 
-{% if jobs %}
+{% if jobs or filtered %}
+<form method="GET" action="/autopilot/queue" id="filter-form" data-storage-key="queueFilters" aria-label="Filter review queue">
+    <div class="filter-bar">
+        {{ search_field(q) }}
+        <div class="filter-divider" aria-hidden="true"></div>
+        <div class="filter-group">
+            <label for="sort-select" class="filter-label">Sort</label>
+            <select id="sort-select" name="sort" class="filter-select" data-default="score">
+                <option value="score" {% if sort not in ["posted", "fetched"] %}selected{% endif %}>Fit Score</option>
+                <option value="posted" {% if sort == "posted" %}selected{% endif %}>Date Posted</option>
+                <option value="fetched" {% if sort == "fetched" %}selected{% endif %}>Date Fetched</option>
+            </select>
+        </div>
+        <div class="filter-divider" aria-hidden="true"></div>
+        <div class="filter-group">
+            <label for="order-select" class="filter-label">Order</label>
+            <select id="order-select" name="order" class="filter-select" data-default="desc">
+                <option value="desc" {% if order != "asc" %}selected{% endif %}>Desc</option>
+                <option value="asc" {% if order == "asc" %}selected{% endif %}>Asc</option>
+            </select>
+        </div>
+        <div class="filter-divider" aria-hidden="true"></div>
+        <div class="filter-group">
+            <label for="min-score-input" class="filter-label">Min Score</label>
+            <input id="min-score-input" name="min_score" type="number" min="{{ threshold }}" max="100" value="{{ min_score }}" class="filter-input" style="width: 68px" title="Auto-Pilot only queues jobs scoring {{ threshold }} or higher" data-default="{{ threshold }}" />
+        </div>
+        <div class="filter-divider" aria-hidden="true"></div>
+        <div class="filter-group">
+            <label for="files-select" class="filter-label">Files</label>
+            <select id="files-select" name="files" class="filter-select" data-default="all">
+                <option value="all" {% if files not in ["complete", "incomplete"] %}selected{% endif %}>All</option>
+                <option value="complete" {% if files == "complete" %}selected{% endif %}>Complete</option>
+                <option value="incomplete" {% if files == "incomplete" %}selected{% endif %}>Missing</option>
+            </select>
+        </div>
+        {{ filter_reset() }}
+    </div>
+</form>
+{% endif %} {% if jobs %}
 <div class="table-wrap" role="table" aria-label="Auto-Pilot queue table">
     <table data-bulk-table>
         <thead>
@@ -53,7 +91,7 @@ avg_score = (ns.score_sum / ns.scored_count)|round|int if ns.scored_count > 0 el
         </thead>
         <tbody>
             {% for job in jobs %}
-            <tr>
+            <tr data-search="{{ (job.title ~ ' ' ~ job.company ~ ' ' ~ job.location)|lower }}">
                 {{ bulk_cell(job) }}
                 <td>
                     {% if job.company_logo %}
@@ -118,10 +156,12 @@ avg_score = (ns.score_sum / ns.scored_count)|round|int if ns.scored_count > 0 el
                 </td>
             </tr>
             {% endfor %}
+            {{ filter_empty_row(6, "Try a different search.") }}
         </tbody>
     </table>
 </div>
 {{ bulk_bar([('applied', 'Applied'), ('interested', 'Interested'), ('archived', 'Archive')]) }}
+{% elif filtered %} {{ filtered_empty("No matching jobs", "No queued jobs match these filters. Lower the minimum score or show all files.") }}
 {% else %}
 <div class="empty-state">
     <div class="empty-state-icon">

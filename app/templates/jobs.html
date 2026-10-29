@@ -3,15 +3,15 @@
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
     Fetch
 </button>
-<button class="btn btn-sm btn-pearl-capsule" id="manual-fetch-subnav">
+<button class="btn btn-sm btn-pearl-capsule sub-nav-secondary" id="manual-fetch-subnav">
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" /></svg>
     Add URL
 </button>
-<button class="btn btn-sm btn-pearl-capsule" id="manual-job-subnav">
+<button class="btn btn-sm btn-pearl-capsule sub-nav-secondary" id="manual-job-subnav">
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
     Add Job
 </button>
-{% endblock %} {% block content %} {% from "_bulk.html" import bulk_head, bulk_cell, bulk_bar %} {% set
+{% endblock %} {% block content %} {% from "_bulk.html" import bulk_head, bulk_cell, bulk_bar %} {% from "_filters.html" import search_field, filter_reset, filter_empty_row, filtered_empty %} {% set
 ns = namespace(new_count=0, interested_count=0, scored_count=0, score_sum=0, high_match=0,
 unviewed_count=0) %} {% for j in jobs %} {% if j.status == 'new' %}{% set ns.new_count =
 ns.new_count + 1 %}{% endif %} {% if j.status == 'interested' %}{% set ns.interested_count =
@@ -170,11 +170,13 @@ ns.scored_count + 1 %} {% set ns.score_sum = ns.score_sum + j.fit_score %} {% if
     </div>
 </div>
 
-<form method="GET" action="/jobs/" id="filter-form" aria-label="Filter jobs">
+<form method="GET" action="/jobs/" id="filter-form" data-storage-key="jobFilters" aria-label="Filter jobs">
     <div class="filter-bar">
+        {{ search_field(q) }}
+        <div class="filter-divider" aria-hidden="true"></div>
         <div class="filter-group">
             <label for="sort-select" class="filter-label">Sort</label>
-            <select id="sort-select" name="sort" class="filter-select">
+            <select id="sort-select" name="sort" class="filter-select" data-default="date">
                 <option value="date" {% if sort == "date" %}selected{% endif %}>Date Posted</option>
                 <option value="scraped" {% if sort == "scraped" %}selected{% endif %}>Date Fetched</option>
                 <option value="score" {% if sort == "score" %}selected{% endif %}>Fit Score</option>
@@ -183,7 +185,7 @@ ns.scored_count + 1 %} {% set ns.score_sum = ns.score_sum + j.fit_score %} {% if
         <div class="filter-divider" aria-hidden="true"></div>
         <div class="filter-group">
             <label for="order-select" class="filter-label">Order</label>
-            <select id="order-select" name="order" class="filter-select">
+            <select id="order-select" name="order" class="filter-select" data-default="desc">
                 <option value="desc" {% if order == "desc" %}selected{% endif %}>Desc</option>
                 <option value="asc" {% if order == "asc" %}selected{% endif %}>Asc</option>
             </select>
@@ -191,12 +193,12 @@ ns.scored_count + 1 %} {% set ns.score_sum = ns.score_sum + j.fit_score %} {% if
         <div class="filter-divider" aria-hidden="true"></div>
         <div class="filter-group">
             <label for="min-score-input" class="filter-label">Min Score</label>
-            <input id="min-score-input" name="min_score" type="number" min="0" max="100" value="{{ min_score }}" class="filter-input" style="width: 68px" aria-label="Minimum fit score filter" />
+            <input id="min-score-input" name="min_score" type="number" min="0" max="100" value="{{ min_score }}" class="filter-input" style="width: 68px" data-default="0" />
         </div>
         <div class="filter-divider" aria-hidden="true"></div>
         <div class="filter-group">
             <label for="source-select" class="filter-label">Source</label>
-            <select id="source-select" name="source" class="filter-select">
+            <select id="source-select" name="source" class="filter-select" data-default="all">
                 <option value="all" {% if source == "all" %}selected{% endif %}>All</option>
                 <option value="linkedin" {% if source == "linkedin" %}selected{% endif %}>LinkedIn</option>
                 <option value="manual" {% if source == "manual" %}selected{% endif %}>Manual</option>
@@ -205,23 +207,24 @@ ns.scored_count + 1 %} {% set ns.score_sum = ns.score_sum + j.fit_score %} {% if
         <div class="filter-divider" aria-hidden="true"></div>
         <div class="filter-group">
             <label for="viewed-select" class="filter-label">Viewed</label>
-            <select id="viewed-select" name="viewed" class="filter-select">
+            <select id="viewed-select" name="viewed" class="filter-select" data-default="all">
                 <option value="all" {% if viewed == "all" %}selected{% endif %}>All</option>
                 <option value="unviewed" {% if viewed == "unviewed" %}selected{% endif %}>Unviewed</option>
                 <option value="viewed" {% if viewed == "viewed" %}selected{% endif %}>Viewed</option>
             </select>
         </div>
-        <button id="apply-filters-btn" type="button" class="btn btn-sm btn-secondary-pill">Apply</button>
+        {{ filter_reset() }}
     </div>
 </form>
 
-<div class="status-tabs" style="margin-bottom: var(--space-md)">
+<div class="status-tabs">
     <a href="/jobs/?status=active" class="status-tab {% if list_status == 'active' or not list_status %}active{% endif %}">Active <span class="status-tab-count">{{ active_count }}</span></a>
     <a href="/jobs/?status=archived" class="status-tab {% if list_status == 'archived' %}active{% endif %}">Archived</a>
     <a href="/jobs/?status=all" class="status-tab {% if list_status == 'all' %}active{% endif %}">All Jobs</a>
 </div>
 
 {% if jobs %}
+<div class="table-wrap">
     <table data-bulk-table>
         <thead>
             <tr>
@@ -235,7 +238,7 @@ ns.scored_count + 1 %} {% set ns.score_sum = ns.score_sum + j.fit_score %} {% if
         </thead>
         <tbody>
             {% for job in jobs %}
-            <tr class="{% if job.viewed %}viewed{% else %}unviewed{% endif %}">
+            <tr class="{% if job.viewed %}viewed{% else %}unviewed{% endif %}" data-search="{{ (job.title ~ ' ' ~ job.company ~ ' ' ~ job.location)|lower }}">
                 {{ bulk_cell(job) }}
                 <td>
                     {% if job.company_logo %}
@@ -305,6 +308,7 @@ ns.scored_count + 1 %} {% set ns.score_sum = ns.score_sum + j.fit_score %} {% if
                 </td>
             </tr>
             {% endfor %}
+            {{ filter_empty_row(6, "Try a different search.") }}
         </tbody>
     </table>
 </div>
@@ -313,6 +317,7 @@ ns.scored_count + 1 %} {% set ns.score_sum = ns.score_sum + j.fit_score %} {% if
 {% else %}
 {{ bulk_bar([('archived', 'Archive'), ('interested', 'Interested'), ('applied', 'Applied')]) }}
 {% endif %}
+{% elif filtered %} {{ filtered_empty("No matching jobs", "No jobs match these filters. Lower the minimum score or widen the source and viewed filters.") }}
 {% else %}
 <div class="empty-state">
     <div class="empty-state-icon">

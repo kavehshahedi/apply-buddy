@@ -1,5 +1,5 @@
 {% extends "base.html" %} {% block title %} — {{ job.title }}{% endblock %} {% block subnav_title %}Job Details{% endblock %} {% block head %}<script defer src="/static/js/job_chat.js"></script>{% endblock %} {% block subnav_actions %}
-<a href="#job-chat" class="btn btn-sm btn-pearl-capsule">Ask AI</a>
+<a href="#job-chat" class="btn btn-sm btn-pearl-capsule sub-nav-secondary">Ask AI</a>
 {% if job.link %}
 <a href="{{ job.link }}" target="_blank" class="btn btn-sm btn-dark-utility">Open Job Posting</a>
 {% endif %}

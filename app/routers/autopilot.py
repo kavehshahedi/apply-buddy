@@ -5,6 +5,7 @@ from typing import Any
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse
+from sqlalchemy import nulls_last
 from sqlmodel import Session, select
 
 from app.db import get_session
@@ -76,14 +77,25 @@ async def autopilot_progress():
 
 
 @router.get("/queue", response_class=HTMLResponse)
-async def autopilot_queue(request: Request, session: Session = Depends(get_session)):
-    min_score = 70
+async def autopilot_queue(
+    request: Request,
+    session: Session = Depends(get_session),
+    sort: str = "score",
+    order: str = "desc",
+    min_score: int = 0,
+    files: str = "all",
+    q: str = "",
+):
+    threshold = 70
 
     setting = session.get(Setting, "autopilot_min_score")
     if setting and setting.value:
         with contextlib.suppress(ValueError, TypeError):
-            min_score = int(setting.value)
+            threshold = int(setting.value)
+    # The queue only ever holds jobs above the Auto-Pilot threshold, so the filter can only raise it.
+    min_score = max(min_score, threshold)
 
+    order_col = {"posted": Job.date_posted_dt, "fetched": Job.date_scraped}.get(sort, Job.fit_score)
     jobs = session.exec(
         select(Job)
         .where(
@@ -91,17 +103,31 @@ async def autopilot_queue(request: Request, session: Session = Depends(get_sessi
             Job.fit_score.isnot(None),
             Job.fit_score >= min_score,
         )
-        .order_by(Job.fit_score.desc())
+        .order_by(nulls_last(order_col.asc() if order == "asc" else order_col.desc()))
     ).all()
+    if files in ("complete", "incomplete"):
+        jobs = [j for j in jobs if _has_all_files(j) == (files == "complete")]
 
     return request.app.state.templates.TemplateResponse(
         request,
         "autopilot_queue.html",
         {
             "jobs": jobs,
+            "threshold": threshold,
             "min_score": min_score,
+            "sort": sort,
+            "order": order,
+            "files": files,
+            "q": q,
+            "filtered": min_score > threshold or files in ("complete", "incomplete"),
         },
     )
+
+
+def _has_all_files(job: Job) -> bool:
+    has_cv = job.tailored_cv_path or job.tailored_cv_pdf_path
+    has_cl = job.cover_letter_path or job.cover_letter_docx_path or job.cover_letter_pdf_path
+    return bool(has_cv and has_cl)
 
 
 @router.post("/reset")

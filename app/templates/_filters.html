@@ -1,0 +1,36 @@
+{# Shared pieces of the list filter bars; behaviour lives in jobs.js (setupFilters). #}
+
+{% macro search_field(q) %}
+<div class="filter-search">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+    <input id="filter-search" name="q" type="search" value="{{ q }}" class="filter-input" placeholder="Search jobs" aria-label="Search by title, company or location" autocomplete="off" spellcheck="false" data-default="" />
+</div>
+{% endmacro %}
+
+{% macro filter_reset() %}
+<button type="button" class="filter-reset" data-filter-reset hidden>Reset</button>
+<span id="filter-status" class="sr-only" role="status"></span>
+{% endmacro %}
+
+{# Shown by jobs.js when search, tabs or the flow chart hide every row. #}
+{% macro filter_empty_row(colspan, hint) %}
+<tr class="filter-empty-row" id="filter-empty" hidden>
+    <td colspan="{{ colspan }}">
+        <span class="filter-empty-title">No matching jobs</span>
+        <span class="filter-empty-hint">{{ hint }}</span>
+    </td>
+</tr>
+{% endmacro %}
+
+{% macro filtered_empty(title, desc) %}
+<div class="empty-state">
+    <div class="empty-state-icon">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.25" aria-hidden="true"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" /></svg>
+    </div>
+    <div class="empty-state-title">{{ title }}</div>
+    <div class="empty-state-desc">{{ desc }}</div>
+    <div class="empty-state-actions">
+        <button type="button" class="btn btn-sm btn-secondary-pill" data-filter-reset>Reset Filters</button>
+    </div>
+</div>
+{% endmacro %}

@@ -146,3 +146,33 @@ def test_autopilot_reset_only_ready_jobs(client, db_session):
 
     db_session.refresh(new_job)
     assert new_job.status == JobStatus.new
+
+
+def test_autopilot_queue_files_and_min_score_filters(client, db_session):
+    db_session.add(
+        Job(
+            linkedin_job_id="full",
+            title="Full Files",
+            status=JobStatus.ready,
+            fit_score=90,
+            tailored_cv_pdf_path="cv.pdf",
+            cover_letter_docx_path="cl.docx",
+        )
+    )
+    db_session.add(
+        Job(linkedin_job_id="bare", title="No Files", status=JobStatus.ready, fit_score=75)
+    )
+    db_session.commit()
+
+    complete = client.get("/autopilot/queue?files=complete").text
+    assert "Full Files" in complete and "No Files" not in complete
+    incomplete = client.get("/autopilot/queue?files=incomplete").text
+    assert "No Files" in incomplete and "Full Files" not in incomplete
+
+    high = client.get("/autopilot/queue?min_score=80").text
+    assert "Full Files" in high and "No Files" not in high
+    # Can't go below the Auto-Pilot threshold.
+    assert 'value="70"' in client.get("/autopilot/queue?min_score=10").text
+
+    empty = client.get("/autopilot/queue?min_score=99").text
+    assert "No matching jobs" in empty and "Reset Filters" in empty

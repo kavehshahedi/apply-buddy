@@ -1,57 +1,157 @@
 document.addEventListener("DOMContentLoaded", function () {
+    // Rows can be hidden by the search box (hidden attr) and by status tabs / the flow chart
+    // (style.display), so every filter calls this to refresh the empty row, count and bulk selection.
+    window.syncFilteredRows = function () {
+        var rows = Array.from(document.querySelectorAll("tr[data-search]"));
+        var shown = rows.filter(function (r) {
+            return !r.hidden && r.style.display !== "none";
+        }).length;
+        var empty = document.getElementById("filter-empty");
+        if (empty) empty.hidden = shown > 0;
+        var status = document.getElementById("filter-status");
+        if (status) status.textContent = shown + (shown === 1 ? " job" : " jobs") + " shown";
+        if (window.bulkSync) window.bulkSync();
+    };
+
     var filterForm = document.getElementById("filter-form");
+    if (filterForm) setupFilters(filterForm);
 
-    function getFilterKeys() {
-        return Array.from(filterForm.elements)
-            .filter(function (el) {
-                return el.name;
-            })
-            .map(function (el) {
-                return el.name;
-            });
-    }
-
-    function saveFilters() {
-        var params = new URLSearchParams();
-        getFilterKeys().forEach(function (key) {
-            var el = filterForm.elements[key];
-            if (el) params.set(key, el.value);
+    // Search filters rows in place; every other field reloads the page with new query params.
+    function setupFilters(form) {
+        var fields = Array.from(form.querySelectorAll("[data-default]"));
+        var search = document.getElementById("filter-search");
+        var serverFields = fields.filter(function (el) {
+            return el !== search;
         });
-        localStorage.setItem("jobFilters", params.toString());
-    }
+        var storageKey = form.dataset.storageKey;
+        var barReset = form.querySelector("[data-filter-reset]");
+        var timer;
 
-    function restoreFilters() {
-        var saved = localStorage.getItem("jobFilters");
-        if (!saved) return;
-        var urlParams = new URLSearchParams(window.location.search);
-        var savedParams = new URLSearchParams(saved);
-        var needsRedirect = false;
-        getFilterKeys().forEach(function (key) {
-            if (!urlParams.has(key) && savedParams.has(key)) {
-                urlParams.set(key, savedParams.get(key));
-                needsRedirect = true;
-            }
-        });
-        if (needsRedirect) {
-            var qs = urlParams.toString();
-            window.location.href = "/jobs/" + (qs ? "?" + qs : "");
+        function urlWith(params) {
+            var qs = params.toString();
+            return location.pathname + (qs ? "?" + qs : "");
         }
-    }
 
-    var applyFiltersBtn = document.getElementById("apply-filters-btn");
-    if (applyFiltersBtn) {
-        applyFiltersBtn.addEventListener("click", function () {
-            saveFilters();
-            var params = new URLSearchParams();
-            getFilterKeys().forEach(function (key) {
-                var el = filterForm.elements[key];
-                if (el) params.set(key, el.value);
+        function syncReset() {
+            barReset.hidden = fields.every(function (el) {
+                return el.value.trim() === el.dataset.default;
             });
-            window.location.href = "/jobs/?" + params.toString();
-        });
-    }
+        }
 
-    if (applyFiltersBtn) restoreFilters();
+        function filterRows() {
+            var terms = search.value.toLowerCase().split(/\s+/).filter(Boolean);
+            document.querySelectorAll("tr[data-search]").forEach(function (row) {
+                row.hidden = !terms.every(function (t) {
+                    return row.dataset.search.indexOf(t) !== -1;
+                });
+            });
+            window.syncFilteredRows();
+            var params = new URLSearchParams(location.search);
+            if (terms.length) params.set("q", search.value.trim());
+            else params.delete("q");
+            history.replaceState(null, "", urlWith(params));
+        }
+
+        function apply() {
+            clearTimeout(timer);
+            // Only non-default values go in the URL and the saved filters.
+            var params = new URLSearchParams(location.search);
+            var saved = new URLSearchParams();
+            serverFields.forEach(function (el) {
+                var v = el.value.trim();
+                if (v === el.dataset.default) {
+                    params.delete(el.name);
+                } else {
+                    params.set(el.name, v);
+                    saved.set(el.name, v);
+                }
+            });
+            if (saved.toString()) localStorage.setItem(storageKey, saved.toString());
+            else localStorage.removeItem(storageKey);
+            var url = urlWith(params);
+            if (url === location.pathname + location.search) return;
+            // Keep the filter bar where it was on screen, and keep keyboard focus on the field.
+            sessionStorage.setItem(
+                "filterAnchor",
+                JSON.stringify({ top: form.getBoundingClientRect().top, focus: document.activeElement.id })
+            );
+            location.href = url;
+        }
+
+        function reset() {
+            fields.forEach(function (el) {
+                el.value = el.dataset.default;
+            });
+            if (search) filterRows();
+            syncReset();
+            apply();
+            if (search) search.focus();
+        }
+
+        // Saved filters come back when the page is opened without any of its own.
+        var saved = localStorage.getItem(storageKey);
+        var current = new URLSearchParams(location.search);
+        var hasFilters = serverFields.some(function (el) {
+            return current.has(el.name);
+        });
+        if (saved && !hasFilters) {
+            new URLSearchParams(saved).forEach(function (v, k) {
+                current.set(k, v);
+            });
+            var restored = urlWith(current);
+            if (restored !== location.pathname + location.search) return location.replace(restored);
+        }
+
+        var anchor = JSON.parse(sessionStorage.getItem("filterAnchor") || "null");
+        sessionStorage.removeItem("filterAnchor");
+        if (anchor) {
+            // Next frame, so charts rendered on DOMContentLoaded have their final height.
+            requestAnimationFrame(function () {
+                window.scrollBy(0, form.getBoundingClientRect().top - anchor.top);
+                var el = anchor.focus && document.getElementById(anchor.focus);
+                if (el) el.focus({ preventScroll: true });
+            });
+        }
+
+        serverFields.forEach(function (el) {
+            if (el.tagName === "SELECT") {
+                el.addEventListener("change", apply);
+                return;
+            }
+            // Number inputs: wait for typing (or spinner clicks) to settle; Enter applies at once.
+            el.addEventListener("input", function () {
+                clearTimeout(timer);
+                syncReset();
+                if (el.value !== "" && el.checkValidity()) timer = setTimeout(apply, 700);
+            });
+            el.addEventListener("keydown", function (e) {
+                if (e.key !== "Enter") return;
+                e.preventDefault();
+                if (el.reportValidity()) apply();
+            });
+            el.addEventListener("blur", function () {
+                if (el.value !== "" && el.checkValidity()) return;
+                clearTimeout(timer);
+                el.value = el.defaultValue;
+                syncReset();
+            });
+        });
+
+        if (search) {
+            search.addEventListener("input", function () {
+                filterRows();
+                syncReset();
+            });
+            if (search.value) filterRows();
+        }
+        form.addEventListener("submit", function (e) {
+            e.preventDefault();
+        });
+        document.querySelectorAll("[data-filter-reset]").forEach(function (btn) {
+            btn.addEventListener("click", reset);
+        });
+        syncReset();
+    }
 
     function setupFetchJobs(btnId, progressId, textId) {
         var fetchBtn = document.getElementById(btnId);
@@ -401,13 +501,13 @@ document.addEventListener("DOMContentLoaded", function () {
             t.classList.remove("active");
         });
         if (btn) btn.classList.add("active");
-        document.querySelectorAll("#applied-table tbody tr").forEach(function (row) {
+        document.querySelectorAll("#applied-table tbody tr[data-status]").forEach(function (row) {
             if (status === "all" || row.dataset.status === status) {
                 row.style.display = "";
             } else {
                 row.style.display = "none";
             }
         });
-        if (window.bulkSync) window.bulkSync();
+        window.syncFilteredRows();
     };
 });

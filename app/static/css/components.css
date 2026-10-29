@@ -172,6 +172,26 @@
         padding: 0 16px;
     }
 }
+/* Phones keep the page name and its primary action; secondary actions are
+   duplicated in the page body or the global nav. */
+@media (max-width: 640px) {
+    .sub-nav-inner {
+        gap: 12px;
+    }
+    .sub-nav-title {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .sub-nav-actions {
+        flex-shrink: 0;
+        gap: 8px;
+    }
+    .sub-nav-actions .sub-nav-secondary {
+        display: none;
+    }
+}
 
 .main-content {
     margin-top: calc(var(--nav-height) + var(--sub-nav-height));
@@ -632,6 +652,95 @@
     width: 1px;
     height: 18px;
     background: var(--hairline);
+}
+.filter-search {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.filter-search svg {
+    position: absolute;
+    left: 12px;
+    color: var(--ink-muted-48);
+    pointer-events: none;
+}
+.filter-search .filter-input {
+    width: 220px;
+    padding-left: 31px;
+    -webkit-appearance: none;
+    appearance: none;
+}
+.filter-search .filter-input::-webkit-search-decoration {
+    -webkit-appearance: none;
+}
+.filter-search .filter-input::-webkit-search-cancel-button {
+    cursor: pointer;
+}
+.filter-search .filter-input::placeholder {
+    color: var(--ink-muted-48);
+}
+.filter-reset {
+    margin-left: auto;
+    padding: 5px 4px;
+    border: none;
+    background: none;
+    font-family: var(--font-body);
+    font-size: var(--caption);
+    letter-spacing: -0.224px;
+    color: var(--primary);
+    cursor: pointer;
+}
+.filter-reset:hover {
+    text-decoration: underline;
+}
+.filter-reset:focus-visible {
+    outline: 2px solid var(--primary-focus);
+    border-radius: var(--radius-xs);
+}
+.filter-empty-row:hover {
+    background: none;
+}
+.filter-empty-row td {
+    padding: 48px 16px;
+    text-align: center;
+}
+.filter-empty-title {
+    display: block;
+    font-size: var(--body);
+    font-weight: 600;
+    letter-spacing: -0.374px;
+    color: var(--ink);
+}
+.filter-empty-hint {
+    display: block;
+    margin-top: 4px;
+    color: var(--ink-muted-48);
+}
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+@media (max-width: 640px) {
+    .action-bar-group {
+        flex-wrap: wrap;
+        border-radius: var(--radius-lg);
+    }
+    .filter-bar {
+        border-radius: var(--radius-lg);
+        padding: 12px 16px;
+    }
+    .filter-divider {
+        display: none;
+    }
+    .filter-search,
+    .filter-search .filter-input {
+        flex: 1 1 100%;
+        width: 100%;
+    }
 }
 
 .progress-card {

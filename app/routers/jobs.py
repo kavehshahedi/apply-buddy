@@ -37,6 +37,7 @@ async def job_list(
     source: str = "all",
     viewed: str = "all",
     status: str = "active",
+    q: str = "",
 ):
     active_count = len(
         session.exec(select(Job).where(Job.status.in_([JobStatus.new, JobStatus.interested]))).all()
@@ -78,6 +79,8 @@ async def job_list(
             "viewed": viewed,
             "list_status": status,
             "active_count": active_count,
+            "q": q,
+            "filtered": min_score > 0 or source != "all" or viewed != "all",
         },
     )
 

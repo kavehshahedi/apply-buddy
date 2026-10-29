@@ -4,6 +4,7 @@ from itertools import pairwise
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse
+from sqlalchemy import func, nulls_last
 from sqlmodel import Session, select
 
 from app.db import get_session
@@ -79,25 +80,54 @@ def build_flow(
     return flow, paths
 
 
+PERIODS = {"7": "the last 7 days", "30": "the last 30 days", "90": "the last 90 days"}
+
+
 @router.get("/", response_class=HTMLResponse)
-async def applied_board(request: Request, session: Session = Depends(get_session)):
-    jobs = session.exec(
-        select(Job)
-        .where(
-            Job.status.in_(
-                [
-                    JobStatus.applied,
-                    JobStatus.interview,
-                    JobStatus.rejected,
-                    JobStatus.offer,
-                    JobStatus.accepted,
-                ]
-            )
+async def applied_board(
+    request: Request,
+    session: Session = Depends(get_session),
+    period: str = "all",
+    sort: str = "updated",
+    order: str = "desc",
+    q: str = "",
+):
+    now = datetime.now(UTC)
+    sent_at = func.coalesce(Job.applied_at, Job.updated_at)
+    query = select(Job).where(
+        Job.status.in_(
+            [
+                JobStatus.applied,
+                JobStatus.interview,
+                JobStatus.rejected,
+                JobStatus.offer,
+                JobStatus.accepted,
+            ]
         )
-        .order_by(Job.updated_at.desc())
-    ).all()
+    )
+    if period in PERIODS:
+        query = query.where(sent_at >= now - timedelta(days=int(period)))
+    order_col = {
+        "applied": sent_at,
+        "company": func.lower(Job.company),
+        "score": Job.fit_score,
+    }.get(sort, Job.updated_at)
+    query = query.order_by(nulls_last(order_col.asc() if order == "asc" else order_col.desc()))
+    jobs = session.exec(query).all()
     interviewed_ids = set(session.exec(select(InterviewSession.job_id).distinct()).all())
-    flow, paths = build_flow(jobs, interviewed_ids, datetime.now(UTC))
+    flow, paths = build_flow(jobs, interviewed_ids, now)
     return request.app.state.templates.TemplateResponse(
-        request, "applied.html", {"jobs": jobs, "flow": flow, "paths": paths}
+        request,
+        "applied.html",
+        {
+            "jobs": jobs,
+            "flow": flow,
+            "paths": paths,
+            "period": period,
+            "period_label": PERIODS.get(period),
+            "sort": sort,
+            "order": order,
+            "q": q,
+            "filtered": period in PERIODS,
+        },
     )

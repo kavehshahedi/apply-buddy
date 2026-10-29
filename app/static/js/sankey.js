@@ -196,14 +196,14 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function filterRows(node) {
-        document.querySelectorAll("#applied-table tbody tr").forEach(function (row) {
+        document.querySelectorAll("#applied-table tbody tr[data-flow]").forEach(function (row) {
             var hit = !node || row.dataset.flow.split(" ").indexOf(node.id) !== -1;
             row.style.display = hit ? "" : "none";
         });
         document.querySelectorAll(".status-tab").forEach(function (t, i) {
             t.classList.toggle("active", !node && i === 0);
         });
-        if (window.bulkSync) window.bulkSync();
+        window.syncFilteredRows();
     }
 
     function select(node) {

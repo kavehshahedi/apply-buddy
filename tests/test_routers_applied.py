@@ -86,8 +86,14 @@ def test_build_flow_routes_each_job_to_the_right_terminal_node():
         1: (Job(status=JobStatus.applied, applied_at=recent), "applied awaiting"),
         2: (Job(status=JobStatus.applied, applied_at=old), "applied ghosted"),
         3: (Job(status=JobStatus.rejected), "applied rejected"),
-        4: (Job(status=JobStatus.rejected, interviewed_at=old), "applied interview interview_rejected"),
-        5: (Job(status=JobStatus.rejected), "applied interview interview_rejected"),  # has prep session
+        4: (
+            Job(status=JobStatus.rejected, interviewed_at=old),
+            "applied interview interview_rejected",
+        ),
+        5: (
+            Job(status=JobStatus.rejected),
+            "applied interview interview_rejected",
+        ),  # has prep session
         6: (Job(status=JobStatus.interview), "applied interview interviewing"),
         7: (Job(status=JobStatus.offer), "applied interview offer offer_pending"),
         8: (Job(status=JobStatus.accepted), "applied interview offer accepted"),
@@ -121,3 +127,28 @@ def test_status_change_stamps_stage_once(client, db_session):
     client.post("/jobs/bulk", json={"ids": [job.id], "action": "status", "status": "interview"})
     db_session.refresh(job)
     assert job.interviewed_at == first
+
+
+def test_applied_board_period_and_sort(client, db_session):
+    now = datetime.now(UTC)
+    for title, company, days in [("Old Role", "Zeta", 60), ("Fresh Role", "Acme", 10)]:
+        db_session.add(
+            Job(
+                linkedin_job_id=title,
+                title=title,
+                company=company,
+                status=JobStatus.applied,
+                applied_at=now - timedelta(days=days),
+            )
+        )
+    db_session.commit()
+
+    recent = client.get("/applied/?period=30").text
+    assert "Fresh Role" in recent and "Old Role" not in recent
+    assert "from the last 30 days" in recent
+
+    by_company = client.get("/applied/?sort=company&order=asc").text
+    assert by_company.index("Fresh Role") < by_company.index("Old Role")
+
+    empty = client.get("/applied/?period=7").text
+    assert "No applications in the last 7 days" in empty and "Reset Filters" in empty
