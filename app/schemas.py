@@ -3,6 +3,8 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
 
+from app.models import JobStatus
+
 _ALLOWED_TIME_FILTERS = {"day", "week", "month", "any"}
 _ALLOWED_RELEVANCE = {"recent", "relevant"}
 _ALLOWED_JOB_TYPES = {"full_time", "part_time", "contract", "temporary", "internship", None}
@@ -48,6 +50,12 @@ class JobRead(BaseModel):
 class JobUpdate(BaseModel):
     status: str | None = Field(default=None, max_length=50)
     notes: str | None = Field(default=None, max_length=10000)
+
+
+class JobBulkAction(BaseModel):
+    ids: list[int] = Field(min_length=1, max_length=1000)
+    action: Literal["status", "delete"]
+    status: JobStatus | None = None
 
 
 class SearchQueryCreate(BaseModel):

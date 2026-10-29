@@ -2,12 +2,13 @@ import uuid
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from sqlmodel import Session, select
 
 from app.config import settings
 from app.db import get_session
 from app.models import Job, JobStatus
+from app.schemas import JobBulkAction
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
 
@@ -116,6 +117,23 @@ async def create_manual_job(
     session.commit()
     session.refresh(job)
     return RedirectResponse(url=f"/jobs/{job.id}", status_code=303)
+
+
+@router.post("/bulk")
+async def bulk_update_jobs(data: JobBulkAction, session: Session = Depends(get_session)):
+    if data.action == "status" and data.status is None:
+        raise HTTPException(status_code=422, detail="status is required")
+    jobs = session.exec(select(Job).where(Job.id.in_(data.ids))).all()
+    for job in jobs:
+        if data.action == "delete":
+            session.delete(job)
+            continue
+        job.status = data.status
+        if data.status == JobStatus.applied and job.applied_at is None:
+            job.applied_at = datetime.now(UTC)
+        session.add(job)
+    session.commit()
+    return JSONResponse({"ok": True, "count": len(jobs)})
 
 
 @router.post("/{job_id}/status")

@@ -43,6 +43,8 @@
     --days-old-bg: var(--danger-soft);
     --days-old-text: #991b1b;
     --chip-hover-bg: #eef2ff;
+    --control-border: #c7c7cc;
+    --row-selected-bg: rgba(0, 102, 204, 0.07);
 
     --font-display: "SF Pro Display", "SF Pro Text", system-ui, -apple-system, BlinkMacSystemFont,
         "Inter", sans-serif;

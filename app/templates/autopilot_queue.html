@@ -7,7 +7,7 @@
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
     Back to Jobs
 </a>
-{% endblock %} {% block content %} {% set
+{% endblock %} {% block content %} {% from "_bulk.html" import bulk_head, bulk_cell, bulk_bar %} {% set
 ns = namespace(score_sum=0, scored_count=0, high_match=0, has_cv=0, has_cl=0) %} {% for j in jobs %}
 {% if j.fit_score is not none %} {% set ns.scored_count = ns.scored_count + 1 %} {% set ns.score_sum
 = ns.score_sum + j.fit_score %} {% if j.fit_score >= 70 %}{% set ns.high_match = ns.high_match + 1
@@ -40,9 +40,10 @@ avg_score = (ns.score_sum / ns.scored_count)|round|int if ns.scored_count > 0 el
 
 {% if jobs %}
 <div class="table-wrap" role="table" aria-label="Auto-Pilot queue table">
-    <table>
+    <table data-bulk-table>
         <thead>
             <tr>
+                {{ bulk_head() }}
                 <th style="width: 48px"></th>
                 <th>Job</th>
                 <th style="width: 100px">Fit</th>
@@ -53,6 +54,7 @@ avg_score = (ns.score_sum / ns.scored_count)|round|int if ns.scored_count > 0 el
         <tbody>
             {% for job in jobs %}
             <tr>
+                {{ bulk_cell(job) }}
                 <td>
                     {% if job.company_logo %}
                     <div class="company-avatar" style="background: var(--canvas); border: 1px solid var(--hairline)">
@@ -119,6 +121,7 @@ avg_score = (ns.score_sum / ns.scored_count)|round|int if ns.scored_count > 0 el
         </tbody>
     </table>
 </div>
+{{ bulk_bar([('applied', 'Applied'), ('interested', 'Interested'), ('archived', 'Archive')]) }}
 {% else %}
 <div class="empty-state">
     <div class="empty-state-icon">

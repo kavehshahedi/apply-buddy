@@ -408,5 +408,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 row.style.display = "none";
             }
         });
+        if (window.bulkSync) window.bulkSync();
     };
 });

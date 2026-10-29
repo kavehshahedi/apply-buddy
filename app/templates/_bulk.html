@@ -1,0 +1,44 @@
+{% macro bulk_head() %}
+<th class="bulk-cell">
+    <label class="bulk-check-wrap"><input type="checkbox" class="bulk-check" autocomplete="off" data-bulk-all aria-label="Select all jobs" /></label>
+</th>
+{% endmacro %}
+
+{% macro bulk_cell(job) %}
+<td class="bulk-cell">
+    <label class="bulk-check-wrap"><input type="checkbox" class="bulk-check" autocomplete="off" data-bulk-row value="{{ job.id }}" aria-label="Select {{ job.title }} at {{ job.company }}" /></label>
+</td>
+{% endmacro %}
+
+{# actions: list of (status, label); the first one is the primary action. #}
+{% macro bulk_bar(actions) %}
+<div class="bulk-bar" id="bulk-bar" role="region" aria-label="Bulk actions" inert>
+    <div class="bulk-bar-inner">
+        <div class="bulk-bar-summary">
+            <span class="bulk-bar-count" aria-live="polite"><span id="bulk-count">0</span> selected</span>
+            <button type="button" class="bulk-bar-link" data-bulk-select-all>Select all</button>
+            <button type="button" class="bulk-bar-link" data-bulk-clear>Clear</button>
+        </div>
+        <div class="bulk-bar-actions">
+            {% for status, label in actions %}
+            <button type="button" class="btn btn-sm {% if loop.first %}btn-primary{% else %}btn-secondary-pill{% endif %}" data-bulk-status="{{ status }}">{{ label }}</button>
+            {% endfor %}
+            <div class="status-dropdown-wrap">
+                <button type="button" class="btn btn-sm btn-secondary-pill" onclick="toggleStatusMenu(this)" aria-haspopup="true">
+                    Move to
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="18 15 12 9 6 15" /></svg>
+                </button>
+                <div class="status-dropdown-menu bulk-bar-menu" role="menu">
+                    {% for opt in ['new','interested','applied','interview','rejected','offer','accepted','archived'] %}
+                    <button type="button" class="status-dropdown-opt" data-bulk-status="{{ opt }}" role="menuitem"><span class="status-dot {{ opt }}"></span>{{ opt }}</button>
+                    {% endfor %}
+                </div>
+            </div>
+            <button type="button" class="btn btn-sm btn-danger" data-bulk-delete>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" /></svg>
+                Delete
+            </button>
+        </div>
+    </div>
+</div>
+{% endmacro %}

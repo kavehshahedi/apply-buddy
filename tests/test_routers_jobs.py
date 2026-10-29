@@ -203,3 +203,34 @@ def test_delete_job_returns_404(client):
         follow_redirects=False,
     )
     assert response.status_code == 404
+
+
+def test_bulk_status_and_delete(client, db_session, sample_job_data):
+    jobs = [Job(**{**sample_job_data, "linkedin_job_id": f"bulk_{i}"}) for i in range(3)]
+    db_session.add_all(jobs)
+    db_session.commit()
+    ids = [j.id for j in jobs]
+
+    response = client.post(
+        "/jobs/bulk", json={"ids": ids[:2], "action": "status", "status": "applied"}
+    )
+    assert response.json() == {"ok": True, "count": 2}
+    db_session.expire_all()
+    assert [db_session.get(Job, i).status for i in ids] == [
+        JobStatus.applied,
+        JobStatus.applied,
+        JobStatus.new,
+    ]
+    assert db_session.get(Job, ids[0]).applied_at is not None
+
+    assert client.post("/jobs/bulk", json={"ids": ids, "action": "status"}).status_code == 422
+    assert (
+        client.post(
+            "/jobs/bulk", json={"ids": ids, "action": "status", "status": "bogus"}
+        ).status_code
+        == 422
+    )
+
+    response = client.post("/jobs/bulk", json={"ids": ids, "action": "delete"})
+    assert response.json()["count"] == 3
+    assert db_session.exec(select(Job).where(Job.id.in_(ids))).all() == []

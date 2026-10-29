@@ -1,6 +1,6 @@
 {% extends "base.html" %} {% block title %} — Applied Board{% endblock %} {% block subnav_title %}Applied Board{% endblock %} {% block subnav_actions %}
   <a href="/jobs/" class="btn btn-sm btn-dark-utility">Back to Job Listings</a>
-{% endblock %} {% block content %} {% set
+{% endblock %} {% block content %} {% from "_bulk.html" import bulk_head, bulk_cell, bulk_bar %} {% set
 ns = namespace(applied=0, interview=0, offer=0, accepted=0, rejected=0) %} {% for j in jobs %} {% if
 j.status == 'applied' %}{% set ns.applied = ns.applied + 1 %}{% endif %} {% if j.status ==
 'interview' %}{% set ns.interview = ns.interview + 1 %}{% endif %} {% if j.status == 'offer' %}{%
@@ -67,20 +67,23 @@ ns.interview, ns.offer, ns.accepted, ns.rejected]|sum %}
     <button class="status-tab" onclick="filterByStatus('rejected', this)">Rejected <span class="status-tab-count">{{ ns.rejected }}</span></button>
 </div>
 <div class="table-wrap">
-    <table id="applied-table">
+    <table id="applied-table" data-bulk-table>
         <thead>
             <tr>
+                {{ bulk_head() }}
                 <th style="width: 48px"></th>
                 <th>Job</th>
                 <th>Company</th>
                 <th>Status</th>
                 <th>When Applied</th>
                 <th>Notes</th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
             {% for job in jobs %}
             <tr data-status="{{ job.status }}">
+                {{ bulk_cell(job) }}
                 <td>
                     {% if job.company_logo %}
                     <div
@@ -141,6 +144,7 @@ ns.interview, ns.offer, ns.accepted, ns.rejected]|sum %}
         </tbody>
     </table>
 </div>
+{{ bulk_bar([('interview', 'Interview'), ('rejected', 'Rejected'), ('archived', 'Archive')]) }}
 {% else %}
 <div class="empty-state">
     <div class="empty-state-icon">
