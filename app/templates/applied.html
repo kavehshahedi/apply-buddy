@@ -1,4 +1,4 @@
-{% extends "base.html" %} {% block title %} — Applied Board{% endblock %} {% block subnav_title %}Applied Board{% endblock %} {% block subnav_actions %}
+{% extends "base.html" %} {% block title %} — Applied Board{% endblock %} {% block subnav_title %}Applied Board{% endblock %} {% block head %}<script defer src="/static/js/sankey.js"></script>{% endblock %} {% block subnav_actions %}
   <a href="/jobs/" class="btn btn-sm btn-dark-utility">Back to Job Listings</a>
 {% endblock %} {% block content %} {% from "_bulk.html" import bulk_head, bulk_cell, bulk_bar %} {% set
 ns = namespace(applied=0, interview=0, offer=0, accepted=0, rejected=0) %} {% for j in jobs %} {% if
@@ -7,9 +7,7 @@ j.status == 'applied' %}{% set ns.applied = ns.applied + 1 %}{% endif %} {% if j
 set ns.offer = ns.offer + 1 %}{% endif %} {% if j.status == 'accepted' %}{% set ns.accepted =
 ns.accepted + 1 %}{% endif %} {% if j.status == 'rejected' %}{% set ns.rejected = ns.rejected + 1
 %}{% endif %} {% endfor %} {% set total = jobs|length %} {% set success_rate = ((ns.offer +
-ns.accepted) / total * 100)|round|int if total > 0 else 0 %} {% set seg_total = [ns.applied,
-ns.interview, ns.offer, ns.accepted, ns.rejected]|sum %}
-
+ns.accepted) / total * 100)|round|int if total > 0 else 0 %}
 <div class="stats-bar">
     <div class="stat-item">
         <span class="stat-value" style="color: var(--status-applied)">{{ ns.applied }}</span>
@@ -29,34 +27,18 @@ ns.interview, ns.offer, ns.accepted, ns.rejected]|sum %}
     </div>
 </div>
 
-{% if seg_total > 0 %}
-<div class="pipeline-total">
-    <div
-        class="pipeline-total-seg"
-        style="width:{{ (ns.applied / seg_total * 100)|round }}%;background:var(--status-applied);"
-        title="{{ ns.applied }} applied"
-    ></div>
-    <div
-        class="pipeline-total-seg"
-        style="width:{{ (ns.interview / seg_total * 100)|round }}%;background:var(--purple);"
-        title="{{ ns.interview }} interview"
-    ></div>
-    <div
-        class="pipeline-total-seg"
-        style="width:{{ (ns.offer / seg_total * 100)|round }}%;background:var(--success);"
-        title="{{ ns.offer }} offers"
-    ></div>
-    <div
-        class="pipeline-total-seg"
-        style="width:{{ (ns.accepted / seg_total * 100)|round }}%;background:var(--status-accepted);"
-        title="{{ ns.accepted }} accepted"
-    ></div>
-    <div
-        class="pipeline-total-seg"
-        style="width:{{ (ns.rejected / seg_total * 100)|round }}%;background:var(--danger);"
-        title="{{ ns.rejected }} rejected"
-    ></div>
-</div>
+{% if flow.total %}
+<section class="flow-card" aria-labelledby="flow-title">
+    <header class="flow-card-head">
+        <div>
+            <h2 class="flow-card-title" id="flow-title">Application Flow</h2>
+            <p class="flow-card-sub">Where your {{ flow.total }} applications have gone so far</p>
+        </div>
+        <p class="flow-card-hint">Select a stage to filter the table</p>
+    </header>
+    <div class="sankey" id="sankey"></div>
+    <script type="application/json" id="sankey-data">{{ flow|tojson }}</script>
+</section>
 {% endif %} {% if jobs %}
 <div class="status-tabs">
     <button class="status-tab active" onclick="filterByStatus('all', this)">All <span class="status-tab-count">{{ jobs|length }}</span></button>
@@ -82,7 +64,7 @@ ns.interview, ns.offer, ns.accepted, ns.rejected]|sum %}
         </thead>
         <tbody>
             {% for job in jobs %}
-            <tr data-status="{{ job.status }}">
+            <tr data-status="{{ job.status }}" data-flow="{{ paths[job.id]|join(' ') }}">
                 {{ bulk_cell(job) }}
                 <td>
                     {% if job.company_logo %}

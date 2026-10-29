@@ -12,6 +12,20 @@ from app.schemas import JobBulkAction
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
 
+_STAGE_STAMPS = {
+    JobStatus.applied: "applied_at",
+    JobStatus.interview: "interviewed_at",
+    JobStatus.offer: "offered_at",
+}
+
+
+def set_status(job: Job, status: JobStatus) -> None:
+    """Set status and stamp the first time a job reaches each pipeline stage."""
+    job.status = status
+    stamp = _STAGE_STAMPS.get(status)
+    if stamp and getattr(job, stamp) is None:
+        setattr(job, stamp, datetime.now(UTC))
+
 
 @router.get("/", response_class=HTMLResponse)
 async def job_list(
@@ -128,9 +142,7 @@ async def bulk_update_jobs(data: JobBulkAction, session: Session = Depends(get_s
         if data.action == "delete":
             session.delete(job)
             continue
-        job.status = data.status
-        if data.status == JobStatus.applied and job.applied_at is None:
-            job.applied_at = datetime.now(UTC)
+        set_status(job, data.status)
         session.add(job)
     session.commit()
     return JSONResponse({"ok": True, "count": len(jobs)})
@@ -146,11 +158,9 @@ async def update_job_status(
     job = session.get(Job, job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
-    job.status = JobStatus(status)
+    set_status(job, JobStatus(status))
     if notes:
         job.notes = notes
-    if status == "applied" and job.applied_at is None:
-        job.applied_at = datetime.now(UTC)
     session.add(job)
     session.commit()
     return RedirectResponse(url="/jobs/", status_code=303)

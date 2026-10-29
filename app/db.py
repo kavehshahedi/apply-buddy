@@ -50,6 +50,8 @@ def _migrate_schema():
         ("company_logo", "VARCHAR", None),
         ("date_posted_dt", "VARCHAR", None),
         ("viewed", "BOOLEAN", "1"),
+        ("interviewed_at", "VARCHAR", None),
+        ("offered_at", "VARCHAR", None),
     ]:
         if col not in jobs_columns:
             sql = f"ALTER TABLE jobs ADD COLUMN {col} {col_type}"

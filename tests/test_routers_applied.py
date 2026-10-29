@@ -75,3 +75,49 @@ def test_applied_board_excludes_new_and_interested(client, db_session):
     assert "Applied Job" in response.text
     assert "New Job" not in response.text
     assert "Interested Job" not in response.text
+
+
+def test_build_flow_routes_each_job_to_the_right_terminal_node():
+    from app.routers.applied import build_flow
+
+    now = datetime.now(UTC)
+    old, recent = now - timedelta(days=45), now - timedelta(days=3)
+    cases = {
+        1: (Job(status=JobStatus.applied, applied_at=recent), "applied awaiting"),
+        2: (Job(status=JobStatus.applied, applied_at=old), "applied ghosted"),
+        3: (Job(status=JobStatus.rejected), "applied rejected"),
+        4: (Job(status=JobStatus.rejected, interviewed_at=old), "applied interview interview_rejected"),
+        5: (Job(status=JobStatus.rejected), "applied interview interview_rejected"),  # has prep session
+        6: (Job(status=JobStatus.interview), "applied interview interviewing"),
+        7: (Job(status=JobStatus.offer), "applied interview offer offer_pending"),
+        8: (Job(status=JobStatus.accepted), "applied interview offer accepted"),
+        9: (Job(status=JobStatus.rejected, offered_at=old), "applied interview offer declined"),
+    }
+    jobs = []
+    for job_id, (job, _) in cases.items():
+        job.id = job_id
+        jobs.append(job)
+
+    flow, paths = build_flow(jobs, interviewed_ids={5}, now=now)
+
+    assert {i: " ".join(p) for i, p in paths.items()} == {i: c[1] for i, c in cases.items()}
+    assert flow["total"] == 9
+    links = {(e["source"], e["target"]): e["value"] for e in flow["links"]}
+    assert links[("applied", "interview")] == 6
+    assert links[("interview", "offer")] == 3
+    assert {n["id"] for n in flow["nodes"]} >= {"ghosted", "declined", "interview_rejected"}
+
+
+def test_status_change_stamps_stage_once(client, db_session):
+    job = Job(linkedin_job_id="stamp_1", title="T", company="C", status=JobStatus.applied)
+    db_session.add(job)
+    db_session.commit()
+
+    client.post(f"/jobs/{job.id}/status", data={"status": "interview"})
+    db_session.refresh(job)
+    first = job.interviewed_at
+    assert first is not None
+
+    client.post("/jobs/bulk", json={"ids": [job.id], "action": "status", "status": "interview"})
+    db_session.refresh(job)
+    assert job.interviewed_at == first

@@ -30,6 +30,8 @@
 
     --status-applied: #3b82f6;
     --status-accepted: #059669;
+    --status-awaiting: #93c5fd;
+    --status-ghosted: #aeaeb2;
     --badge-interested-bg: #eef2ff;
     --badge-interested-text: var(--primary);
     --badge-applied-bg: #dbeafe;

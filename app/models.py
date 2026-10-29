@@ -66,6 +66,8 @@ class Job(SQLModel, table=True):
 
     autopilot_processed_at: datetime | None = None
     applied_at: datetime | None = None
+    interviewed_at: datetime | None = None
+    offered_at: datetime | None = None
     notes: str = ""
     updated_at: datetime = Field(
         default_factory=lambda: datetime.now(UTC),
